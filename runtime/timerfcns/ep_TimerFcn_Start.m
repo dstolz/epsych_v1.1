@@ -9,18 +9,18 @@ function RUNTIME = ep_TimerFcn_Start(CONFIG, RUNTIME, AX)
 % 
 % Use ep_PsychConfig GUI to specify custom timer function.
 % 
-% Daniel.Stolzberg@gmail.com 2014
+% Daniel.Stolzberg@gmail.com 2019
 
-% Copyright (C) 2016  Daniel Stolzberg, PhD
+% Copyright (C) 2019  Daniel Stolzberg, PhD
 
+E = EPsychInfo;
 
 % make temporary directory in current folder for storing data during
 % runtime in case of a computer crash or Matlab error
-% TO DO:  Add ability for user to define data directory
-if ~isfield(RUNTIME,'DataDir') || ~isdir(RUNTIME.DataDir)
-    RUNTIME.DataDir = [cd filesep 'DATA'];
+if ~isfield(RUNTIME,'DataDir') || ~isfolder(RUNTIME.DataDir)
+    RUNTIME.DataDir = fullfile(fileparts(E.root),'DATA');
 end
-if ~isdir(RUNTIME.DataDir), mkdir(RUNTIME.DataDir); end
+if ~isfolder(RUNTIME.DataDir), mkdir(RUNTIME.DataDir); end
 
 RUNTIME.NSubjects = length(CONFIG);
 
@@ -63,9 +63,12 @@ for i = 1:RUNTIME.NSubjects
     info.CompStartTimestamp = now;
     info.StartDate = strtrim(datestr(info.CompStartTimestamp,'mmm-dd-yyyy'));
     info.StartTime = strtrim(datestr(info.CompStartTimestamp,'HH:MM PM'));
-    [~, computer] = system('hostname'); info.Computer = strtrim(computer);
+    info.EPsychMeta = E.meta;
+    [~, computer] = system('hostname'); 
+    info.Computer = strtrim(computer);
     
-    dfn = sprintf('RUNTIME_DATA_%s_Box_%02d_%s.mat',genvarname(RUNTIME.TRIALS(i).Subject.Name), ...
+    dfn = sprintf('RUNTIME_DATA_%s_Box_%02d_%s.mat', ...
+        genvarname(RUNTIME.TRIALS(i).Subject.Name), ...
         RUNTIME.TRIALS(i).Subject.BoxID,datestr(now,'mmm-dd-yyyy'));
     RUNTIME.DataFile{i} = fullfile(RUNTIME.DataDir,dfn);
 
