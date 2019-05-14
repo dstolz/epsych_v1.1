@@ -36,7 +36,8 @@ classdef EPsychInfo < handle
             m.Version     = obj.Version;
             m.DataVersion = obj.DataVersion;
             m.Checksum    = obj.chksum;
-            m.commitDate  = obj.commitDate;
+            m.CommitDate  = obj.commitDate;
+            m.SmileyFace  = ':)';
             m.CurrentTimestamp = datestr(now);
         end
         
@@ -109,61 +110,7 @@ classdef EPsychInfo < handle
                 datestr(datens,'ddd, mmm dd, yyyy'),datestr(datens,'HH:MM PM'));
         end
         
-        function r = validate_filename(ffn)
-            ffn = cellstr(ffn);
-            r = false(size(ffn));
-            for i = 1:numel(ffn)
-                [~,fn,ext] = fileparts(ffn{i});
-                fn = [fn ext]; %#ok<AGROW>
-                r(i) = length(fn) <= 255 ...
-                    && length(ffn{i}) <= 32000 ...
-                    && isempty(regexp(ffn{i}, ['^(?!^(PRN|AUX|CLOCK\$|NUL|CON|COM\d|LPT\d|\..*)', ...
-                    '(\..+)?$)[^\x00-\x1f\\?*:\"><|/]+$'], 'once'));
-            end
-        end
         
-        function str = truncate_str(str,maxn,side)
-            if nargin < 3 || isempty(side), side = 'left'; end
-            mustBeMember(side,{'left' 'right'});
-            str = cellstr(str);
-            for i = 1:numel(str)
-                if length(str{i}) < maxn
-                    str{i} = str{i};
-                elseif isequal(lower(side),'right')
-                    str{i} = [str{i}(1:end-maxn) '...'];
-                else
-                    str{i} = ['...' str{i}(end-maxn+1:end)];
-                end
-            end
-        end
-        
-        function keep_figure_on_top(hFig,state)
-            % keep_figure_on_top(hFig,state)
-            %
-            % Maintain figure (figure handle = hFig) on top of all other windows if
-            % state = true.
-            %
-            % No errors or warnings are thrown if for some reason this function is
-            % unable to keep hFig on top.
-                        
-            narginchk(2,2);
-            assert(ishandle(hFig),'The first input (hFig) must be a valid figure handle');
-            assert(islogical(state)||isscalar(state),'The second input (state) must be true (1) or false (0)');
-            
-            
-            drawnow expose
-            
-            try %#ok<TRYNC>
-                warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
-                J = get(hFig,'JavaFrame');
-                if verLessThan('matlab','8.1')
-                    J.fHG1Client.getWindow.setAlwaysOnTop(state);
-                else
-                    J.fHG2Client.getWindow.setAlwaysOnTop(state);
-                end
-                warning('on','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
-            end
-        end
     end
     
     
