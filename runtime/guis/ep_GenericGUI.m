@@ -60,18 +60,18 @@ end
 function ep_GenericGUI_OpeningFcn(hObj, ~, h, varargin)
 h.output = hObj;
 
+guidata(hObj, h);
 
-% % Generate a new timer object and then start it
-% h.GTIMER = ep_GenericGUITimer(h.ep_GenericGUI);
-% h.GTIMER.TimerFcn = @GenericGUIRunTime;
-% h.GTIMER.StartFcn = @GenericGUISetup;
-% h.GTIMER.Period = 1; % not really doing much time-critical stuff
-% 
-% start(h.GTIMER);
+% Generate a new timer object and then start it
+h.GTIMER = ep_GenericGUITimer(h.ep_GenericGUI);
+h.GTIMER.TimerFcn = @GenericGUIRunTime;
+h.GTIMER.StartFcn = @GenericGUISetup;
+h.GTIMER.Period = 1; % not really doing much time-critical stuff
+
+start(h.GTIMER);
 
 guidata(hObj, h);
 
-GenericGUISetup([],[],hObj);
 
 % --- Outputs from this function are returned to the command line.
 function varargout = ep_GenericGUI_OutputFcn(hObj, ~, h) 
@@ -80,10 +80,9 @@ varargout{1} = h.output;
 
 
 function close_request(f)
-global AX
+global PRGMSTATE
 
-setpref('ep_GenericGUI','lastPosition',f.Position);
-if isa(AX,'COM.RPco_x') || isa(AX,'COM.TDevAcc_X')
+if isequal(PRGMSTATE,'RUNNING')
     h = guidata(f);
     v = h.stayOnTop.Value;
     h.stayOnTop.Value = 0;
@@ -94,6 +93,8 @@ if isa(AX,'COM.RPco_x') || isa(AX,'COM.TDevAcc_X')
     stay_on_top(h.stayOnTop);
     if isequal(r,'Cancel'), return; end
 end
+setpref('ep_GenericGUI','lastPosition',f.Position);
+
 delete(f);
 
 
@@ -120,6 +121,8 @@ stay_on_top(h.stayOnTop);
 
 % Setup h.tbl_TrialParameters
 setup_tblTrialParameters(h);
+
+update_trials_table(h);
 
 % Setup h.tbl_Triggers
 setup_tblTriggers(h);
@@ -152,16 +155,13 @@ h.txt_TrialType.String = tt;
 
 
 
-function GenericGUIRunTime(timerObj,~,f)
-% This function can be used to monitor things during an experiment 
-% > take a look at source code of other GUIS, such as
-% ep_GenericTrialHistory, to enable.
-% > also uncomment appropriate code in the ep_GenericGUI_OpeningFcn
-% function above.
 
+function GenericGUIRunTime(timerObj,~,f)
+% This function can be used to monitor during an experiment 
 
 % see main help file for this GUI for more info on these global variables
-global RUNTIME
+global RUNTIME PRGMSTATE
+
 
 % persistent variables hold their values across calls to this function
 persistent lastupdate
@@ -184,16 +184,12 @@ end
 if ntrials == lastupdate,  return; end
 lastupdate = ntrials;
 % `````````````````````````````````````````````````````````````````````````
-
-
 % There was a new trial, so do stuff with new data
-
-
-
 
 % Retrieve a structure of handles to objects on the GUI.
 h = guidata(f);
 
+update_trials_table(h);
 
 update_session_info(h);
 
@@ -201,19 +197,25 @@ update_session_info(h);
 
 
 
+function update_trials_table(h)
+global RUNTIME
+
+rn = h.tbl_TrialParameters.RowName;
+rn(ismember(rn,'ACTIVE')) = [];
+wp = RUNTIME.TRIALS.writeparams;
+for i = 1:length(wp)
+    ind = ismember(rn,wp{i});
+    tpData(ind,:) = RUNTIME.TRIALS.trials(:,i)'; %#ok<AGROW>
+end
 
 
+% update the table with any changes made by the trial function or something
+% else
+tpData = [num2cell(RUNTIME.TRIALS.activeTrials); tpData];
+
+h.tbl_TrialParameters.Data = tpData;
 
 
-
-
-
-
-
-function recover_GUI(h)
-vprintf(0,1,'Recovering GUI!\n')
-
-set(h.btnRecoverFromError,'Visible','off'); drawnow
 
 
 
