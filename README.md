@@ -1,4 +1,4 @@
-# epsych
+# epsych v1.1
 
 This Matlab toolbox is designed to facilitate behavioral experiments with/without simultaneous electrophysiology using Matlab with Tucker-Davis Technologies (TDT) hardware and software.
 
@@ -11,13 +11,17 @@ Currently documentation is weak, but a brief introduction can be found in  Intro
 A few labs have contributed to the development of this toolbox.  The UserFiles directory contains some of the work of these labs.  While all files in this toolbox are free to view and use for learning, please contact me (daniel.stolzberg@gmail.com) or the individual creators of the work before using these files for active research projects.
 
 **Requirements**
-* Matlab R2012b (recommended)
+* Matlab R2014b or newer (recommended 2018b)
 * Software available for purchase from TDT http://www.tdt.com
 	* Behavior experiments (no electrophysiology):	*TDT ActiveX Controls*
 	* Electrophysiology experiments:  *TDT OpenEx* and *TDT OpenDeveloper Controls*
 		
 		
-		
+**NOTES ON V1.1**
+epsych V1.1 is essentially the same as the original epsych, minding the following:
+	1. The UserData is no longer part of the v1.1 repository (still available on the original epsych repository) since it has become huge.  Please make a repository for your own files or manage it some other way.  Sharing your developments is still highly encouraged!
+	2. I am slowly migrating code to an object oriented programming style.  This will eventually (hopefully) lead to a v2.0 which will be largely an object oriented-based toolbox that will greatly increase the toolbox's organizational structure and usability.
+	3. TDT Synapse is not currently supported by this version.  Maybe in the future.
 		
 		
 Daniel Stolzberg, PhD
