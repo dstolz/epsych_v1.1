@@ -561,13 +561,16 @@ if ~fn
     return
 end
 
-config = CONFIG; %#ok<NASGU>
+config = CONFIG;
 funcs  = FUNCS; %#ok<NASGU>
 
 if isempty(FUNCS), FUNCS = GetDefaultFuncs; end
-funcs = FUNCS; %#ok<NASGU>
+funcs = FUNCS;
 
-save(fullfile(pn,fn),'config','funcs','-mat');
+E = EPsychInfo;
+meta = E.meta;
+
+save(fullfile(pn,fn),'config','funcs','meta','-mat');
 
 setpref('ep_RunExpt_Setup','CDir',pn);
 

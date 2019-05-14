@@ -203,6 +203,9 @@ if protocol.OPTIONS.compile_at_runtime
     protocol.COMPILED = rmfield(protocol.COMPILED,'trials');
 end
 
+E = EPsychInfo;
+protocol.meta = E.meta;
+
 save(fn,'protocol','-mat','-v7.3');
 
 setpref('PSYCH','ProtDir',pn);
