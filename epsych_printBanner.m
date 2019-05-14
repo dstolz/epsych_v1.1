@@ -3,7 +3,7 @@ function epsych_printBanner(banneridx)
 %
 % Print text EPsych banner and a link to the online manual
 %
-% daniel.stolzberg@gmail.com  8/2016
+% daniel.stolzberg@gmail.com 2019 (c)
 
 
 m{1} = [...
@@ -79,9 +79,9 @@ if ~nargin || isempty(banneridx), banneridx = floor(now); end
 banneridx = mod(banneridx,length(m))+1;
 
 cm = cellstr(m{banneridx});
-cm{end} = sprintf('%s  <a href="matlab: edit(''%s'')">(C) 2016  Daniel Stolzberg, PhD</a>',cm{end},fullfile(epsych_path,'LICENSE'));
-lnk = 'http://dstolz.github.io/epsych/';
-cm{end+1} = sprintf('online manual: <a href="matlab: web(''%s'',''-browser'')">%s</a>',lnk,lnk);
+cm{end} = sprintf('%s\nv1.1 <a href="matlab: edit(''%s'')">(C) 2019  Daniel Stolzberg, PhD</a>',cm{end},fullfile(epsych_path,'LICENSE'));
+lnk = 'https://github.com/dstolz/epsych_v1.1';
+cm{end+1} = sprintf('Repository: <a href="matlab: web(''%s'',''-browser'')">%s</a>',lnk,lnk);
 cm{end+1} = '-> <a href="matlab: ep_LaunchPad">ep_LaunchPad</a>  ... Launch panel for EPsych utilities';
 cm{end+1} = '--> <a href="matlab: ep_ExperimentDesign">ep_ExperimentDesign</a>  ... Define parameters for experiments';
 cm{end+1} = '--> <a href="matlab: ep_BitmaskGen">ep_BitmaskGen</a>        ... Bitmask table generator for behavioral experiments';
