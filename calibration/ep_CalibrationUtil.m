@@ -150,7 +150,7 @@ res = inputdlg(prompt,name,1,dflt,opts);
 
 if isempty(res), return; end
 
-SigAmp = getpref('CalibrationUtil','SIGNALAMP');
+SigAmp = getpref('CalibrationUtil','SIGNALAMP',1);
 if isempty(SigAmp)
     warndlg('Signal Amplitude has not been set yet.  Please set this in the "Settings" menu.','Signal Amp','modal');
     return
