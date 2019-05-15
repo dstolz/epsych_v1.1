@@ -73,7 +73,7 @@ classdef ep_GenericOnlinePlot < ep_GenericGUIHelper & handle
             obj.Timer.StartFcn = @obj.setup_plot; % THESE MIGHT NEED TO BE STATIC FUNCTIONS?!
             obj.Timer.TimerFcn = @obj.update;
             obj.Timer.ErrorFcn = @obj.error;
-            obj.Timer.Period = 0.1;
+            obj.Timer.Period = 0.05;
             
             start(obj.Timer);
             

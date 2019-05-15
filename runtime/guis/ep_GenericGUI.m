@@ -66,7 +66,7 @@ guidata(hObj, h);
 h.GTIMER = ep_GenericGUITimer(h.ep_GenericGUI);
 h.GTIMER.TimerFcn = @GenericGUIRunTime;
 h.GTIMER.StartFcn = @GenericGUISetup;
-h.GTIMER.Period = 1; % not really doing much time-critical stuff
+h.GTIMER.Period = 0.05; % not really doing much time-critical stuff
 
 start(h.GTIMER);
 
