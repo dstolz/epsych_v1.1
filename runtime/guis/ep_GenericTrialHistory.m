@@ -62,8 +62,6 @@ varargout{1} = h.output;
 h.GTIMER = ep_GenericGUITimer(h.ep_GenericTrialHistory);
 h.GTIMER.TimerFcn = @GUITimerRunTime;
 h.GTIMER.StartFcn = @GUITimerSetup;
-h.GTIMER.StopFcn  = @GUITimerStop;
-h.GTIMER.ErrorFcn = @GUITimerError;
 
 start(h.GTIMER);
 
@@ -110,11 +108,14 @@ if ntrials == lastupdate,  return; end
 lastupdate = ntrials;
 % `````````````````````````````````````````````````````````````````````````
 
+if isempty(RUNTIME.TRIALS.DATA(end).ResponseCode), return; end
+
 % Call a function to rearrange DATA to make it easier to use (see below).
 [DATA,INFO] = rerrrange_data(RUNTIME.TRIALS.DATA);
 
 
 % Display each trial in the GUI table h.tbl_trialHistory ------------------
+h = guidata(f);
 
 % Flip the DATA matrix so that the most recent trials are displayed at the
 % top of the table.
@@ -123,9 +124,7 @@ set(h.tbl_trialHistory,'Data',flipud(DATA));
 % set the row names as the trial ids
 set(h.tbl_trialHistory,'RowName',flipud(INFO.TrialID));
 
-function GUITimerStop(~,~,f)
 
-function GUITimerError(~,~,f)
 
 
 
@@ -135,6 +134,7 @@ function [DATAout,INFO] = rerrrange_data(DATAin)
 % Note that while the following is just fine, it is coded here for clarity
 % and relative ease of use.  You can modify this function for your own
 % needs.
+
 
 % Use Response Code bitmask to compute behavior performance
 INFO.RCode = [DATAin.ResponseCode]';
