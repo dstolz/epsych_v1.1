@@ -139,6 +139,7 @@ lastupdate = ntrials;
 h = guidata(f);
 
 DATA = RUNTIME.TRIALS.DATA;
+if isempty(DATA(end).ResponseCode), return; end
 
 % TrialType    = [DATA.TrialType];
 ResponseCode = [DATA.ResponseCode];
