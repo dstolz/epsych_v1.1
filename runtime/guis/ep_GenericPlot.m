@@ -99,7 +99,7 @@ set(h.list_x_variable, ...
     'TooltipString','Select one X parameter');
 
 set(h.list_y_variable, ...
-    'String',[{'< COUNT >'; '< D-PRIME >'}; fn], ...
+    'String',[{'< HIT-/FA-RATE >'; '< D-PRIME >'}; fn], ...
     'Value',1, ...
     'TooltipString','Select a Y parameter');
 
@@ -172,7 +172,7 @@ FARate  = nFA./(nFA+nCR);
 % y may be calculated using he Response Code
 switch yVar
     case '< HIT-/FA-RATE >'
-        y = [HitRate FARate];
+        y = HitRate-FARate;
         
     case '< D-PRIME >'
         y = dprime(HitRate,FARate);

@@ -63,9 +63,6 @@ if TRIALS.TrialIndex == 1
     % THIS IS A GOOD PLACE TO TAKE CARE OF ANY SETUP TASKS LIKE PROMPTING
     % THE USER FOR CUSTOM PARAMETERS, ETC.
     
-    % Add in the trialsActive field which is useful for determining which
-    % trials to use from a GUI
-    TRIALS.activeTrials = true(size(TRIALS.trials,1),1);
 end
 
 
