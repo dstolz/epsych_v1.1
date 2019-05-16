@@ -5,7 +5,7 @@ classdef EPsychInfo < handle
         root
         iconPath
         chksum
-        commitDate
+        commitTimestamp
         meta
     end
     
@@ -36,7 +36,7 @@ classdef EPsychInfo < handle
             m.Version     = obj.Version;
             m.DataVersion = obj.DataVersion;
             m.Checksum    = obj.chksum;
-            m.CommitDate  = obj.commitDate;
+            m.commitTimestamp = obj.commitTimestamp;
             m.SmileyFace  = ':)';
             m.CurrentTimestamp = datestr(now);
         end
@@ -62,7 +62,7 @@ classdef EPsychInfo < handle
             chksum = g(a(1)+1:a(2)-1);
         end
         
-        function c = get.commitDate(obj)
+        function c = get.commitTimestamp(obj)
             fn = fullfile(obj.root,'.git','logs','HEAD');
             d  = dir(fn);
             c  = d.date;

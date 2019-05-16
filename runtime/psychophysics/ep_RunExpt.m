@@ -1038,5 +1038,9 @@ FigOnTop(h.figure1,ontop);
 
 setpref('ep_RunExpt','AlwaysOnTop',ontop);
 
+function version_info
+E = EPsychInfo;
+disp(E.meta)
+
 
 
