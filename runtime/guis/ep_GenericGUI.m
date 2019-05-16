@@ -349,6 +349,9 @@ h = guidata(hObj);
 h.btn_commitChanges.Enable = 'on';
 h.btn_commitChanges.BackgroundColor = [0.2 1 0.2];
 
+h.btn_resetChanges.Enable = 'on';
+h.btn_resetChanges.BackgroundColor = [1 0.2 0.2];
+
 drawnow
 
 
@@ -379,7 +382,11 @@ RUNTIME.TRIALS.trials = newTrials;
 h.btn_commitChanges.Enable = 'off';
 h.btn_commitChanges.BackgroundColor = [0.94 0.94 0.94];
 
+h.btn_resetChanges.Enable = 'off';
+h.btn_resetChanges.BackgroundColor = [0.94 0.94 0.94];
+
 drawnow
+
 
 
 function update_highlight(hObj,row,highlightColor)
