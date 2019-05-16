@@ -210,6 +210,7 @@ for i = 1:size(data,1)
         end
         
         v = str2num(data{i,4}); %#ok<ST2NM>
+        v = round(v,7); % round to 7 digits for 24 bits
     
     elseif data{i,6} % WAV files
 %         t = findobj('type','uitable','-and','tag','param_table');
