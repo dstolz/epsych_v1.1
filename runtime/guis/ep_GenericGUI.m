@@ -211,7 +211,8 @@ end
 
 % update the table with any changes made by the trial function or something
 % else
-tpData = [num2cell(RUNTIME.TRIALS.activeTrials); tpData];
+at = num2cell(RUNTIME.TRIALS.activeTrials);
+tpData = [at(:)'; tpData];
 
 h.tbl_TrialParameters.Data = tpData;
 
