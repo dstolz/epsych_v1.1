@@ -65,19 +65,19 @@ if TRIALS.TrialIndex == 1
     
     % Add in the trialsActive field which is useful for determining which
     % trials to use from a GUI
-    TRIALS.trialActive = true(size(TRIALS.trials,1),1);
+    TRIALS.activeTrials = true(size(TRIALS.trials,1),1);
 end
 
 
 
 
 % find the least used trials for the next trial index
-% * limit the trials based on the trialActive field
-m   = min(TRIALS.TrialCount(TRIALS.trialActive));
-idx = find(TRIALS.TrialCount(TRIALS.trialActive) == m);
+% * limit the trials based on the activeTrials field
+m   = min(TRIALS.TrialCount(TRIALS.activeTrials));
+idx = find(TRIALS.TrialCount(TRIALS.activeTrials) == m);
 
 % randomly select a trial from idx
-TRIALS.NextTrialID = randperm(length(idx),1);
+TRIALS.NextTrialID = idx(randi(length(idx),1));
 
 
 
