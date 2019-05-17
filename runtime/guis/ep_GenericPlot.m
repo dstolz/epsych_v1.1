@@ -58,9 +58,14 @@ function varargout = ep_GenericPlot_OutputFcn(hObj, event, h)
 varargout{1} = h.output;
 
 
+h.lineH = line(h.mainAxes,nan,nan,'linewidth',2,'marker','o','color',[0 0 0], ...
+    'tag','dataplotline');
+
 h.GTIMER = ep_GenericGUITimer(h.ep_GenericPlot);
 h.GTIMER.TimerFcn = @runtime_plot;
 h.GTIMER.StartFcn = @setup_gui;
+
+guidata(hObj,h);
 
 start(h.GTIMER);
 
@@ -68,7 +73,7 @@ sot = getpref('ep_GenericPlot','stayOnTop',false);
 h.stayOnTop.Value = sot;
 stay_on_top(h.stayOnTop);
 
-guidata(hObj,h);
+
 
 
 
@@ -109,7 +114,6 @@ cla(h.mainAxes);
 grid(h.mainAxes,'on');
 box(h.mainAxes,'on');
 
-h.lineH = line(h.mainAxes,nan,nan,'linewidth',2,'marker','o','color',[0 0 0]);
 
 
 function runtime_plot(timerObj,~,f)
@@ -142,49 +146,70 @@ h = guidata(f);
 DATA = RUNTIME.TRIALS.DATA;
 if isempty(DATA(end).ResponseCode), return; end
 
-% TrialType    = [DATA.TrialType];
+xVar = h .list_x_variable.String{h.list_x_variable.Value};
+yVar = h.list_y_variable.String{h.list_y_variable.Value};
+
+
+
+switch yVar
+    case '< HIT-RATE - FA-RATE >'
+        [HR,x]  = compute_hitrate(DATA,xVar);
+        [FAR,~] = compute_farate(DATA,xVar);
+        y = HR - FAR;
+        
+    case '< D-PRIME >'
+        [HR,x]  = compute_hitrate(DATA,xVar);
+        [FAR,~] = compute_farate(DATA,xVar);
+        if length(FAR) == 1, FAR = repmat(FAR,size(HR)); end
+        ind = isnan(HR);
+        y = dprime(HR,FAR);
+        y(ind) = 0;
+        
+    otherwise
+        y = [DATA.(yVar)];
+        x = unique([DATA.(xVar)]);
+end
+
+lineH = findobj('tag','dataplotline');
+lineH.XData = x;
+lineH.YData = y;
+
+drawnow
+
+function [HR,ux] = compute_hitrate(DATA,xVar)
+
 ResponseCode = [DATA.ResponseCode];
 
 % make this user definable (or even loaded from a *.epdp file?)
 Hit   = bitget(ResponseCode,3);
 Miss  = bitget(ResponseCode,4);
+
+x = [DATA.(xVar)];
+ind = [DATA.TrialType] == 0;
+if ~any(ind), HR = nan; ux = nan; end
+ux = unique(x(ind));
+for i = 1:length(ux)
+    ind = x == ux(i) & ind;
+    nHits(i) = sum(Hit(ind));
+    nMiss(i) = sum(Miss(ind));
+end
+HR = nHits./(nHits+nMiss);
+
+function [FAR,ux] = compute_farate(DATA,xVar)
+
+ResponseCode = [DATA.ResponseCode];
+
+% make this user definable (or even loaded from a *.epdp file?)
 CR    = bitget(ResponseCode,6);
 FA    = bitget(ResponseCode,7);
 
-xVar = h.list_x_variable.String{h.list_x_variable.Value};
-yVar = h.list_y_variable.String{h.list_y_variable.Value};
-
 x = [DATA.(xVar)];
-ux = unique(x);
-n = length(ux);
-
-nHits(n,1) = 0; nMiss = nHits; nCR = nHits; nFA = nHits;
-for i = 1:n
-    ind = x == ux(i);
-    nHits(i) = sum(Hit(ind));
-    nMiss(i) = sum(Miss(ind));
+ind = [DATA.TrialType] == 1;
+if ~any(ind), FAR = nan; ux = nan; end
+ux = unique(x(ind));
+for i = 1:length(ux)
+    ind = x == ux(i) & ind;    
     nCR(i)   = sum(CR(ind));
     nFA(i)   = sum(FA(ind));
 end
-
-HitRate = nHits./(nHits+nMiss);
-FARate  = nFA./(nFA+nCR);
-
-HitRate(isnan(HitRate)) = [];
-FARate(isnan(FARate))   = [];
-
-% y may be calculated using he Response Code
-switch yVar
-    case '< HIT-RATE / FA-RATE >'
-        y = HitRate-FARate;
-        
-    case '< D-PRIME >'
-        y = dprime(HitRate,FARate);
-        
-    otherwise
-        y = [DATA.(yVar)];
-end
-
-h.lineH.XData = ux;
-h.lineH.YData = y;
-drawnow
+FAR  = nFA./(nFA+nCR);
