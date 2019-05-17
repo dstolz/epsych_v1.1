@@ -228,6 +228,9 @@ guiStr = h.popup_Launcher.String;
 guiStrSel = guiStr{h.popup_Launcher.Value};
 
 switch guiStrSel
+    case 'Online Plot'
+        ep_GenericOnlinePlot;
+        
     case 'Data Plot'
         ep_GenericPlot;
         
