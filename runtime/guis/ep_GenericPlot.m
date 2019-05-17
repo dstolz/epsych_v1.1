@@ -99,7 +99,7 @@ set(h.list_x_variable, ...
     'TooltipString','Select one X parameter');
 
 set(h.list_y_variable, ...
-    'String',[{'< HIT-/FA-RATE >'; '< D-PRIME >'}; fn], ...
+    'String',[{'< D-PRIME >'}; '< HIT-RATE / FA-RATE >'; fn], ...
     'Value',1, ...
     'TooltipString','Select a Y parameter');
 
@@ -169,9 +169,12 @@ end
 HitRate = nHits./(nHits+nMiss);
 FARate  = nFA./(nFA+nCR);
 
+HitRate(isnan(HitRate)) = 0;
+FARate(isnan(FARate))   = 0;
+
 % y may be calculated using he Response Code
 switch yVar
-    case '< HIT-/FA-RATE >'
+    case '< HIT-RATE / FA-RATE >'
         y = HitRate-FARate;
         
     case '< D-PRIME >'
