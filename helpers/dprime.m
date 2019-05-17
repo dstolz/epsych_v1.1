@@ -6,8 +6,10 @@ function dp = dprime(HR,FAR)
 
 narginchk(2,2);
 
+
 HR  = max(min(HR,0.99),0.01);
 FAR = max(min(FAR,0.99),0.01);
+
 
 z = @(a) sqrt(2)*erfinv(2*a-1);
 
