@@ -68,6 +68,7 @@ sot = getpref('ep_GenericPlot','stayOnTop',false);
 h.stayOnTop.Value = sot;
 stay_on_top(h.stayOnTop);
 
+guidata(hObj,h);
 
 
 
@@ -169,8 +170,8 @@ end
 HitRate = nHits./(nHits+nMiss);
 FARate  = nFA./(nFA+nCR);
 
-HitRate(isnan(HitRate)) = 0;
-FARate(isnan(FARate))   = 0;
+HitRate(isnan(HitRate)) = [];
+FARate(isnan(FARate))   = [];
 
 % y may be calculated using he Response Code
 switch yVar
@@ -184,8 +185,6 @@ switch yVar
         y = [DATA.(yVar)];
 end
 
-x = repmat(x(:),1,size(y,2));
-
-h.lineH.XData = x;
+h.lineH.XData = ux;
 h.lineH.YData = y;
 drawnow
