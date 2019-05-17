@@ -58,9 +58,6 @@ function varargout = ep_GenericPlot_OutputFcn(hObj, event, h)
 varargout{1} = h.output;
 
 
-h.lineH = line(h.mainAxes,nan,nan,'linewidth',2,'marker','o','color',[0 0 0], ...
-    'tag','dataplotline');
-
 h.GTIMER = ep_GenericGUITimer(h.ep_GenericPlot);
 h.GTIMER.TimerFcn = @runtime_plot;
 h.GTIMER.StartFcn = @setup_gui;
@@ -105,7 +102,7 @@ set(h.list_x_variable, ...
     'TooltipString','Select one X parameter');
 
 set(h.list_y_variable, ...
-    'String',[{'< D-PRIME >'}; '< HIT-RATE / FA-RATE >'; fn], ...
+    'String',[{'>> d-prime'}; '< HIT-RATE / FA-RATE >'; fn], ...
     'Value',1, ...
     'TooltipString','Select a Y parameter');
 
@@ -116,7 +113,7 @@ box(h.mainAxes,'on');
 
 
 
-function runtime_plot(timerObj,~,f)
+function runtime_plot(timerObj,forceUpdate,f)
 % TO DO: Make TrialType integer and ResponseCode bits user defineable
 % for now, ResponseCode bit: Hit = 3; Miss = 4; CR = 6; FA = 7
 global RUNTIME PRGMSTATE
@@ -135,10 +132,11 @@ if isempty(ntrials)
     lastupdate = 0;
 end
 
-    
-% escape timer function until a trial has finished
-if ntrials == lastupdate,  return; end
-lastupdate = ntrials;
+if ~forceUpdate
+    % escape timer function until a trial has finished
+    if ntrials == lastupdate,  return; end
+    lastupdate = ntrials;
+end
 % `````````````````````````````````````````````````````````````````````````
 
 h = guidata(f);
@@ -152,12 +150,12 @@ yVar = h.list_y_variable.String{h.list_y_variable.Value};
 
 
 switch yVar
-    case '< HIT-RATE - FA-RATE >'
+    case '>> Hit Rate - FA Rate'
         [HR,x]  = compute_hitrate(DATA,xVar);
         [FAR,~] = compute_farate(DATA,xVar);
         y = HR - FAR;
         
-    case '< D-PRIME >'
+    case '>> d-prime'
         [HR,x]  = compute_hitrate(DATA,xVar);
         [FAR,~] = compute_farate(DATA,xVar);
         if length(FAR) == 1, FAR = repmat(FAR,size(HR)); end
@@ -170,9 +168,11 @@ switch yVar
         x = unique([DATA.(xVar)]);
 end
 
-lineH = findobj('tag','dataplotline');
-lineH.XData = x;
-lineH.YData = y;
+lineH = h.mainAxes.Children;
+if isempty(lineH)
+    cla(h.mainAxes);
+    plot(h.mainAxes,x,y,'linewidth',2,'markersize',10,'marker','o');
+end
 
 drawnow
 
