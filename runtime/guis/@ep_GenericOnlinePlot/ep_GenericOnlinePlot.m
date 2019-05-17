@@ -45,11 +45,24 @@ classdef ep_GenericOnlinePlot < ep_GenericGUIHelper & handle
         
         % Constructor
         function obj = ep_GenericOnlinePlot(TDTactiveX,watchedParams,ax,BoxID)
+            global RUNTIME AX
+
+            narginchk(0,4);
             
-            narginchk(2,4);
-            
+            if nargin == 0 || isempty(TDTactiveX), TDTactiveX = AX; end
             if nargin < 3, ax = []; end
             if nargin < 4 || isempty(BoxID), BoxID = 1; end
+            
+            
+            if nargin < 2 || isempty(watchedParams)
+                wp = RUNTIME.TRIALS.writeparams;
+                tp = RUNTIME.TDT.triggers{1}'; % TO DO: design for multiple modules
+                p = [wp,tp];
+                [s,v] = listdlg('PromptString','Select parameters for plot', ...
+                    'SelectionMode','multiple','ListString',p);
+                if v == 0, delete(obj); return; end
+                watchedParams = p(s);
+            end
             
             obj.TDTactiveX = TDTactiveX;
             obj.watchedParams = watchedParams;
