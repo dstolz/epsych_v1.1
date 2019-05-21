@@ -1,9 +1,12 @@
-function varargout = TankReg(varargin)
+function varargout = ep_TankReg(varargin)
 % TankReg
 %
 % DJS (2011)
 
+% update DJS 2019
+
 % Copyright (C) 2016  Daniel Stolzberg, PhD
+
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -112,6 +115,10 @@ set(h.tank_dir,'String',path);
 %% Callbacks
 
 function register_Callback(hObj, ~, h) %#ok<INUSL,DEFNU>
+    
+[TT,~,TDTfig] = TDT_SetupTT;
+
+
 tanks = get(h.available_tanks,'String');
 
 if isempty(tanks), return; end
@@ -122,7 +129,7 @@ tanks = tanks(x);
 
 set(h.figure1,'Pointer','watch');
 
-regDir = getpref('TankReg','regDir',cd);
+%regDir = getpref('TankReg','regDir',cd);
 
 for i = 1:length(tanks) 
     % remove asterisk if legacy tank
@@ -130,7 +137,8 @@ for i = 1:length(tanks)
 
     fprintf('Adding tank: %s ... ',tanks{i})
 
-	r = addTankToRegistry(tanks{i},regDir);
+    % r = addTankToRegistry(tanks{i},regDir);
+    r = TT.AddTank(['REGISTER@' tanks{i}]);
 
     if r
         fprintf('SUCCESS\n')
@@ -139,6 +147,10 @@ for i = 1:length(tanks)
     end
     
 end
+
+
+delete(TT);
+close(TDTfig);
 
 pause(1) % pause for a second to allow registry to update
 
