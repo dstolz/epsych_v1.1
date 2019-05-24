@@ -41,7 +41,7 @@ for i = 1:length(wp)
         if isscalar(par) && isstruct(par) && ~isfield(par,'buffer') 
             % file buffer (usually WAV file) that needs to be loaded
             wfn = fullfile(par.path,par.file);
-            par.buffer = wavread(wfn);
+            par.buffer = audioread(wfn);
             RP(m).SetTagVal(['~' param '_Size'],par.nsamps); 
             e = RP(m).WriteTagV(param,0,par.buffer(:)');
             

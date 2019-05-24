@@ -117,6 +117,8 @@ switch COMMAND
             end
         end
         
+        RUNTIME.NSubjects = length(CONFIG);
+        
         if CONFIG(1).PROTOCOL.OPTIONS.UseOpenEx
              vprintf(0,'Experiment is designed for use with OpenEx')
             [AX,TDT] = SetupDAexpt;
@@ -229,7 +231,7 @@ switch COMMAND
         end
 
 
-
+    
 
         RUNTIME.TIMER = CreateTimer(h.figure1);
                 

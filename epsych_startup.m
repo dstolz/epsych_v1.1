@@ -50,7 +50,7 @@ if ~nargin || isempty(rootdir)
     [rootdir,~] = fileparts(which('epsych_startup'));
 end
 
-assert(isfolder(rootdir),'Default directory "%s" not found. See help epsych_startup',rootdir)
+assert(isdir(rootdir),'Default directory "%s" not found. See help epsych_startup',rootdir)
 
 oldpath = genpath(rootdir);
 c = textscan(oldpath,'%s','Delimiter',';');

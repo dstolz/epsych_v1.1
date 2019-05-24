@@ -17,10 +17,10 @@ E = EPsychInfo;
 
 % make temporary directory in current folder for storing data during
 % runtime in case of a computer crash or Matlab error
-if ~isfield(RUNTIME,'DataDir') || ~isfolder(RUNTIME.DataDir)
+if ~isfield(RUNTIME,'DataDir') || ~isdir(RUNTIME.DataDir)
     RUNTIME.DataDir = fullfile(fileparts(E.root),'DATA');
 end
-if ~isfolder(RUNTIME.DataDir), mkdir(RUNTIME.DataDir); end
+if ~isdir(RUNTIME.DataDir), mkdir(RUNTIME.DataDir); end
 
 RUNTIME.NSubjects = length(CONFIG);
 

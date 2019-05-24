@@ -189,7 +189,7 @@ lastupdate = ntrials;
 % Retrieve a structure of handles to objects on the GUI.
 h = guidata(f);
 
-update_trials_table(h);
+% update_trials_table(h);
 
 update_session_info(h);
 
@@ -213,6 +213,12 @@ end
 % else
 at = num2cell(RUNTIME.TRIALS.activeTrials);
 tpData = [at(:)'; tpData];
+
+% find indices that contain a structure which defines a buffer (usualy wav file)
+ind = cellfun(@isstruct,tpData);
+
+% update values for buffers
+tpData(ind) = cellfun(@(a) a.file,tpData(ind),'uni',0);
 
 h.tbl_TrialParameters.Data = tpData;
 
