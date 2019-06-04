@@ -353,7 +353,11 @@ row = event.Indices(1);
 col = event.Indices(2);
 
 % make certain the new data is valid
-NewData = str2double(event.NewData);
+if isnumeric(event.NewData)
+    NewData = event.NewData;
+else
+    NewData = str2double(event.NewData);
+end
 if row > 1 && isnan(NewData)
     hObj.Data{row,col} = event.PreviousData;
     errordlg('Invalid input.  Values must be numeric, finite, real, and scalar','ep_GenericGui','modal');
@@ -391,10 +395,9 @@ rn(ismember(rn,'ACTIVE')) = [];
 for i = 1:length(wp)
     ind = ismember(rn,wp{i});
     if ~any(ind), continue; end
-    newTrials(:,i) = Data(:,ind);
+    RUNTIME.TRIALS.trials(:,i) = Data(:,ind);
 end
 
-RUNTIME.TRIALS.trials = newTrials;
 
 h.btn_commitChanges.Enable = 'off';
 h.btn_commitChanges.BackgroundColor = [0.94 0.94 0.94];

@@ -27,7 +27,7 @@ for i = 1:length(wp)
     
     % * hides parameter tag from being updated
     % ! indicates a custom trigger
-    if any(param(1) == '*!'), continue; end
+    if any(param(1) == '*!') || all(param(1:2)=='~*'), continue; end
     
     if TRIALS.randparams(i)
         par = par(1) + abs(diff(par)) .* rand(1);
