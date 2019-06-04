@@ -200,11 +200,13 @@ update_session_info(h);
 function update_trials_table(h)
 global RUNTIME
 
+
 rn = h.tbl_TrialParameters.RowName;
 rn(ismember(rn,'ACTIVE')) = [];
 wp = RUNTIME.TRIALS.writeparams;
 for i = 1:length(wp)
     ind = ismember(rn,wp{i});
+    if ~any(ind), continue; end
     tpData(ind,:) = RUNTIME.TRIALS.trials(:,i)'; %#ok<AGROW>
 end
 
@@ -293,6 +295,12 @@ T = T';
 % use field names from DATA strcuture for the table column names
 fn = RUNTIME.TRIALS.writeparams;
 
+
+% restrict access to parameters with these prefixes
+ind = cellfun(@(a) ismember(a(1),{'~','*','!'}),fn);
+T(ind,:) = [];
+fn(ind) = [];
+
 % find parameters that have multiple values
 for i = 2:size(T,1)
     if ischar(T{i,1})
@@ -312,13 +320,11 @@ ridx = [find(ttind) find(~ttind)];
 fn = fn(ridx);
 T  = T(ridx,:);
 
-
 % Add a row of checkboxes to allow the user to include/exclude trials
 T = [num2cell(true(1,size(T,2))); T];
 
 % add name for first column which controls which trials are active
 fn = [{'ACTIVE'} fn];
-
 
 % add some color
 c = repmat([1 1 1; .95 .95 .95],length(fn),1);
@@ -347,10 +353,11 @@ row = event.Indices(1);
 col = event.Indices(2);
 
 % make certain the new data is valid
-NewData = event.NewData;
-if row > 1 && (~isfinite(NewData) || ~isreal(NewData) || ~isscalar(NewData) || ~isnumeric(NewData))
+NewData = str2double(event.NewData);
+if row > 1 && isnan(NewData)
     hObj.Data{row,col} = event.PreviousData;
     errordlg('Invalid input.  Values must be numeric, finite, real, and scalar','ep_GenericGui','modal');
+    return
 end
 
 
