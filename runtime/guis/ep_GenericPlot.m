@@ -102,7 +102,7 @@ set(h.list_x_variable, ...
     'TooltipString','Select one X parameter');
 
 set(h.list_y_variable, ...
-    'String',[{'>> d-prime'}; '< HIT-RATE / FA-RATE >'; fn], ...
+    'String',[{'>> d-prime'}; {'>> HIT-RATE - FA-RATE'}; fn], ...
     'Value',1, ...
     'TooltipString','Select a Y parameter');
 
@@ -113,13 +113,16 @@ box(h.mainAxes,'on');
 
 
 
-function runtime_plot(timerObj,forceUpdate,f)
+function runtime_plot(timerObj,event,f,forceUpdate)
 % TO DO: Make TrialType integer and ResponseCode bits user defineable
 % for now, ResponseCode bit: Hit = 3; Miss = 4; CR = 6; FA = 7
 global RUNTIME PRGMSTATE
 
 % persistent variables hold their values across calls to this function
 persistent lastupdate
+
+
+if nargin < 4 || isempty(forceUpdate), forceUpdate = false; end
 
 % stop if the program state has changed
 if ismember(PRGMSTATE,{'ERROR','STOP'}), stop(timerObj); return; end
@@ -144,7 +147,7 @@ h = guidata(f);
 DATA = RUNTIME.TRIALS.DATA;
 if isempty(DATA(end).ResponseCode), return; end
 
-xVar = h .list_x_variable.String{h.list_x_variable.Value};
+xVar = h.list_x_variable.String{h.list_x_variable.Value};
 yVar = h.list_y_variable.String{h.list_y_variable.Value};
 
 
@@ -153,12 +156,15 @@ switch yVar
     case '>> Hit Rate - FA Rate'
         [HR,x]  = compute_hitrate(DATA,xVar);
         [FAR,~] = compute_farate(DATA,xVar);
+        if length(FAR) == 1, FAR = repmat(FAR,size(HR)); end
+        if length(FAR) > length(HR), HR(end+1:length(FAR)) = nan; end
         y = HR - FAR;
         
     case '>> d-prime'
         [HR,x]  = compute_hitrate(DATA,xVar);
         [FAR,~] = compute_farate(DATA,xVar);
         if length(FAR) == 1, FAR = repmat(FAR,size(HR)); end
+        if length(FAR) > length(HR), HR(end+1:length(FAR)) = nan; end
         ind = isnan(HR);
         y = dprime(HR,FAR);
         y(ind) = 0;
@@ -167,6 +173,8 @@ switch yVar
         y = [DATA.(yVar)];
         x = unique([DATA.(xVar)]);
 end
+
+if length(y) > length(x), x(end+1:length(y)) = (1:length(y)-length(x))*mean(diff(x))+x(end); end
 
 lineH = h.mainAxes.Children;
 if isempty(lineH)
