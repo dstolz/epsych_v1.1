@@ -15,6 +15,8 @@ function RUNTIME = ep_TimerFcn_Start(CONFIG, RUNTIME, AX)
 
 E = EPsychInfo;
 
+
+
 % make temporary directory in current folder for storing data during
 % runtime in case of a computer crash or Matlab error
 if ~isfield(RUNTIME,'DataDir') || ~isdir(RUNTIME.DataDir)
@@ -24,9 +26,12 @@ if ~isdir(RUNTIME.DataDir), mkdir(RUNTIME.DataDir); end
 
 RUNTIME.NSubjects = length(CONFIG);
 
+RUNTIME.HELPER = epsych.Helper;
+
 for i = 1:RUNTIME.NSubjects
     C = CONFIG(i);
     
+
     RUNTIME.TRIALS(i).trials     = C.PROTOCOL.COMPILED.trials;
     RUNTIME.TRIALS(i).TrialCount = zeros(size(RUNTIME.TRIALS(i).trials,1),1); 
     RUNTIME.TRIALS(i).trialfunc  = C.PROTOCOL.OPTIONS.trialfunc;
