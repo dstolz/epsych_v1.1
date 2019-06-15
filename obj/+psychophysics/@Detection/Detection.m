@@ -1,24 +1,21 @@
-classdef Detection < handle
+classdef Detection
 
-% future Dan: update to make use of enumerated types ep.TrialType and ep.BitMask
+% future Dan: update to make use of enumerated types ep.TrialType
 
     properties
-        Hit_Bit     (1,1) uint8 = 3;
-        Miss_Bit    (1,1) uint8 = 4;
-        FA_Bit      (1,1) uint8 = 6;
-        CR_Bit      (1,1) uint8 = 7;
-
-        Go_TrialType     (1,1) double = 0;
-        NoGo_TrialType   (1,1) double = 1;
+        Go_TrialType    (1,1) double = 0;
+        NoGo_TrialType  (1,1) double = 1;
 
         ParameterName   (1,:) char
         ParameterIDs    (1,:) uint8
 
-        BoxID      (1,1) uint8 = 1;
+        BoxID           (1,1) uint8 = 1;
+        
+        BitColors (4,3) double {mustBeNonnegative,mustBeLessThanOrEqual(BitColors,1)} = [.8 1 .6; 1 .6 .6; .6 .8 1; 1 .6 1];
     end
 
     properties (SetAccess = private)
-        NumTrials     (1,1) uint16 = 0;
+        NumTrials       (1,1) uint16 = 0;
         
         Go_Count        (1,1) uint16 = 0;
         NoGo_Count      (1,1) uint16 = 0;
@@ -48,10 +45,13 @@ classdef Detection < handle
         Bias        (1,:) double
         
         HR_FA_Diff  (1,:) double
-        
-        PlotTools   (1,1) % PlotTools
-        
+                
         Trial_Index (1,1) double
+        
+        
+        TRIALS
+        DATA
+        SUBJECT
     end
     
 
@@ -63,14 +63,8 @@ classdef Detection < handle
         ParameterData       (1,:)
     end
 
-    properties (Access = private)
-        TRIALS
-        listener_NewData
-    end
-
-    
-    events (ListenAccess = 'public', NotifyAccess = 'protected')
-        ParameterUpdate
+    properties (Constant)
+        BitsInUse epsych.BitMask = [3 4 6 7]
     end
     
     
@@ -105,40 +99,25 @@ classdef Detection < handle
 
         
         
-        function link_with_helper(obj,src)
-            obj.listener_NewData = addlistener(src,'NewData',@obj.update_plot);
-        end
-        
-        function update_plot(obj,src,event)
-            if nargin == 3 && isfield(event,'BoxID') && event.BoxID ~= obj.BoxID
-                return;
-            else
-                event = [];
-            end
-            if ~isempty(obj.PlotTools.AxesH) && isvalid(obj.PlotTools.AxesH)
-                obj.PlotTools.update_plot(obj,event);
-            end
-        end
-        
 
         % Ind ------------------------------------------------------
         function r = get.Hit_Ind(obj)
-            r = bitget(obj.ResponseCodes,obj.Hit_Bit);
+            r = bitget(obj.ResponseCodes,epsych.BitMask.Hit);
             r = logical(r);
         end
 
         function r = get.Miss_Ind(obj)
-            r = bitget(obj.ResponseCodes,obj.Miss_Bit);
+            r = bitget(obj.ResponseCodes,epsych.BitMask.Miss);
             r = logical(r);
         end
 
         function r = get.FA_Ind(obj)
-            r = bitget(obj.ResponseCodes,obj.FA_Bit);
+            r = bitget(obj.ResponseCodes,epsych.BitMask.FalseAlarm);
             r = logical(r);
         end
 
         function r = get.CR_Ind(obj)
-            r = bitget(obj.ResponseCodes,obj.CR_Bit);
+            r = bitget(obj.ResponseCodes,epsych.BitMask.CorrectReject);
             r = logical(r);
         end
 
@@ -147,11 +126,11 @@ classdef Detection < handle
 
         % Count -----------------------------------------------------
         function r = get.Go_Count(obj)
-            r = sum([obj.TRIALS.DATA.TrialType] == obj.Go_TrialType);
+            r = sum([obj.DATA.TrialType] == obj.Go_TrialType);
         end
 
         function r = get.NoGo_Count(obj)
-            r = sum([obj.TRIALS.DATA.TrialType] == obj.NoGo_TrialType);
+            r = sum([obj.DATA.TrialType] == obj.NoGo_TrialType);
         end
         
         function n = get.Trial_Count(obj)
@@ -221,22 +200,15 @@ classdef Detection < handle
         end
         
         function rc = get.ResponseCodes(obj)
-            rc = [obj.TRIALS.DATA.ResponseCode];
+            rc = [obj.DATA.ResponseCode];
         end
 
         function n = get.NumTrials(obj)
-            n = length(obj.TRIALS.DATA);
+            n = length(obj.DATA);
         end
 
 
         % Parameter -------------------------------------------------
-        function set.ParameterName(obj,name)
-            ind = ismember(obj.ValidParameters,name);
-            assert(any(ind),'ep_Psychophysics_Detection:set.ParameterName','Invalid parameter name: %s',name);
-            obj.ParameterName = name;
-            
-            obj.notify('ParameterUpdate');
-        end
 
         function v = get.ParameterValues(obj)
             v = [];
@@ -252,7 +224,7 @@ classdef Detection < handle
         end
 
         function d = get.ParameterData(obj)
-            d = [obj.TRIALS.DATA.(obj.ParameterFieldName)];
+            d = [obj.DATA.(obj.ParameterFieldName)];
         end
 
         function n = get.ParameterCount(obj)
@@ -278,7 +250,7 @@ classdef Detection < handle
         end
 
         function p = get.ValidParameters(obj)
-            p = fieldnames(obj.TRIALS.DATA);
+            p = fieldnames(obj.DATA);
             p(~ismember(p,obj.TRIALS.Mwriteparams)) = [];
         end
         
@@ -287,16 +259,18 @@ classdef Detection < handle
             t = RUNTIME.TRIALS(obj.BoxID);
         end
         
+        function d = get.DATA(obj)
+            d = obj.TRIALS.DATA;
+        end
+        
+        function s = get.SUBJECT(obj)
+            s = obj.TRIALS.Subject;
+        end
+        
         function i = get.Trial_Index(obj)
             i = obj.TRIALS.TrialIndex;
         end
         
-        
-        function create_plot(obj,ax)
-            if nargin < 2 || isempty(ax), ax = gca; end
-            obj.PlotTools = psychophysics.PlotTools(obj,ax);
-            obj.PlotTools.update_plot(obj);
-        end
     end
 
     methods (Static)

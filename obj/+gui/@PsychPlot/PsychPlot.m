@@ -1,8 +1,11 @@
-classdef PlotTools < handle
+classdef PsychPlot < handle
     
     properties
         AxesH       (1,1)
         
+        ParameterName (1,:) char
+        
+        PsychophysicsObj
         
         % must jive with obj.ValidPlotTypes
         PlotType    (1,:) char {mustBeMember(PlotType,{'DPrime','Hit_Rate','FA_Rate','Bias'})} = 'DPrime';
@@ -19,24 +22,51 @@ classdef PlotTools < handle
     
     properties (Access = private)
         listener_ParameterUpdate
+        listener_NewData
     end
     
     properties (Constant)
         ValidPlotTypes = {'DPrime','Hit_Rate','FA_Rate','Bias'};
     end
     
+    
+    events (ListenAccess = 'public', NotifyAccess = 'protected')
+        PsychPlot_ParameterUpdate
+    end
+    
+    
     methods
-        function obj = PlotTools(src,ax)
-            if nargin < 2 || isempty(ax), ax = gca; end
-
+        function obj = PsychPlot(pObj,Helper,ax)
+            if nargin < 3 || isempty(ax), ax = gca; end
+            
             obj.AxesH = ax;
             
-            obj.setup_xaxis_label(src,[]);
-            obj.setup_yaxis_label(src,[]);
+            if nargin >= 1 && ~isempty(pObj)
+                obj.PsychophysicsObj = pObj;
+                obj.setup_xaxis_label;
+                obj.setup_yaxis_label;
+                obj.update_plot;
+            end
             
-            obj.listener_ParameterUpdate = addlistener(src,'ParameterUpdate',@obj.setup_xaxis_label);
-            
+            if nargin > 1 && ~isempty(Helper)
+                obj.link_with_helper(Helper);
+            end
         end
+        
+        
+        
+        function set.ParameterName(obj,name)
+            ind = ismember(obj.ValidParameters,name);
+            assert(any(ind),'ep_Psychophysics_Detection:set.ParameterName','Invalid parameter name: %s',name);
+            obj.ParameterName = name;
+            obj.update_plot;
+        end
+        
+        function link_with_helper(obj,Helper)
+            if isempty(Helper) || isempty(Helper), return; end
+            obj.listener_NewData = addlistener(Helper,'NewData',@obj.update_plot);
+        end
+        
         
 
         function h = get.LineH(obj)
@@ -46,6 +76,7 @@ classdef PlotTools < handle
        
         
         function update_plot(obj,src,event)
+            % although data is updated in src and event, just use the obj.PsychophysicsObj
             lh = obj.LineH;
             sh = obj.ScatterH;
             if isempty(lh) || isempty(sh) || ~isvalid(lh) || ~isvalid(sh)
@@ -59,9 +90,10 @@ classdef PlotTools < handle
                 grid(obj.AxesH,'on');
             end
             
-            X = src.ParameterValues;
-            Y = src.(obj.PlotType);
-            C = src.Trial_Count;
+            
+            X = obj.PsychophysicsObj.ParameterValues;
+            Y = obj.PsychophysicsObj.(obj.PlotType);
+            C = obj.PsychophysicsObj.Trial_Count;
             
             lh.XData = X;
             lh.YData = Y;
@@ -85,32 +117,32 @@ classdef PlotTools < handle
                     'Color',[1 1 1],'FontSize',8);
             end
             
-            obj.setup_xaxis_label(src,[]);
-            obj.setup_yaxis_label(src,[]);
+            obj.setup_xaxis_label;
+            obj.setup_yaxis_label;
             
-            if exist('event','var') && isfield(event,'Subject')
-                tstr = sprintf('"%s" - Trial %d',event.Subject.Name,src.Trial_Index);
-            else
-                tstr = sprintf('Box ID %d - Trial %d',src.BoxID,src.Trial_Index);
-            end
+
+            tstr = sprintf('%s [%d] - Trial %d', ...
+                obj.PsychophysicsObj.SUBJECT.Name, ...
+                obj.PsychophysicsObj.BoxID, ...
+                obj.PsychophysicsObj.Trial_Index);
+            
             title(obj.AxesH,tstr);
         end
         
-        function update_parameter(obj,hObj,mouse,src)
+        function update_parameter(obj,hObj,mouse)
             % TO DO: support multiple parameters at a time
-            
             switch hObj.Tag
                 case 'abscissa'
-                    i = find(ismember(src.ValidParameters,src.ParameterName));
-                    [sel,ok] = listdlg('ListString',src.ValidParameters, ...
+                    i = find(ismember(obj.PsychophysicsObj.ValidParameters,obj.PsychophysicsObj.ParameterName));
+                    [sel,ok] = listdlg('ListString',obj.PsychophysicsObj.ValidParameters, ...
                         'SelectionMode','single', ...
                         'InitialValue',i,'Name','Plot', ...
                         'PromptString','Select Independent Variable:', ...
                         'ListSize',[180 150]);
                     if ~ok, return; end
-                    src.ParameterName = src.ValidParameters{sel};
+                    obj.PsychophysicsObj.ParameterName = obj.PsychophysicsObj.ValidParameters{sel};
                     try
-                        delete(obj.TextH(length(src.ParameterValues)+1:end));
+                        delete(obj.TextH(length(obj.PsychophysicsObj.ParameterValues)+1:end));
                     end
                     
                 case 'ordinate'
@@ -124,18 +156,26 @@ classdef PlotTools < handle
                     obj.PlotType = obj.ValidPlotTypes{sel};
                     
             end
-            obj.update_plot(src);
+            obj.update_plot;
         end
         
         
-        function setup_xaxis_label(obj,src,event)
-            x = xlabel(obj.AxesH,src.ParameterName,'Tag','abscissa','Interpreter','none');
-            x.ButtonDownFcn = {@obj.update_parameter,src};
+        function setup_xaxis_label(obj)
+            x = xlabel(obj.AxesH,obj.PsychophysicsObj.ParameterName,'Tag','abscissa','Interpreter','none');
+            x.ButtonDownFcn = @obj.update_parameter;
         end
         
-        function setup_yaxis_label(obj,src,event)
+        function setup_yaxis_label(obj)
             y = ylabel(obj.AxesH,obj.PlotType,'Tag','ordinate','Interpreter','none');
-            y.ButtonDownFcn = {@obj.update_parameter,src};
+            y.ButtonDownFcn = @obj.update_parameter;
+        end
+        
+        function set.PsychophysicsObj(obj,pobj)
+            assert(epsych.Helper.valid_psych_obj(pobj), ...
+                'gui.History:set.PsychophysiccsObj', ...
+                'PsychophysicsObj must be from the toolbox "psychophysics"');
+            obj.PsychophysicsObj = pobj;
+            obj.update_plot;
         end
     end
     
