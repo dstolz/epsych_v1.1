@@ -43,7 +43,7 @@ classdef History < handle
         
         function link_with_helper(obj,Helper)
             if isempty(Helper) || isempty(Helper), return; end
-            obj.listener_NewData = addlistener(Helper,'NewData',@obj.update_plot);
+            obj.listener_NewData = addlistener(Helper,'NewData',@obj.update);
         end
         
         function update(obj,src,event)
@@ -51,6 +51,8 @@ classdef History < handle
             % Call a function to rearrange DATA to make it easier to use (see below).
             obj.rearrange_data;
 
+            if isempty(obj.Data), return ;end
+            
             % Flip the DATA matrix so that the most recent trials are displayed at the
             % top of the table.
             obj.TableH.Data = flipud(obj.Data);
@@ -60,6 +62,8 @@ classdef History < handle
 
             % set the column names
             obj.TableH.ColumnName = obj.ColumnName;
+            
+            obj.update_row_colors;
         end
         
         function set.PsychophysicsObj(obj,pobj)
@@ -72,19 +76,22 @@ classdef History < handle
 
     methods (Access = private)
         function update_row_colors(obj)
-            if ~epsych.Helper.valid_psych_obj, return; end
+            if ~epsych.Helper.valid_psych_obj(obj.PsychophysicsObj), return; end
             C(size(obj.Data,1),3) = 0;
             R = cellfun(@epsych.BitMask,obj.Data(:,2));
-            for i = 1:obj.PsychophysicsObj.BitsInUse
+            for i = 1:length(obj.PsychophysicsObj.BitsInUse)
                 ind = R == obj.PsychophysicsObj.BitsInUse(i);
                 if ~any(ind), continue; end
                 C(ind,:) = repmat(obj.PsychophysicsObj.BitColors(i,:),sum(ind),1);
             end
+            obj.TableH.BackgroundColor = flipud(C);
+            obj.TableH.RowStriping = 'on';
         end
         
         function rearrange_data(obj)
             DataIn = obj.PsychophysicsObj.DATA;
-
+            if isempty(DataIn.TrialID), return; end
+            
             % Trial numbers
             obj.Info.TrialID = [DataIn.TrialID]';
             
@@ -96,12 +103,7 @@ classdef History < handle
             obj.Info.RelativeTimestamp = tdStr(:);            
             
 
-            ResponseCode = [DataIn.ResponseCode];
-            Response = cell(length(ResponseCode),1);
-            for i = 1:length(obj.PsychophysicsObj.BitsInUse)
-                ind = logical(bitget(ResponseCode,obj.PsychophysicsObj.BitsInUse(i)));
-                Response(ind,1) = {char(epsych.BitMask(obj.PsychophysicsObj.BitsInUse(i)))};
-            end
+            Response = obj.PsychophysicsObj.ResponsesChar;
             
             
             % remove these fields

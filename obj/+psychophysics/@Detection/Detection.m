@@ -11,7 +11,7 @@ classdef Detection
 
         BoxID           (1,1) uint8 = 1;
         
-        BitColors (4,3) double {mustBeNonnegative,mustBeLessThanOrEqual(BitColors,1)} = [.8 1 .6; 1 .6 .6; .6 .8 1; 1 .6 1];
+        BitColors (4,3) double {mustBeNonnegative,mustBeLessThanOrEqual(BitColors,1)} = [.8 1 .8; 1 .7 .7; 1 .7 1; .7 .9 1];
     end
 
     properties (SetAccess = private)
@@ -21,6 +21,8 @@ classdef Detection
         NoGo_Count      (1,1) uint16 = 0;
 
         ResponseCodes   (1,:) uint16
+        ResponsesEnum   (1,:) epsych.BitMask
+        ResponsesChar   (1,:) cell
 
         ValidParameters (1,:) cell
 
@@ -197,6 +199,20 @@ classdef Detection
 
         function c = get.Bias(obj)
             c = -(obj.zscore(obj.Hit_Rate) + obj.zscore(obj.FA_Rate))./2;
+        end
+        
+        function r = get.ResponsesEnum(obj)
+            RC = obj.ResponseCodes;
+            r(length(RC),1) = epsych.BitMask(0);
+            for i = obj.BitsInUse
+                ind = logical(bitget(RC,i));
+                if ~any(ind), continue; end
+                r(ind) = i;
+            end
+        end
+        
+        function c = get.ResponsesChar(obj)
+            c = cellfun(@char,num2cell(obj.ResponsesEnum),'uni',0);
         end
         
         function rc = get.ResponseCodes(obj)

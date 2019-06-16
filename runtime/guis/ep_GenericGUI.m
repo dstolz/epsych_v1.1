@@ -237,7 +237,7 @@ guiStrSel = guiStr{h.popup_Launcher.Value};
 
 switch guiStrSel
     case 'Online Plot'
-        ep_GenericOnlinePlot;
+        epsych.OnlinePlot;
         
     case 'Data Plot'
         ep_GenericPlot;

@@ -1,6 +1,7 @@
 classdef BitMask < uint8
 
     enumeration
+        Undefined       (0)
         Reward          (1)
         Punish          (2)
         Hit             (3)
