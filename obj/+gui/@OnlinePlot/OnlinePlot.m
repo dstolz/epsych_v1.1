@@ -1,4 +1,4 @@
-classdef OnlinePlot < gui.GUIHelper & handle
+classdef OnlinePlot < gui.Helper & handle
     
     properties
         ax    (1,1)   % axes handle
@@ -33,7 +33,6 @@ classdef OnlinePlot < gui.GUIHelper & handle
         
         BoxID       (1,1)  uint8 = 1;
         
-        TDTactiveX
     end
     
     properties (SetAccess = private,Hidden)
@@ -46,7 +45,7 @@ classdef OnlinePlot < gui.GUIHelper & handle
     methods
         
         % Constructor
-        function obj = OnlinePlot(RUNTIME,TDTactiveX,watchedParams,ax,BoxID)
+        function obj = OnlinePlot(RUNTIME,TDTActiveX,watchedParams,ax,BoxID)
             narginchk(2,5);
             
             if nargin < 3, ax = []; end
@@ -62,7 +61,7 @@ classdef OnlinePlot < gui.GUIHelper & handle
                 watchedParams = p(s);
             end
             
-            obj.TDTactiveX = TDTactiveX;
+            obj.TDTActiveX = TDTActiveX;
             obj.watchedParams = watchedParams;
             
             if isempty(ax)
@@ -188,7 +187,7 @@ classdef OnlinePlot < gui.GUIHelper & handle
             
             if ~isempty(obj.trialParam)
                 try
-                    obj.trialBuffer(end+1) = obj.getParamVals(obj.TDTactiveX,obj.trialParam);
+                    obj.trialBuffer(end+1) = obj.getParamVals(obj.TDTActiveX,obj.trialParam);
                 catch
                     vprintf(0,1,'Unable to read the RPvds parameter: %s\nUpdate the trialParam to an existing parameter in the RPvds circuit', ...
                         obj.trialParam)
@@ -198,7 +197,7 @@ classdef OnlinePlot < gui.GUIHelper & handle
                 end
             end
             
-            obj.Buffers(:,end+1) = obj.getParamVals(obj.TDTactiveX,obj.watchedParams);
+            obj.Buffers(:,end+1) = obj.getParamVals(obj.TDTActiveX,obj.watchedParams);
             if obj.setZeroToNan, obj.Buffers(obj.Buffers(:,end)==0,end) = nan; end
             
             obj.Time(end+1) = seconds(etime(clock,obj.startTime));

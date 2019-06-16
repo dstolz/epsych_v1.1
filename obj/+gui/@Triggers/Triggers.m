@@ -1,4 +1,4 @@
-classdef Triggers < gui.GUIHelper & handle
+classdef Triggers < gui.Helper & handle
 
     properties
         BoxID   (1,1)   uint8 = 1;
@@ -15,7 +15,9 @@ classdef Triggers < gui.GUIHelper & handle
             narginchk(2,4);
 
             if nargin < 3 || isempty(container), container = figure; end
-            
+            if nargin < 4 || isempty(BoxID), BoxID = 1; end
+
+            obj.BoxID = BoxID;
             obj.ContainerH = container;
             obj.TDTActiveX = TDTActiveX;
 
@@ -70,7 +72,7 @@ classdef Triggers < gui.GUIHelper & handle
 
     methods (Access = private)
             
-        function triggered(obj.hObj,event)
+        function triggered(obj,hObj,event)
             if isempty(event.Indices), return; end
                 
             row = event.Indices(1);

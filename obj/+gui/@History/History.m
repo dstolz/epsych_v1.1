@@ -90,7 +90,11 @@ classdef History < handle
         
         function rearrange_data(obj)
             DataIn = obj.PsychophysicsObj.DATA;
-            if isempty(DataIn.TrialID), return; end
+            
+            if isempty(DataIn(1).TrialID)
+                obj.Data = [];
+                return
+            end
             
             % Trial numbers
             obj.Info.TrialID = [DataIn.TrialID]';
