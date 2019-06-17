@@ -1,4 +1,19 @@
-%% How to create a custom GUI with EPsych GUI objects 
+%% Custom GUI with EPsych GUI objects
+%
+% The basic idea is to create graphical containers - seperate figures,
+% panels, or axes - in an arrangement that you find useful.  EPsych GUI
+% objects can be created in these containers by using the object creation
+% syntax below. Example objects include: 
+%   gui.OnlinePlot  ... Plotting parameters running in the RPvds circuit
+%   gui.PsychPlot   ... Basic psychophysics plot for hit rate, false-alarm
+%                       rate, or d-prime
+%   gui.History     ... Table displaying trial history
+%   gui.Triggers    ... Allows user to update logical components running on
+%                       the RPvds circuit
+% 
+% You can create a GUI using the GUIDE utility (see: help guide) or
+% manually as in the example below.
+%
 % * Note that a protocol needs to be running in order for this to work
 
 global RUNTIME % Need to pass RUNTIME to GUI objects
@@ -29,16 +44,16 @@ D = psychophysics.Detection;
 % Create the OnlinePlot object and assign it to the axOnlinePlot container
 watchedParameters = {'!TrialDelivery','~InTrial_TTL','~DelayPeriod', ...
     '~RespWindow','~Spout_TTL','~ShockOn','~GO_Stim','~NOGO_Stim'};
-O = gui.OnlinePlot(RUNTIME,AX,watchedParameters,axOnlinePlot,BoxID);
+gui.OnlinePlot(RUNTIME,AX,watchedParameters,axOnlinePlot,BoxID);
 
 % Create the PsychPlot object and assign it to the axPsychPlot container
-P = gui.PsychPlot(D,RUNTIME.HELPER,axPsychPlot);
+gui.PsychPlot(D,RUNTIME.HELPER,axPsychPlot);
 
 % Create the trial History object and assign it to the pHistory container
-H = gui.History(D,RUNTIME.HELPER,pHistory);
+gui.History(D,RUNTIME.HELPER,pHistory);
 
 % Create the Triggers table
-T = gui.Triggers(RUNTIME,AX,pTriggers,BoxID);
+gui.Triggers(RUNTIME,AX,pTriggers,BoxID);
 
 
 
