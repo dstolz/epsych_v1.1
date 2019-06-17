@@ -94,7 +94,6 @@ classdef OnlinePlot < gui.Helper & handle
             try
                 stop(obj.Timer);
             end
-            
         end
         
         function pause(obj,varargin)

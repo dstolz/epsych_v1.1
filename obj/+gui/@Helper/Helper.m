@@ -1,4 +1,4 @@
-classdef GUIHelper < handle
+classdef Helper < handle
     
     properties
         TDTActiveX  % COM.RPco_X || COM.TDevAcc_X
@@ -10,7 +10,7 @@ classdef GUIHelper < handle
     
     methods
         % Constructor
-        function obj = GUIHelper(TDTActiveX)
+        function obj = Helper(TDTActiveX)
             if nargin < 1, TDTActiveX = []; end
             if ~isempty(TDTActiveX)
                 obj.TDTActiveX = TDTActiveX;
@@ -19,7 +19,7 @@ classdef GUIHelper < handle
         
         function set.TDTActiveX(obj,TDTActiveX)
             assert(gui.Helper.isRPcox(TDTActiveX)|gui.Helper.isOpenEx(TDTActiveX), ...
-                'epsych:epGenericGUIHelper:TDTActiveX','TDTActiveX must be COM.RPco_X or COM.TDevAcc_X')
+                'epsych:epGenericHelper:TDTActiveX','TDTActiveX must be COM.RPco_X or COM.TDevAcc_X')
             obj.TDTActiveX = TDTActiveX;
         end
         

@@ -25,6 +25,11 @@ classdef Triggers < gui.Helper & handle
         end
 
         function build(obj,RUNTIME)
+            obj.TableH = uitable(obj.ContainerH,'ColumnFormat',{'char','logical'}, ...
+                'ColumnEditable',[false,true],'Units','normalized', ...
+                'Position',[0 0 1 1],'ColumnName',{'Trigger','v'},'RowName',[], ...
+                'RowStriping','on','ColumnWidth',{'auto',20});
+            
             % RUNTIME.TRIALS.MODULES names the modules for updates without OpenEx
             midx  = struct2array(RUNTIME.TRIALS(obj.BoxID).MODULES);
             fn    = fieldnames(RUNTIME.TRIALS(obj.BoxID).MODULES);
@@ -66,7 +71,7 @@ classdef Triggers < gui.Helper & handle
                 'CellEditCallback',@obj.triggered, ...
                 'UserData',tmIdx);
 
-            update_highlight(obj.TableH,find(state),[1 0.6 0.6]);
+            obj.update_highlight(obj.TableH,find(state),[1 0.6 0.6]);
         end
     end
 
@@ -89,7 +94,7 @@ classdef Triggers < gui.Helper & handle
             end
             hObj.Data{row,2} = logical(state);
             
-            update_highlight(hObj,find([hObj.Data{:,2}]),[1 0.6 0.6]);
+            obj.update_highlight(hObj,find([hObj.Data{:,2}]),[1 0.6 0.6]);
         end
 
         
