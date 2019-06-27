@@ -40,7 +40,7 @@ for i = 1:RUNTIME.NSubjects
     RUNTIME.TRIALS(i).DATA(RUNTIME.TRIALS(i).TrialIndex) = data;
     
     % Broadcast event data has been updated
-    evtdata = epsych.TrialsData(RUNTIME.TRIALS(i),RUNTIME.TRIALS(i).BoxID);
+    evtdata = epsych.TrialsData(RUNTIME.TRIALS(i));
     RUNTIME.HELPER.notify('NewData',evtdata);
 
     
@@ -69,7 +69,7 @@ for i = 1:RUNTIME.NSubjects
             error('Invalid output from custom trial selection function ''%s''',RUNTIME.TRIALS(i).trialfunc)
         end
 
-        RUNTIME.TRIALS(i).HELPER.notify('NewTrial',evtdata);
+        RUNTIME.HELPER.notify('NewTrial',evtdata);
     catch me
         vprintf(0,me);
     end

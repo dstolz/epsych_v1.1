@@ -1,6 +1,7 @@
 classdef (ConstructOnLoad) TrialsData < event.EventData
    properties
       Data
+      Subject
       BoxID
    end
    
@@ -8,6 +9,7 @@ classdef (ConstructOnLoad) TrialsData < event.EventData
       function data = TrialsData(trials)
          data.Data  = trials;
          data.Subject = trials.Subject;
+         data.BoxID   = trials.BoxID;
       end
    end
 end

@@ -78,7 +78,8 @@ classdef History < handle
         function update_row_colors(obj)
             if ~epsych.Helper.valid_psych_obj(obj.PsychophysicsObj), return; end
             C(size(obj.Data,1),3) = 0;
-            R = cellfun(@epsych.BitMask,obj.Data(:,2));
+            R = cellfun(@epsych.BitMask,obj.Data(:,2),'uni',0);
+            R = [R{:}];
             for i = 1:length(obj.PsychophysicsObj.BitsInUse)
                 ind = R == obj.PsychophysicsObj.BitsInUse(i);
                 if ~any(ind), continue; end

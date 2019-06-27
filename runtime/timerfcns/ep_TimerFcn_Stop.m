@@ -12,6 +12,7 @@ function RUNTIME = ep_TimerFcn_Stop(RUNTIME,AX)
 
 % not doing anything with CONFIG
 
+
 if RUNTIME.UseOpenEx
     AX.SetSysMode(0);
     AX.CloseConnection;

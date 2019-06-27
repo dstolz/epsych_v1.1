@@ -205,7 +205,7 @@ classdef Detection
             RC = obj.ResponseCodes;
             r(length(RC),1) = epsych.BitMask(0);
             for i = obj.BitsInUse
-                ind = logical(bitget(RC,i));
+                ind = logical(bitget(RC,uint8(i)));
                 if ~any(ind), continue; end
                 r(ind) = i;
             end
