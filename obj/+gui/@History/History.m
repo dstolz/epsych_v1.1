@@ -90,6 +90,8 @@ classdef History < handle
         end
         
         function rearrange_data(obj)
+            fprintf('gui.History.rearrange_data @ %s\n',datestr(now,'HH:MM:SS.FFF'))
+            
             DataIn = obj.PsychophysicsObj.DATA;
             
             if isempty(DataIn(1).TrialID)
