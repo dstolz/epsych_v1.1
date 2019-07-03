@@ -55,7 +55,6 @@ gui.History(D,RUNTIME.HELPER,pHistory);
 % Create the Triggers table
 gui.Triggers(RUNTIME,AX,pTriggers,BoxID);
 
-
-
+% launch the other GUIs custom to your setup
 MR_BehaviorGUI_Startup;
 
