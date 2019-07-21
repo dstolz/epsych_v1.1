@@ -11,7 +11,7 @@ classdef Detection
 
         BoxID           (1,1) uint8 = 1;
         
-        BitColors       (4,3) double {mustBeNonnegative,mustBeLessThanOrEqual(BitColors,1)} = [.8 1 .8; 1 .7 .7; .7 .9 1; 1 .7 1];
+        BitColors       (4,4) double {mustBeNonnegative,mustBeLessThanOrEqual(BitColors,1)} = [.8 1 .8; 1 .7 .7; .7 .9 1; 1 .7 1; 1 1 .4];
     end
 
     properties (SetAccess = private)
@@ -50,7 +50,6 @@ classdef Detection
                 
         Trial_Index (1,1) double
         
-        
         TRIALS
         DATA
         SUBJECT
@@ -66,7 +65,7 @@ classdef Detection
     end
 
     properties (Constant)
-        BitsInUse epsych.BitMask = [3 4 6 7] % [Hit Miss CR FA]
+        BitsInUse epsych.BitMask = [3 4 6 7 5] % [Hit Miss CR FA Abort]
     end
     
     
