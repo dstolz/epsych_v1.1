@@ -54,8 +54,8 @@ classdef ep_GenericGUITimer < handle
                 try delete(T); end
             end
             T = timer('Name',obj.Name);
-            T.BusyMode = 'drop';
-            T.ExecutionMode = 'fixedSpacing';
+            T.BusyMode = 'queue';
+            T.ExecutionMode = 'fixedRate';
             T.TasksToExecute = inf;
             T.Period = obj.Period;
             
