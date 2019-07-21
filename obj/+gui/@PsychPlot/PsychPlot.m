@@ -80,8 +80,8 @@ classdef PsychPlot < handle
             lh = obj.LineH;
             sh = obj.ScatterH;
             if isempty(lh) || isempty(sh) || ~isvalid(lh) || ~isvalid(sh)
-                sh = scatter(nan,nan,100,'filled','Parent',obj.AxesH,'Marker','o', ...
-                    'MarkerFaceColor','flat');
+                sh = scatter(nan,nan,100,'filled','Parent',obj.AxesH,'Marker','s');
+%                     'MarkerFaceColor','flat');
                 
                 lh = line(obj.AxesH,nan,nan,'Marker','none', ...
                     'AlignVertexCenters','on', ...
@@ -94,7 +94,7 @@ classdef PsychPlot < handle
             X = obj.PsychophysicsObj.ParameterValues;
             Y = obj.PsychophysicsObj.(obj.PlotType);
             %C = obj.PsychophysicsObj.Trial_Count;
-            C = [obj.PsychophysicsObj.Go_Count obj.PsychophysicsObj.NoGo_Count];
+            C = [obj.PsychophysicsObj.Go_Count' obj.PsychophysicsObj.NoGo_Count'];
             
             lh.XData = X;
             lh.YData = Y;
@@ -103,7 +103,7 @@ classdef PsychPlot < handle
             sh.XData = X;
             sh.YData = Y;
             s = repmat(120,size(X));
-            ind = C == 0;
+            ind = sum(C,2) == 0;
             s(ind) = 30;
             sh.SizeData = s;
             c = repmat(obj.MarkerColor(1,:),length(X),1);
@@ -112,10 +112,11 @@ classdef PsychPlot < handle
             uistack(sh,'top');
             
             for i = 1:length(X)
+                if i > size(C,1), break; end
                 if nnz(C(i,:)) == 0, continue; end
                 obj.TextH(i) = text(obj.AxesH,X(i),Y(i),num2str(C(i,:),'%d/%d'), ...
                     'HorizontalAlignment','center','VerticalAlignment','middle', ...
-                    'Color',[1 1 1],'FontSize',8);
+                    'Color',[0 0 0],'FontSize',9);
             end
             
             obj.setup_xaxis_label;
