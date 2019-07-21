@@ -17,6 +17,8 @@ classdef Detection
     properties (SetAccess = private)
         NumTrials       (1,1) uint16 = 0;
         
+        Go_Ind          (1,:) logical
+        NoGo_Ind        (1,:) logical
         Go_Count        (1,1) uint16 = 0;
         NoGo_Count      (1,1) uint16 = 0;
 
@@ -25,6 +27,7 @@ classdef Detection
         ResponsesChar   (1,:) cell
 
         ValidParameters (1,:) cell
+        
 
         Hit_Ind     (1,:) logical
         Miss_Ind    (1,:) logical
@@ -122,16 +125,31 @@ classdef Detection
             r = logical(r);
         end
 
-
-    
-
-        % Count -----------------------------------------------------
-        function r = get.Go_Count(obj)
-            r = sum([obj.DATA.TrialType] == obj.Go_TrialType);
+        function i = get.Go_Ind(obj)
+            i = [obj.DATA.TrialType] == obj.Go_TrialType;
         end
 
-        function r = get.NoGo_Count(obj)
-            r = sum([obj.DATA.TrialType] == obj.NoGo_TrialType);
+        function i = get.NoGo_Ind(obj)
+            i = [obj.DATA.TrialType] == obj.NoGo_TrialType;
+        end
+
+        % Count -----------------------------------------------------
+        function n = get.Go_Count(obj)
+            v = obj.ParameterValues;
+            d = obj.ParameterData;
+            ind = obj.Go_Ind;
+            for i =1:length(v)
+                n(i) = sum(ind & d == v(i));
+            end
+        end
+
+        function n = get.NoGo_Count(obj)
+            v = obj.ParameterValues;
+            d = obj.ParameterData;
+            ind = obj.NoGo_Ind;
+            for i =1:length(v)
+                n(i) = sum(ind & d == v(i));
+            end
         end
         
         function n = get.Trial_Count(obj)

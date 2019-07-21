@@ -391,6 +391,8 @@ Data = TBL.Data(2:end,:)';
 wp = RUNTIME.TRIALS.writeparams;
 
 rn = TBL.RowName; % table rows may be in a different order than the TRIALS tructure
+
+
 rn(ismember(rn,'ACTIVE')) = [];
 for i = 1:length(wp)
     ind = ismember(rn,wp{i});

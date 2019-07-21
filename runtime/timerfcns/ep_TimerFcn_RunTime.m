@@ -48,6 +48,13 @@ for i = 1:RUNTIME.NSubjects
     save(RUNTIME.DataFile{i},'data','-append','-v6'); % -v6 is much faster because it doesn't use compression  
 
 
+    
+    % Broadcast event data has been updated
+    evtdata = epsych.TrialsData(RUNTIME.TRIALS(i));
+    RUNTIME.HELPER.notify('NewData',evtdata);
+    RUNTIME.HELPER.notify('NewTrial',evtdata);
+    
+    
      % Increment trial index
     RUNTIME.TRIALS(i).TrialIndex = RUNTIME.TRIALS(i).TrialIndex + 1;
     
@@ -118,12 +125,6 @@ for i = 1:RUNTIME.NSubjects
 
     
 
-    
-    % Broadcast event data has been updated
-    evtdata = epsych.TrialsData(RUNTIME.TRIALS(i));
-    RUNTIME.HELPER.notify('NewData',evtdata);
-
-    RUNTIME.HELPER.notify('NewTrial',evtdata);
 
 end
 
