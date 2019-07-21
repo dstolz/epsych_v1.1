@@ -93,7 +93,8 @@ classdef PsychPlot < handle
             
             X = obj.PsychophysicsObj.ParameterValues;
             Y = obj.PsychophysicsObj.(obj.PlotType);
-            C = obj.PsychophysicsObj.Trial_Count;
+            %C = obj.PsychophysicsObj.Trial_Count;
+            C = [obj.PsychophysicsObj.Go_Count obj.PsychophysicsObj.NoGo_Count];
             
             lh.XData = X;
             lh.YData = Y;
@@ -111,8 +112,8 @@ classdef PsychPlot < handle
             uistack(sh,'top');
             
             for i = 1:length(X)
-                if C(i) == 0, continue; end
-                obj.TextH(i) = text(obj.AxesH,X(i),Y(i),num2str(C(i),'%d'), ...
+                if nnz(C(i,:)) == 0, continue; end
+                obj.TextH(i) = text(obj.AxesH,X(i),Y(i),num2str(C(i,:),'%d/%d'), ...
                     'HorizontalAlignment','center','VerticalAlignment','middle', ...
                     'Color',[1 1 1],'FontSize',8);
             end
