@@ -2,7 +2,6 @@ classdef EPsychInfo < handle
     % class contains general inormation for the EPsych software
     
     properties (SetAccess = private)
-        root
         iconPath
         chksum
         commitTimestamp
@@ -24,9 +23,6 @@ classdef EPsychInfo < handle
             
         end
         
-        function r = get.root(obj)
-            r = fileparts(which('epsych_startup'));
-        end
         
         function m = get.meta(obj)
             m.Author      = obj.Author;
@@ -89,6 +85,9 @@ classdef EPsychInfo < handle
     end
     
     methods (Static)
+        function r = root
+            r = fileparts(which('epsych_startup'));
+        end
         
         function s = last_modified_str(datens)
             % s = last_modified_str(datens)
