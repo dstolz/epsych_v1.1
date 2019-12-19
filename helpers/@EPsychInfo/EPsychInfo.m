@@ -59,9 +59,14 @@ classdef EPsychInfo < handle
         end
         
         function c = get.commitTimestamp(obj)
-            fn = fullfile(obj.root,'.git','logs','HEAD');
-            d  = dir(fn);
-            c  = d.date;
+            try
+                fn = fullfile(obj.root,'.git','logs','HEAD');
+                d  = dir(fn);
+                c  = d.date;
+            catch
+                warning('EPsychInfo:get:commitTimestamp','Not using the git version!')
+                c = datestr(0);
+            end
         end
         
         function img = icon_img(obj,type)
