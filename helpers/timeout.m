@@ -1,5 +1,5 @@
-function done = timeout(nsecs)
-% done = timeout([nsecs])
+function done = timeout(numSeconds)
+% done = timeout([numSeconds])
 % 
 % Helper function to implement a timeout in what might be an infinite loop.
 %
@@ -7,28 +7,27 @@ function done = timeout(nsecs)
 % to run the code within the loop or other process.
 %
 % ex:
+%       myCondition = false;
 %       timeout(10); % initialize to 10 seconds
-%       tic
 %       while ~timeout
 %           % whatever code you want goes here
-% 
-%           pause(0.001); % prevent system from locking up
+%           if myCondition == true
+%               break;
+%           end
+%           pause(0.001); % be nice to the computer
 %       end
-%       toc
 %       if timeout, disp('Loop timed out!'); end
 %
-% Daniel.Stolzberg@gmail.com 2015
+% Daniel.Stolzberg@gmail.com 2019
 
-% Copyright (C) 2016  Daniel Stolzberg, PhD
+% Copyright (C) 2019  Daniel Stolzberg, PhD
 
-persistent finishTime
+persistent t finishTime
 
 if nargin == 1
-    StartTime = clock;
-    finishTime = [StartTime(1:end-1) StartTime(end) + nsecs];
-    done = false;
-    return
+    t = tic;
+    finishTime = numSeconds;
 end
 
-done = etime(clock,finishTime) >= 0;
+done = toc(t) >= finishTime;
 
