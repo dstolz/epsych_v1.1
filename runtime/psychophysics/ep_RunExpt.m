@@ -207,10 +207,6 @@ switch COMMAND
                    end
                end
                
-               
-               % initialize some other optional fields for TRIALS structure
-               RUNTIME.TRIALS(i).activeTrials = true(size(RUNTIME.TRIALS(i).writeparams));
-               RUNTIME.TRIALS(i).UserData = [];
            end
            
            

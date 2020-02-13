@@ -34,6 +34,8 @@ for i = 1:RUNTIME.NSubjects
 
     RUNTIME.TRIALS(i).trials     = C.PROTOCOL.COMPILED.trials;
     RUNTIME.TRIALS(i).TrialCount = zeros(size(RUNTIME.TRIALS(i).trials,1),1); 
+    RUNTIME.TRIALS(i).activeTrials = true(size(RUNTIME.TRIALS(i).TrialCount));
+    RUNTIME.TRIALS(i).UserData = [];
     RUNTIME.TRIALS(i).trialfunc  = C.PROTOCOL.OPTIONS.trialfunc;
    
     for j = 1:length(RUNTIME.TRIALS(i).readparams)
