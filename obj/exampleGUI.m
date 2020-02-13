@@ -56,5 +56,5 @@ gui.History(D,RUNTIME.HELPER,pHistory);
 gui.Triggers(RUNTIME,AX,pTriggers,BoxID);
 
 % launch the other GUIs custom to your setup
-MR_BehaviorGUI_Startup;
+% MR_BehaviorGUI_Startup;
 
