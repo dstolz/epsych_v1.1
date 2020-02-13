@@ -40,6 +40,10 @@ function subdirs = epsych_startup(rootdir,showsplash)
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+warning('off','MATLAB:ui:javaframe:PropertyToBeRemoved');
+warning('off','MATLAB:ui:actxcontrol:FunctionToBeRemoved');
+
 if nargin < 2 || isempty(showsplash), showsplash = true; end
 
 if showsplash, epsych_printBanner; end
