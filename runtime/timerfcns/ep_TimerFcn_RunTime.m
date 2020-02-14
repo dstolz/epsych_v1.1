@@ -21,9 +21,7 @@ for i = 1:RUNTIME.NSubjects
     end
     
     if ~RCtag || TStag, continue; end
-    
-    fprintf(2,'COMPLETED TRIAL #%d @ ~%s\n',RUNTIME.TRIALS(i).TrialIndex,datestr(now,'HH:MM:SS.FFF'))
-    
+        
     if RUNTIME.UseOpenEx
         TrialNum = AX.GetTargetVal(RUNTIME.TrialNumStr{i}) - 1;
     else

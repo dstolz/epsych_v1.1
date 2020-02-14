@@ -89,9 +89,7 @@ classdef History < handle
             obj.TableH.RowStriping = 'on';
         end
         
-        function rearrange_data(obj)
-            fprintf('gui.History.rearrange_data @ %s\n',datestr(now,'HH:MM:SS.FFF'))
-            
+        function rearrange_data(obj)           
             DataIn = obj.PsychophysicsObj.DATA;
             
             if isempty(DataIn(1).TrialID)
