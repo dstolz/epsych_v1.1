@@ -56,9 +56,9 @@ d = get_string(h.common_designs);
 
 set(h.design_table,'data',DefaultTableData(d));
 
-set(h.bitmask_table,'data',num2cell(zeros(4,4)), ...
-    'rowname',{'Trial Type 0','Trial Type 1', 'Trial Type 2','Trial Type 3'}, ...
-    'columnname',{'S0','S1','S2','S3'});
+set(h.bitmask_table,'data',num2cell(zeros(4,5)), ...
+    'rowname',{'Output-0','Output-1', 'Output-2','Output-3'}, ...
+    'columnname',{'S0','S1','S2','S3','S4'});
 
 evnt.Indices = [1 1];
 design_table_CellEditCallback(h.design_table, evnt, h)
@@ -77,9 +77,11 @@ if ~exist('data','var')
     return
 end
 
-if size(data.design,2) == 3, data.design(:,3) = []; end %#ok<NODEF> % for older files
+if size(data.design,2) == 3, data.design(:,3) = []; end % for older files
 set(h.design_table,'Data',data.design,'UserData',[]);
+
 if ~isfield(data,'bitmask'), data.bitmask = num2cell(zeros(5,4)); end
+if size(data.bitmask,2) < 5, data.bitmask(:,end+1:5) = num2cell(zeros(4,5-size(data.bitmask,2))); end
 set(h.bitmask_table,'Data',data.bitmask,'UserData',[]);
 
 
@@ -133,6 +135,8 @@ else
     set(hObj,'UserData',evnt.Indices);
     I = evnt.Indices;
 end
+
+if isempty(I), return; end
 
 data = get(hObj,'Data');
 mask = uint32(data{I(1),I(2)});
