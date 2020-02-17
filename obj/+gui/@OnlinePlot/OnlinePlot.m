@@ -62,6 +62,7 @@ classdef OnlinePlot < gui.Helper & handle
             end
             
             obj.TDTActiveX = TDTActiveX;
+            
             obj.watchedParams = watchedParams;
             
             if isempty(ax)
@@ -137,7 +138,7 @@ classdef OnlinePlot < gui.Helper & handle
         
         function w = get.lineWidth(obj)
             if isempty(obj.lineWidth)
-                w = repmat(10,obj.N,1);
+                w = repmat(13,obj.N,1);
             else
                 w = obj.lineWidth;
                 if length(w) < obj.N
@@ -248,13 +249,16 @@ classdef OnlinePlot < gui.Helper & handle
             xtickformat(obj.ax,'mm:ss.S');
             grid(obj.ax,'on');
             
+            obj.ax.XMinorGrid = 'on';
+            obj.ax.Box = 'on';
             obj.ax.YAxis.Limits = [.8 obj.yPositions(end)+.2];
             obj.ax.YAxis.TickValues = obj.yPositions;
             obj.ax.YAxis.TickLabelInterpreter = 'none';
-            obj.ax.YAxis.TickLabels = obj.watchedParams;
-            obj.ax.XMinorGrid = 'on';
-            obj.ax.Box = 'on';
-            
+            wp = obj.watchedParams;
+            for i = 1:length(wp)
+                if wp{i}(1) == '~',wp{i}(1) = []; end
+            end
+            obj.ax.YAxis.TickLabels = wp;
             obj.ax.XAxis.Label.String = 'time since start (mm:ss)';
             
             obj.startTime = clock;
