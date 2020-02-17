@@ -10,47 +10,69 @@ function RUNTIME = ep_TimerFcn_RunTime(RUNTIME, AX)
 
 
 for i = 1:RUNTIME.NSubjects
-    
-    % Check #RespCode parameter for non-zero value or if #TrigState is true
-    if RUNTIME.UseOpenEx
-        RCtag = AX.GetTargetVal(RUNTIME.RespCodeStr{i});
-        TStag = AX.GetTargetVal(RUNTIME.TrigStateStr{i});
-    else
-        RCtag = AX(RUNTIME.RespCodeIdx(i)).GetTagVal(RUNTIME.RespCodeStr{i});
-        TStag = AX(RUNTIME.TrigStateIdx(i)).GetTagVal(RUNTIME.TrigStateStr{i});
-    end
-    
-    if ~RCtag || TStag, continue; end
+
+    if ~RUNTIME.ON_HOLD(i)
+        % Check #RespCode parameter for non-zero value or if #TrigState is true
+        if RUNTIME.UseOpenEx
+            RCtag = AX.GetTargetVal(RUNTIME.RespCodeStr{i});
+            TStag = AX.GetTargetVal(RUNTIME.TrigStateStr{i});
+        else
+            RCtag = AX(RUNTIME.RespCodeIdx(i)).GetTagVal(RUNTIME.RespCodeStr{i});
+            TStag = AX(RUNTIME.TrigStateIdx(i)).GetTagVal(RUNTIME.TrigStateStr{i});
+        end
         
-    if RUNTIME.UseOpenEx
-        TrialNum = AX.GetTargetVal(RUNTIME.TrialNumStr{i}) - 1;
-    else
-        TrialNum = AX(RUNTIME.TrialNumIdx(i)).GetTagVal(RUNTIME.TrialNumStr{i}) - 1;
+        if~RCtag || TStag, continue; end
+        
+        if RUNTIME.UseOpenEx
+            TrialNum = AX.GetTargetVal(RUNTIME.TrialNumStr{i}) - 1;
+        else
+            TrialNum = AX(RUNTIME.TrialNumIdx(i)).GetTagVal(RUNTIME.TrialNumStr{i}) - 1;
+        end
+        
+        
+        
+        % There was a response and the trial is over.
+        % Retrieve parameter data from RPvds circuits
+        data = feval(sprintf('Read%sTags',RUNTIME.TYPE),AX,RUNTIME.TRIALS(i));
+        data.ResponseCode = RCtag;
+        data.TrialID = TrialNum;
+        data.ComputerTimestamp = clock;
+        RUNTIME.TRIALS(i).DATA(RUNTIME.TRIALS(i).TrialIndex) = data;
+        
+        
+        
+        
+        % Save runtime data in case of crash
+        data = RUNTIME.TRIALS(i).DATA;
+        save(RUNTIME.DataFile{i},'data','-append','-v6'); % -v6 is much faster because it doesn't use compression
+        
+        
+        
+        % Broadcast event data has been updated
+        evtdata = epsych.TrialsData(RUNTIME.TRIALS(i));
+        RUNTIME.HELPER.notify('NewData',evtdata);
+        RUNTIME.HELPER.notify('NewTrial',evtdata);
     end
     
     
     
-    % There was a response and the trial is over.
-    % Retrieve parameter data from RPvds circuits
-    data = feval(sprintf('Read%sTags',RUNTIME.TYPE),AX,RUNTIME.TRIALS(i));
-    data.ResponseCode = RCtag;
-    data.TrialID = TrialNum;
-    data.ComputerTimestamp = clock;
-    RUNTIME.TRIALS(i).DATA(RUNTIME.TRIALS(i).TrialIndex) = data;
+    
+    % If in use, wait for manual completion of trial in RPvds
+    if isfield(RUNTIME,'TrialCompleteIdx')
+        if RUNTIME.UseOpenEx            
+            TCtag = AX.GetTargetVal(RUNTIME.TrialCompleteStr{i});
+        else
+            TCtag = AX(RUNTIME.TrialCompleteIdx(i)).GetTagVal(RUNTIME.TrialCompleteStr{i});
+        end
+        RUNTIME.ON_HOLD(i) = ~TCtag;
+    end
+    
+    if RUNTIME.ON_HOLD(i), continue; end
     
     
     
     
-    % Save runtime data in case of crash
-    data = RUNTIME.TRIALS(i).DATA;
-    save(RUNTIME.DataFile{i},'data','-append','-v6'); % -v6 is much faster because it doesn't use compression  
 
-
-    
-    % Broadcast event data has been updated
-    evtdata = epsych.TrialsData(RUNTIME.TRIALS(i));
-    RUNTIME.HELPER.notify('NewData',evtdata);
-    RUNTIME.HELPER.notify('NewTrial',evtdata);
     
     
      % Increment trial index
