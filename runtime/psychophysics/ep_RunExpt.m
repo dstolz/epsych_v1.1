@@ -45,8 +45,9 @@ h.output = hObj;
 h = ClearConfig(h);
 FUNCS = GetDefaultFuncs;
 
-
 guidata(hObj, h);
+
+
 
 
 
@@ -467,15 +468,17 @@ feval(FUNCS.BoxFig);
 
 
 %% Setup
-function LoadConfig(h) %#ok<DEFNU>
+function LoadConfig(h,cfn) %#ok<DEFNU>
 global CONFIG FUNCS
 
-pn = getpref('ep_RunExpt_Setup','CDir',cd);
-[fn,pn] = uigetfile('*.config','Open Configuration File',pn);
-if ~fn, return; end
-setpref('ep_RunExpt_Setup','CDir',pn);
-
-cfn = fullfile(pn,fn);
+if nargin == 1
+    pn = getpref('ep_RunExpt_Setup','CDir',cd);
+    [fn,pn] = uigetfile('*.config','Open Configuration File',pn);
+    if ~fn, return; end
+    setpref('ep_RunExpt_Setup','CDir',pn);
+    
+    cfn = fullfile(pn,fn);
+end
 
 if ~exist(cfn,'file')
     warndlg(sprintf('The file "%s" does not exist.',cfn),'RunExpt','modal')

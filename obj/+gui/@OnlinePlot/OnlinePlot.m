@@ -1,90 +1,24 @@
-classdef OnlinePlot < gui.Helper & handle
+classdef OnlinePlot < gui.PlotHelper
     
     properties
-        ax    (1,1)   % axes handle
-        
-        watchedParams (:,1)  cell
-        
-        trialParam  (1,:) char
-        
-        lineWidth   (:,1) double {mustBePositive,mustBeFinite} % line plot width [obj.N,1]
-        lineColors  (:,3) double {mustBeNonnegative,mustBeLessThanOrEqual(lineColors,1)} % line colors [obj.N,3]
-        
         yPositions  (:,1) double {mustBeFinite}
         
-        timeWindow  (1,2) duration = seconds([-10 3]);
-        
-        setZeroToNan (1,1) logical = true;
-        
-        stayOnTop   (1,1) logical = false;
-        paused      (1,1) logical = false;
-        
-        trialLocked (1,1) logical = false;
     end
     
-    properties (SetAccess = private)
-        figH        (1,1)  %matlab.ui.Figure
-        figName     (1,:)  char
-        lineH       (:,1)  matlab.graphics.primitive.Line % handles to line objects [obj.N,1]
-        
-        N           (1,:)  double % number of watched parameters
-        
-        startTime   (1,6)  double % = clock
-        
-        BoxID       (1,1)  uint8 = 1;
-        
-    end
-    
-    properties (SetAccess = private,Hidden)
-        Timer       (1,1)
-        Buffers     (:,:) single
-        trialBuffer (1,:) single
-        Time        (:,1) duration
-    end
     
     methods
         
         % Constructor
-        function obj = OnlinePlot(RUNTIME,TDTActiveX,watchedParams,ax,BoxID)
-            narginchk(2,5);
+        function obj = OnlinePlot(TDTActiveX,watchedParams,varargin)
+            narginchk(2,3);
             
-            if nargin < 3, ax = []; end
-            if nargin < 4 || isempty(BoxID), BoxID = 1; end
-            
-            if nargin < 2 || isempty(watchedParams)
-                wp = RUNTIME.TRIALS.writeparams;
-                tp = RUNTIME.TDT.triggers{1}'; % TO DO: design for multiple modules
-                p = [wp,tp];
-                [s,v] = listdlg('PromptString','Select parameters for plot', ...
-                    'SelectionMode','multiple','ListString',p);
-                if v == 0, delete(obj); return; end
-                watchedParams = p(s);
-            end
-            
-            obj.TDTActiveX = TDTActiveX;
-            
+            obj = obj@gui.PlotHelper(TDTActiveX,varargin{:});
+                        
             obj.watchedParams = watchedParams;
             
-            if isempty(ax)
-                obj.setup_figure;
-            else
-                obj.ax = ax;
-            end
-            
             obj.add_context_menu;
-            
-            % set default trial-based parameter tag to use.
-            % > #TrigState~1 is contained in the standard epsych RPvds
-            % macros and is assigned an integer id after the ~ based on the
-            % macros settings.  Default = 1.
-            obj.BoxID = BoxID;
-            obj.trialParam = sprintf('#TrigState~%d',BoxID);
-            
-            obj.Timer = ep_GenericGUITimer(obj.figH,'OnlinePlot');
-            obj.Timer.StartFcn = @obj.setup_plot; % THESE MIGHT NEED TO BE STATIC FUNCTIONS?!
-            obj.Timer.TimerFcn = @obj.update;
-            obj.Timer.ErrorFcn = @obj.error;
-            obj.Timer.Period = 0.05;
+
+            obj.setZeroToNan = true; 
             
             start(obj.Timer);
             
@@ -107,14 +41,14 @@ classdef OnlinePlot < gui.Helper & handle
                 c(1).Label = 'Pause ||';
             end
         end
-        
-        function c = get.figH(obj)
-            c = ancestor(obj.ax,'figure');
-        end
-        
-        function s = get.figName(obj)
-            s = sprintf('Online Plot | Box %d',obj.BoxID);
-        end
+%         
+%         function c = get.figH(obj)
+%             c = ancestor(obj.ax,'figure');
+%         end
+%         
+%         function s = get.figName(obj)
+%             s = sprintf('Online Plot | Box %d',obj.BoxID);
+%         end
         
         function set.yPositions(obj,y)
             assert(length(y) == obj.N,'epsych:OnlinePlot:set.yPositions', ...
@@ -136,37 +70,7 @@ classdef OnlinePlot < gui.Helper & handle
             end
         end
         
-        function w = get.lineWidth(obj)
-            if isempty(obj.lineWidth)
-                w = repmat(13,obj.N,1);
-            else
-                w = obj.lineWidth;
-                if length(w) < obj.N
-                    w = [w; repmat(10,obj.N-length(w),1)];
-                else
-                    w = w(1:obj.N);
-                end
-            end
-        end
         
-        function c = get.lineColors(obj)
-            if isempty(obj.lineColors)
-                c = lines(obj.N);
-            else
-                c = obj.lineColors;
-                if size(c,1) < obj.N
-                    x = lines(obj.N);
-                    c = [c; x(size(c,1)+1:obj.N,:)];
-                else
-                    c = c(1:obj.N);
-                end
-            end
-            
-        end
-        
-        function s = get.N(obj)
-            s = numel(obj.watchedParams);
-        end
         
         function to = last_trial_onset(obj)
             B = obj.trialBuffer;
@@ -178,7 +82,20 @@ classdef OnlinePlot < gui.Helper & handle
             end                
         end
         
-        % -------------------------------------------------------------
+
+
+    end
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    methods (Access = protected)
         function update(obj,varargin)
             global PRGMSTATE
             
@@ -223,19 +140,7 @@ classdef OnlinePlot < gui.Helper & handle
             vprintf(-1,varargin{2}.Data.messageID)
             vprintf(-1,varargin{2}.Data.message)
         end
-    end
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    methods (Access = protected)
-        
+
         function setup_plot(obj,varargin)
             delete(obj.lineH);
             
@@ -264,22 +169,6 @@ classdef OnlinePlot < gui.Helper & handle
             obj.startTime = clock;
         end
         
-        
-        
-        function setup_figure(obj)
-            f = findobj('type','figure','-and', ...
-                '-regexp','name',[obj.figName '*']);
-            if isempty(f)
-                f = figure('Name',obj.figName,'color','w','NumberTitle','off','visible','off');
-            end
-            clf(f);
-            figure(f);
-            f.Position([3 4]) = [800 175];
-            
-            obj.ax = axes(f);
-            
-            f.Visible = 'on';
-        end
         
         function add_context_menu(obj)
             c = uicontextmenu;
