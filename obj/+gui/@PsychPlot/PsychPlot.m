@@ -41,7 +41,7 @@ classdef PsychPlot < gui.Helper
                 obj.PsychophysicsObj = pObj;
                 obj.setup_xaxis_label;
                 obj.setup_yaxis_label;
-                obj.update_plot;
+                obj.update;
             end
             
             
@@ -58,7 +58,7 @@ classdef PsychPlot < gui.Helper
             ind = ismember(obj.ValidParameters,name);
             assert(any(ind),'ep_Psychophysics_Detection:set.ParameterName','Invalid parameter name: %s',name);
             obj.ParameterName = name;
-            obj.update_plot;
+            obj.update;
         end
         
         
@@ -70,7 +70,7 @@ classdef PsychPlot < gui.Helper
 
        
         
-        function update_plot(obj,src,event)
+        function update(obj,src,event)
             % although data is updated in src and event, just use the obj.PsychophysicsObj
             lh = obj.LineH;
             sh = obj.ScatterH;
@@ -153,7 +153,7 @@ classdef PsychPlot < gui.Helper
                     obj.PlotType = obj.ValidPlotTypes{sel};
                     
             end
-            obj.update_plot;
+            obj.update;
         end
         
         
@@ -172,7 +172,7 @@ classdef PsychPlot < gui.Helper
                 'gui.History:set.PsychophysiccsObj', ...
                 'PsychophysicsObj must be from the toolbox "psychophysics"');
             obj.PsychophysicsObj = pobj;
-            obj.update_plot;
+            obj.update;
         end
     end
     
