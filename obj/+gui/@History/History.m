@@ -1,4 +1,4 @@
-classdef History < handle
+classdef History < gui.Helper
 
     properties
         PsychophysicsObj
@@ -11,16 +11,14 @@ classdef History < handle
         ColumnName
         Data
         Info
+        
     end
-
-    properties (Access = private)
-        listener_NewData
-    end
-
+    
     methods
 
-        function obj = History(pObj,Helper,container)
-            if nargin < 3 || isempty(container), container = figure; end
+        function obj = History(pObj,container)
+            if nargin < 2 || isempty(container), container = figure; end
+            
             
             obj.ContainerH = container;
 
@@ -31,9 +29,9 @@ classdef History < handle
 
             end
 
-            if nargin > 1 && ~isempty(Helper)
-                obj.link_with_helper(Helper);
-            end
+            global RUNTIME
+            obj.listener_NewData = addlistener(RUNTIME.HELPER,'NewData',@obj.update);
+            
         end
 
         function build(obj)
@@ -41,10 +39,6 @@ classdef History < handle
                 'Position',[0 0 1 1],'RowStriping','off');
         end
         
-        function link_with_helper(obj,Helper)
-            if isempty(Helper) || isempty(Helper), return; end
-            obj.listener_NewData = addlistener(Helper,'NewData',@obj.update);
-        end
         
         function update(obj,src,event)
             

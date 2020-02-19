@@ -56,11 +56,11 @@ classdef PlotHelper < gui.Helper
 
     methods
         % Constructor
-        function obj = PlotHelper(TDTActiveX,ax,BoxID)
-            narginchk(1,3);
+        function obj = PlotHelper(subclassName,TDTActiveX,ax,BoxID)
+            narginchk(2,4);
             
-            if nargin < 2 || isempty(ax), ax = gca;     end
-            if nargin < 3 || isempty(BoxID), BoxID = 1; end
+            if nargin < 3 || isempty(ax), ax = gca;     end
+            if nargin < 4 || isempty(BoxID), BoxID = 1; end
             
             obj.ax = ax;
             
@@ -76,7 +76,7 @@ classdef PlotHelper < gui.Helper
             obj.trialParam = sprintf('#TrigState~%d',BoxID);
             
             
-            obj.Timer = ep_GenericGUITimer(obj.figH,'SignalPlot');
+            obj.Timer = ep_GenericGUITimer(obj.figH,subclassName);
             obj.Timer.StartFcn = @obj.setup_plot;
             obj.Timer.TimerFcn = @obj.update;
             obj.Timer.ErrorFcn = @obj.error;
@@ -95,16 +95,7 @@ classdef PlotHelper < gui.Helper
         end
         
         function w = get.lineWidth(obj)
-            if isempty(obj.lineWidth)
-                w = repmat(11,obj.N,1);
-            else
-                w = obj.lineWidth;
-                if length(w) < obj.N
-                    w = [w; repmat(10,obj.N-length(w),1)];
-                else
-                    w = w(1:obj.N);
-                end
-            end
+            w = get(obj.lineH,'LineWidth');
         end
 
         function set.lineWidth(obj,w)

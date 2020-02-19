@@ -2,11 +2,10 @@ classdef Helper < handle
     
     properties
         TDTActiveX  % COM.RPco_X || COM.TDevAcc_X
+        
+        listener_NewData
     end
     
-    properties (SetAccess = private)
-        
-    end
     
     methods
         % Constructor
@@ -14,6 +13,13 @@ classdef Helper < handle
             if nargin < 1, TDTActiveX = []; end
             if ~isempty(TDTActiveX)
                 obj.TDTActiveX = TDTActiveX;
+            end
+        end
+        
+        % Destructor
+        function delete(obj)
+            try
+                delete(obj.listener_NewData)
             end
         end
         

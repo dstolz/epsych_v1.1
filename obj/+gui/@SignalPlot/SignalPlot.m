@@ -5,23 +5,15 @@ classdef SignalPlot < gui.PlotHelper
         function obj = SignalPlot(TDTActiveX,watchedParams,varargin)
             narginchk(2,3);
             
-            obj = obj@gui.PlotHelper(TDTActiveX,varargin{:});
+            obj = obj@gui.PlotHelper('SignalPlot',TDTActiveX,varargin{:});
             
             obj.watchedParams = watchedParams;
             
-            obj.lineWidth(:) = 2;
-            
-            
             start(obj.Timer);
-            
-        end
 
-        
-        
-        % function s = get.figName(obj)
-        %     s = sprintf('Signal Plot | Box %d',obj.BoxID);
-        % end
-        
+            
+
+        end
 
     end
 
@@ -35,11 +27,12 @@ classdef SignalPlot < gui.PlotHelper
     methods (Access = protected)
         function setup_plot(obj,varargin)
             delete(obj.lineH);
+            
 
             for i = 1:length(obj.watchedParams)
                 obj.lineH(i) = line(obj.ax,seconds(0),0, ...
                     'color',obj.lineColors(i,:), ...
-                    'linewidth',obj.lineWidth(i));
+                    'linewidth',2);
             end 
 
 

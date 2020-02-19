@@ -11,21 +11,22 @@ classdef Triggers < gui.Helper & handle
 
     methods
         % Constructor
-        function obj = Triggers(RUNTIME,TDTActiveX,container,BoxID)
-            narginchk(2,4);
+        function obj = Triggers(TDTActiveX,container,BoxID)
+            narginchk(1,3);
 
-            if nargin < 3 || isempty(container), container = figure; end
-            if nargin < 4 || isempty(BoxID), BoxID = 1; end
+            if nargin < 2 || isempty(container), container = figure; end
+            if nargin < 3 || isempty(BoxID), BoxID = 1; end
 
             obj.BoxID = BoxID;
             obj.ContainerH = container;
             obj.TDTActiveX = TDTActiveX;
 
-            obj.build(RUNTIME);
+            obj.build;
         end
 
-        function build(obj,RUNTIME)
-        
+        function build(obj)
+            global RUNTIME
+            
             % RUNTIME.TRIALS.MODULES names the modules for updates without OpenEx
             midx  = struct2array(RUNTIME.TRIALS(obj.BoxID).MODULES);
             fn    = fieldnames(RUNTIME.TRIALS(obj.BoxID).MODULES);

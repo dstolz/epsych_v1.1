@@ -12,7 +12,7 @@ classdef OnlinePlot < gui.PlotHelper
         function obj = OnlinePlot(TDTActiveX,watchedParams,varargin)
             narginchk(2,3);
             
-            obj = obj@gui.PlotHelper(TDTActiveX,varargin{:});
+            obj = obj@gui.PlotHelper('OnlinePlot',TDTActiveX,varargin{:});
                         
             obj.watchedParams = watchedParams;
             
@@ -147,7 +147,7 @@ classdef OnlinePlot < gui.PlotHelper
             for i = 1:length(obj.watchedParams)
                 obj.lineH(i) = line(obj.ax,seconds(0),obj.yPositions(i), ...
                     'color',obj.lineColors(i,:), ...
-                    'linewidth',obj.lineWidth(i));
+                    'linewidth',11);
             end
             
             

@@ -51,7 +51,6 @@ for i = 1:RUNTIME.NSubjects
         % Broadcast event data has been updated
         evtdata = epsych.TrialsData(RUNTIME.TRIALS(i));
         RUNTIME.HELPER.notify('NewData',evtdata);
-        RUNTIME.HELPER.notify('NewTrial',evtdata);
     end
     
     

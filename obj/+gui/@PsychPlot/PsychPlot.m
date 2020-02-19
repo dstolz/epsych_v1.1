@@ -1,4 +1,4 @@
-classdef PsychPlot < handle
+classdef PsychPlot < gui.Helper
     
     properties
         AxesH       (1,1)
@@ -20,10 +20,6 @@ classdef PsychPlot < handle
         TextH
     end
     
-    properties (Access = private)
-        listener_ParameterUpdate
-        listener_NewData
-    end
     
     properties (Constant)
         ValidPlotTypes = {'DPrime','Hit_Rate','FA_Rate','Bias'};
@@ -36,8 +32,8 @@ classdef PsychPlot < handle
     
     
     methods
-        function obj = PsychPlot(pObj,Helper,ax)
-            if nargin < 3 || isempty(ax), ax = gca; end
+        function obj = PsychPlot(pObj,ax)
+            if nargin < 2 || isempty(ax), ax = gca; end
             
             obj.AxesH = ax;
             
@@ -48,9 +44,12 @@ classdef PsychPlot < handle
                 obj.update_plot;
             end
             
-            if nargin > 1 && ~isempty(Helper)
-                obj.link_with_helper(Helper);
-            end
+            
+            
+            global RUNTIME
+            obj.listener_NewData = addlistener(RUNTIME.HELPER,'NewData',@obj.update);
+            
+            
         end
         
         
@@ -62,10 +61,6 @@ classdef PsychPlot < handle
             obj.update_plot;
         end
         
-        function link_with_helper(obj,Helper)
-            if isempty(Helper) || isempty(Helper), return; end
-            obj.listener_NewData = addlistener(Helper,'NewData',@obj.update_plot);
-        end
         
         
 

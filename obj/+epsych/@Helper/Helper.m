@@ -7,7 +7,6 @@ classdef Helper < handle
 
     events (ListenAccess = 'public', NotifyAccess = 'public')
         NewData
-        NewTrial
     end
 
     methods
