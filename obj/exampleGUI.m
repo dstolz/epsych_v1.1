@@ -16,8 +16,6 @@
 %
 % * Note that a protocol needs to be running in order for this to work
 
-global RUNTIME % Need to pass RUNTIME to GUI objects
-global AX % Need to pass AX to the GUI objects that access the TDT hardware directly using ActiveX
 
 BoxID = 1; % define which Subject is being used (if running multiple subjects simultaneously)
 
@@ -44,16 +42,16 @@ D = psychophysics.Detection;
 % Create the OnlinePlot object and assign it to the axOnlinePlot container
 watchedParameters = {'!TrialDelivery','~InTrial_TTL','~DelayPeriod', ...
     '~RespWindow','~Spout_TTL','~ShockOn','~GO_Stim','~NOGO_Stim'};
-gui.OnlinePlot(RUNTIME,AX,watchedParameters,axOnlinePlot,BoxID);
+gui.OnlinePlot(watchedParameters,axOnlinePlot,BoxID);
 
 % Create the PsychPlot object and assign it to the axPsychPlot container
-gui.PsychPlot(D,RUNTIME.HELPER,axPsychPlot);
+gui.PsychPlot(D,axPsychPlot);
 
 % Create the trial History object and assign it to the pHistory container
-gui.History(D,RUNTIME.HELPER,pHistory);
+gui.History(D,pHistory);
 
 % Create the Triggers table
-gui.Triggers(RUNTIME,AX,pTriggers,BoxID);
+gui.Triggers(pTriggers,BoxID);
 
 % launch the other GUIs custom to your setup
 % MR_BehaviorGUI_Startup;

@@ -2,10 +2,10 @@ classdef SignalPlot < gui.PlotHelper
 % obj = SignalPlot(TDTActiveX,watchedParams,[ax],[BoxID])
 
     methods
-        function obj = SignalPlot(TDTActiveX,watchedParams,varargin)
-            narginchk(2,3);
+        function obj = SignalPlot(watchedParams,varargin)
+            narginchk(1,2);
             
-            obj = obj@gui.PlotHelper('SignalPlot',TDTActiveX,varargin{:});
+            obj = obj@gui.PlotHelper('SignalPlot',varargin{:});
             
             obj.watchedParams = watchedParams;
             

@@ -9,10 +9,10 @@ classdef OnlinePlot < gui.PlotHelper
     methods
         
         % Constructor
-        function obj = OnlinePlot(TDTActiveX,watchedParams,varargin)
-            narginchk(2,3);
+        function obj = OnlinePlot(watchedParams,varargin)
+            narginchk(1,2);
             
-            obj = obj@gui.PlotHelper('OnlinePlot',TDTActiveX,varargin{:});
+            obj = obj@gui.PlotHelper('OnlinePlot',varargin{:});
                         
             obj.watchedParams = watchedParams;
             

@@ -56,16 +56,17 @@ classdef PlotHelper < gui.Helper
 
     methods
         % Constructor
-        function obj = PlotHelper(subclassName,TDTActiveX,ax,BoxID)
-            narginchk(2,4);
+        function obj = PlotHelper(subclassName,ax,BoxID)
+            narginchk(1,3);
             
-            if nargin < 3 || isempty(ax), ax = gca;     end
-            if nargin < 4 || isempty(BoxID), BoxID = 1; end
+            if nargin < 2 || isempty(ax), ax = gca;     end
+            if nargin < 3 || isempty(BoxID), BoxID = 1; end
             
             obj.ax = ax;
             
+            global AX
             
-            obj.TDTActiveX = TDTActiveX;
+            obj.TDTActiveX = AX;
             obj.ax         = ax;
             obj.BoxID      = BoxID;
             
