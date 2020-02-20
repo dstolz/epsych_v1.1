@@ -40,6 +40,9 @@ for i = 1:RUNTIME.NSubjects
         RUNTIME.TRIALS(i).DATA(RUNTIME.TRIALS(i).TrialIndex) = data;
         
         
+        % Broadcast event data has been updated
+        evtdata = epsych.TrialsData(RUNTIME.TRIALS(i));
+        RUNTIME.HELPER.notify('NewData',evtdata);
         
         
         % Save runtime data in case of crash
@@ -48,9 +51,6 @@ for i = 1:RUNTIME.NSubjects
         
         
         
-        % Broadcast event data has been updated
-        evtdata = epsych.TrialsData(RUNTIME.TRIALS(i));
-        RUNTIME.HELPER.notify('NewData',evtdata);
     end
     
     
@@ -127,7 +127,6 @@ for i = 1:RUNTIME.NSubjects
     
     
     
-    
     % Update parameters for next trial
     feval(sprintf('Update%stags',RUNTIME.TYPE),AX,RUNTIME.TRIALS(i));   
 
@@ -144,6 +143,10 @@ for i = 1:RUNTIME.NSubjects
 
     
 
+    % Broadcast event data has been updated
+    evtdata = epsych.TrialsData(RUNTIME.TRIALS(i));
+    RUNTIME.HELPER.notify('NewTrial',evtdata);
+    
 
 end
 

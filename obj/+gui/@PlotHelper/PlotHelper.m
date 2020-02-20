@@ -20,6 +20,12 @@ classdef PlotHelper < gui.Helper
 
         setZeroToNan (1,1) logical = false;
 
+
+        timer_StartFcn
+        timer_TimerFcn
+        timer_StopFcn 
+        timer_ErrorFcn
+
     end
 
     properties (SetAccess = protected)
@@ -35,7 +41,7 @@ classdef PlotHelper < gui.Helper
         Time        (:,1) duration
     end
 
-    properties (SetAccess = private,Hidden)
+    properties (SetAccess = protected,Hidden)
         Timer       (1,1)
     end
     
@@ -49,18 +55,19 @@ classdef PlotHelper < gui.Helper
     end
     
     methods (Abstract, Access = protected)
-        setup_plot(obj,varargin)
+        setup(obj,varargin)
         update(obj,varargin)
-        error(obj,varargin)
     end
 
     methods
         % Constructor
-        function obj = PlotHelper(subclassName,ax,BoxID)
+        function obj = PlotHelper(subName,ax,BoxID)
             narginchk(1,3);
             
             if nargin < 2 || isempty(ax), ax = gca;     end
             if nargin < 3 || isempty(BoxID), BoxID = 1; end
+            
+            
             
             obj.ax = ax;
             
@@ -77,10 +84,11 @@ classdef PlotHelper < gui.Helper
             obj.trialParam = sprintf('#TrigState~%d',BoxID);
             
             
-            obj.Timer = ep_GenericGUITimer(obj.figH,subclassName);
-            obj.Timer.StartFcn = @obj.setup_plot;
-            obj.Timer.TimerFcn = @obj.update;
-            obj.Timer.ErrorFcn = @obj.error;
+            obj.Timer = ep_GenericGUITimer(obj.figH,subName);
+            obj.Timer.StartFcn = @obj.call_timer_StartFcn;
+            obj.Timer.TimerFcn = @obj.call_timer_TimerFcn;
+            obj.Timer.StopFcn  = @obj.call_timer_StopFcn;
+            obj.Timer.ErrorFcn = @obj.call_timer_ErrorFcn;
             obj.Timer.Period = 0.05;
         end
         
@@ -88,9 +96,50 @@ classdef PlotHelper < gui.Helper
         function delete(obj)
             try
                 stop(obj.Timer);
+            end
+
+            try
                 delete(obj.Timer);
             end
         end
+
+
+
+        function call_timer_StartFcn(obj,varargin)
+            global PRGMSTATE
+
+            % stop if the program state has changed
+            if ismember(PRGMSTATE,{'STOP','ERROR'}), stop(obj.Timer); return; end
+            
+            feval(obj.timer_StartFcn,varargin{:});            
+        end
+
+        function call_timer_TimerFcn(obj,varargin)
+            global PRGMSTATE
+
+            % stop if the program state has changed
+            if ismember(PRGMSTATE,{'STOP','ERROR'}), stop(obj.Timer); return; end
+            
+            feval(obj.timer_TimerFcn,varargin{:});            
+        end
+
+        function call_timer_StopFcn(obj,varargin)
+            if isempty(obj.timer_StopFcn), return; end
+            feval(obj.timer_StopFcn,varargin{:});            
+        end
+
+        function call_timer_ErrorFcn(obj,varargin)
+            if isempty(obj.timer_ErrorFcn), return; end
+            feval(obj.timer_ErrorFcn,varargin{:});            
+        end
+
+
+
+
+
+
+
+
 
         function s = get.N(obj)
             s = numel(obj.watchedParams);
@@ -196,5 +245,18 @@ classdef PlotHelper < gui.Helper
             s = cellstr(char(obj.timeWindow));
             s = cellfun(@(a) str2double(a(1:find(a==' ',1,'last')-1)),s);
         end
+
+        
+        
+        function to = last_trial_onset(obj)
+            B = obj.trialBuffer;
+            idx = find(B(2:end) > B(1:end-1),1,'last'); % find onsets
+            if isempty(idx)
+                to = obj.Time(end);
+            else
+                to = obj.Time(idx);
+            end                
+        end
+        
     end
 end

@@ -303,7 +303,7 @@ else
         vprintf(0,1,me);
         a = repmat('*',1,50);
         set(h.mnu_LaunchGUI,'Enable','off');
-        vprintf(0,1,'%s\nFailed to launch behavior performance GUI: %s\n%s',a,s,a);
+        vprintf(0,1,'Failed to launch behavior GUI: %s',s);
     end
 end
 

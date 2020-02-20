@@ -1,19 +1,12 @@
 classdef Helper < handle
     
 
-    properties
-
-    end
-
-    events (ListenAccess = 'public', NotifyAccess = 'public')
+    events
         NewData
+        NewTrial
+        SoftwareTrigger
     end
 
-    methods
-        
-        
-    end
-    
     methods (Static)
         function tf = valid_psych_obj(obj)
             tf = isobject(obj);

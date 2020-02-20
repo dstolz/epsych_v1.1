@@ -17,6 +17,12 @@ classdef SignalPlot < gui.PlotHelper
             
             obj.more_context_menus;
 
+            
+            % assign local functions to timer inherited from gui.PlotHelper
+            obj.Timer.StartFcn = @obj.setup;
+            obj.Timer.TimerFcn = @obj.update;
+            
+            
             start(obj.Timer);
 
         end
@@ -44,7 +50,7 @@ classdef SignalPlot < gui.PlotHelper
             setpref('epsych_gui_SignalPlot','yScaleMode',obj.yScaleMode);
         end
 
-        function setup_plot(obj,varargin)
+        function setup(obj,varargin)
             delete(obj.lineH);
             
             colors = lines(numel(obj.watchedParams));
@@ -119,10 +125,5 @@ classdef SignalPlot < gui.PlotHelper
             
         end
         
-        function error(obj,varargin)
-            vprintf(-1,'SignalPlot closed with error')
-            vprintf(-1,varargin{2}.Data.messageID)
-            vprintf(-1,varargin{2}.Data.message)
-        end
     end
 end

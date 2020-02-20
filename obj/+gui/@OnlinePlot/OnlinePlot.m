@@ -21,6 +21,11 @@ classdef OnlinePlot < gui.PlotHelper
 
             obj.setZeroToNan = true; 
             
+            
+            % assign local functions to timer inherited from gui.PlotHelper
+            obj.Timer.StartFcn = @obj.setup;
+            obj.Timer.TimerFcn = @obj.update;
+            
             start(obj.Timer);
             
         end
@@ -53,17 +58,6 @@ classdef OnlinePlot < gui.PlotHelper
         end
         
         
-        
-        function to = last_trial_onset(obj)
-            B = obj.trialBuffer;
-            idx = find(B(2:end) > B(1:end-1),1,'last'); % find onsets
-            if isempty(idx)
-                to = obj.Time(end);
-            else
-                to = obj.Time(idx);
-            end                
-        end
-        
 
 
     end
@@ -79,23 +73,16 @@ classdef OnlinePlot < gui.PlotHelper
     
     methods (Access = protected)
         function update(obj,varargin)
-            global PRGMSTATE
-            
-            % stop if the program state has changed
-            if ismember(PRGMSTATE,{'STOP','ERROR'}), stop(obj.Timer); return; end
-            
+
             if ~isempty(obj.trialParam)
                 try
                     obj.trialBuffer(end+1) = obj.getParamVals(obj.TDTActiveX,obj.trialParam);
                 catch
                     vprintf(0,1,'Unable to read the RPvds parameter: %s\nUpdate the trialParam to an existing parameter in the RPvds circuit', ...
                         obj.trialParam)
-                    c = findobj(obj.figH,'Tag','uic_plotType');
-                    delete(c);
-                    obj.trialParam = '';
                 end
             end
-            
+
             obj.Buffers(:,end+1) = obj.getParamVals(obj.TDTActiveX,obj.watchedParams);
             if obj.setZeroToNan, obj.Buffers(obj.Buffers(:,end)==0,end) = nan; end
             
@@ -117,13 +104,8 @@ classdef OnlinePlot < gui.PlotHelper
             
         end
         
-        function error(obj,varargin)
-            vprintf(-1,'OnlinePlot closed with error')
-            vprintf(-1,varargin{2}.Data.messageID)
-            vprintf(-1,varargin{2}.Data.message)
-        end
 
-        function setup_plot(obj,varargin)
+        function setup(obj,varargin)
             delete(obj.lineH);
             
             colors = lines(numel(obj.watchedParams));

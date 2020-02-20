@@ -1,4 +1,4 @@
-classdef Triggers < gui.Helper & handle
+classdef Triggers < gui.Helper
 
     properties
         BoxID   (1,1)   uint8 = 1;
@@ -14,20 +14,19 @@ classdef Triggers < gui.Helper & handle
         function obj = Triggers(container,BoxID)
             narginchk(1,3);
 
-            global AX
+            global AX RUNTIME
             
-            if nargin < 2 || isempty(container), container = figure; end
-            if nargin < 3 || isempty(BoxID), BoxID = 1; end
+            if nargin < 1 || isempty(container), container = figure; end
+            if nargin < 2 || isempty(BoxID), BoxID = 1; end
 
             obj.BoxID = BoxID;
             obj.ContainerH = container;
             obj.TDTActiveX = AX;
 
-            obj.build;
+            obj.build(RUNTIME);
         end
 
-        function build(obj)
-            global RUNTIME
+        function build(obj,RUNTIME)
             
             % RUNTIME.TRIALS.MODULES names the modules for updates without OpenEx
             midx  = struct2array(RUNTIME.TRIALS(obj.BoxID).MODULES);
