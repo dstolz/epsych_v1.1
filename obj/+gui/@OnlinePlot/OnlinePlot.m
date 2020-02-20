@@ -126,9 +126,10 @@ classdef OnlinePlot < gui.PlotHelper
         function setup_plot(obj,varargin)
             delete(obj.lineH);
             
+            colors = lines(numel(obj.watchedParams));
             for i = 1:length(obj.watchedParams)
                 obj.lineH(i) = line(obj.ax,seconds(0),obj.yPositions(i), ...
-                    'color',obj.lineColors(i,:), ...
+                    'color',colors(i,:), ...
                     'linewidth',11);
             end
             

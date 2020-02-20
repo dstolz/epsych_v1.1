@@ -88,6 +88,7 @@ classdef PlotHelper < gui.Helper
         function delete(obj)
             try
                 stop(obj.Timer);
+                delete(obj.Timer);
             end
         end
 
@@ -107,16 +108,20 @@ classdef PlotHelper < gui.Helper
         
         function c = get.lineColors(obj)
             c = get(obj.lineH,'Color'); 
+            if isempty(c), c = lines; end
         end
 
-        function set.lineColor(obj,c)
+        function set.lineColors(obj,c)
             for i = 1:size(c,1)
-                obj.lineH.Color = c(i,:);
+                obj.lineH(i).Color = c(i,:);
             end
         end
 
         function h = get.figH(obj)
             h = ancestor(obj.ax,'figure');
+            if isempty(h)
+                h = figure;
+            end
         end
 
         

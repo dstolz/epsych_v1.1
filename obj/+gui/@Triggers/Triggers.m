@@ -11,15 +11,17 @@ classdef Triggers < gui.Helper & handle
 
     methods
         % Constructor
-        function obj = Triggers(TDTActiveX,container,BoxID)
+        function obj = Triggers(container,BoxID)
             narginchk(1,3);
 
+            global AX
+            
             if nargin < 2 || isempty(container), container = figure; end
             if nargin < 3 || isempty(BoxID), BoxID = 1; end
 
             obj.BoxID = BoxID;
             obj.ContainerH = container;
-            obj.TDTActiveX = TDTActiveX;
+            obj.TDTActiveX = AX;
 
             obj.build;
         end

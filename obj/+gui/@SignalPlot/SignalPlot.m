@@ -13,7 +13,9 @@ classdef SignalPlot < gui.PlotHelper
             
             obj.watchedParams = watchedParams;
             
-            obj.add_context_menu;
+            obj.add_context_menu; % function inherited from gui.PlotHelper
+            
+            obj.more_context_menus;
 
             start(obj.Timer);
 
@@ -45,10 +47,10 @@ classdef SignalPlot < gui.PlotHelper
         function setup_plot(obj,varargin)
             delete(obj.lineH);
             
-
+            colors = lines(numel(obj.watchedParams));
             for i = 1:length(obj.watchedParams)
                 obj.lineH(i) = line(obj.ax,seconds(0),0, ...
-                    'color',obj.lineColors(i,:), ...
+                    'color',colors(i,:), ...
                     'linewidth',2);
             end 
 
@@ -103,7 +105,7 @@ classdef SignalPlot < gui.PlotHelper
             % adjust Y scaling
             switch obj.yScaleMode
                 case 'Equal'
-                    ind = obj.Time >= obj.timeWindow(1) & obj.Time <= obj.timeWindow(2);
+                    ind = obj.Time >= obj.ax.XLim(1) & obj.Time <= obj.ax.XLim(2);
                     y = obj.Buffers(:,ind);
                     obj.ax.YLim = [-1.1 1.1].*max(abs(y(:)));
 
