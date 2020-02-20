@@ -1,6 +1,10 @@
 classdef SignalPlot < gui.PlotHelper
 % obj = SignalPlot(watchedParams,[ax],[BoxID])
 
+    properties
+        yScaleMode (1,:) char {mustBeMember(yScaleMode,{'Auto','Equal'})} = 'Equal';
+    end
+
     methods
         function obj = SignalPlot(watchedParams,varargin)
             narginchk(1,2);
@@ -13,19 +17,31 @@ classdef SignalPlot < gui.PlotHelper
 
             start(obj.Timer);
 
-            
-
         end
+
     end
 
     
 
-
+    methods (Access = private)
+        function more_context_menus(obj)
+            h = obj.ax.UIContextMenu;
+            y = uimenu(h,'Tag','uic_yAxisScaling','Label','Y-Axis Scaling');
+            uimenu(y,'Tag','uic_yScaleAuto','Label','Auto','Callback',@obj.yscaling);
+            uimenu(y,'Tag','uic_yScaleEqual','Label','Equal','Callback',@obj.yscaling);
+        end
+    end
 
 
 
 
     methods (Access = protected)
+        
+        function yscaling(obj,hObj,event)
+            obj.yScaleMode = hObj.Label;
+            setpref('epsych_gui_SignalPlot','yScaleMode',obj.yScaleMode);
+        end
+
         function setup_plot(obj,varargin)
             delete(obj.lineH);
             
@@ -35,7 +51,6 @@ classdef SignalPlot < gui.PlotHelper
                     'color',obj.lineColors(i,:), ...
                     'linewidth',2);
             end 
-
 
             xtickformat(obj.ax,'mm:ss.S');
 
@@ -48,20 +63,6 @@ classdef SignalPlot < gui.PlotHelper
             obj.ax.XAxis.Label.String = 'time since start (mm:ss)';
             
             obj.startTime = clock;
-        end
-        
-        
-        function stay_on_top(obj,varargin)
-            obj.stayOnTop = ~obj.stayOnTop;
-            c = findobj('Tag','uic_stayOnTop');
-            if obj.stayOnTop
-                c.Label = 'Don''t Keep Window on Top';
-                obj.figH.Name = [obj.figName ' - *On Top*'];
-            else
-                c.Label = 'Keep Window on Top';
-                obj.figH.Name = obj.figName;
-            end
-            FigOnTop(obj.figH,obj.stayOnTop);
         end
         
         
@@ -92,11 +93,26 @@ classdef SignalPlot < gui.PlotHelper
                 obj.lineH(i).YData = obj.Buffers(i,:);
             end
             
+            % adjust X axis
             if obj.trialLocked && ~isempty(obj.trialParam)
                 obj.ax.XLim = obj.last_trial_onset + obj.timeWindow;
             else
                 obj.ax.XLim = obj.Time(end) + obj.timeWindow;
             end
+
+            % adjust Y scaling
+            switch obj.yScaleMode
+                case 'Equal'
+                    ind = obj.Time >= obj.timeWindow(1) & obj.Time <= obj.timeWindow(2);
+                    y = obj.Buffers(:,ind);
+                    obj.ax.YLim = [-1.1 1.1].*max(abs(y(:)));
+
+                case 'Auto'
+                    obj.ax.YLimMode = 'auto';
+            end
+
+
+
             drawnow limitrate
             
         end
