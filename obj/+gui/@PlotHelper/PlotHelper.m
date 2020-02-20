@@ -106,17 +106,13 @@ classdef PlotHelper < gui.Helper
 
         
         function c = get.lineColors(obj)
-            if isempty(obj.lineColors)
-                c = lines(obj.N);
-            else
-                c = obj.lineColors;
-                if size(c,1) < obj.N
-                    x = lines(obj.N);
-                    c = [c; x(size(c,1)+1:obj.N,:)];
-                else
-                    c = c(1:obj.N);
-                end
-            end 
+            c = get(obj.lineH,'Color'); 
+        end
+
+        function set.lineColor(obj,c)
+            for i = 1:size(c,1)
+                obj.lineH.Color = c(i,:);
+            end
         end
 
         function h = get.figH(obj)
@@ -127,8 +123,7 @@ classdef PlotHelper < gui.Helper
         
         
         function add_context_menu(obj)
-            c = uicontextmenu;
-            c.Parent = obj.figH;
+            c = uicontextmenu(obj.figH);
             uimenu(c,'Tag','uic_stayOnTop','Label','Keep Window on Top','Callback',@obj.stay_on_top);
             uimenu(c,'Tag','uic_pause','Label','Pause ||','Callback',@obj.pause);
             uimenu(c,'Tag','uic_plotType','Label','Set Plot to Trial-Locked','Callback',@obj.plot_type);
