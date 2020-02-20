@@ -1,5 +1,6 @@
 classdef OnlinePlot < gui.PlotHelper
-    
+% obj = OnlinePlot(watchedParams,[ax],[BoxID])
+
     properties
         yPositions  (:,1) double {mustBeFinite}
         
@@ -34,7 +35,7 @@ classdef OnlinePlot < gui.PlotHelper
         function pause(obj,varargin)
             obj.paused = ~obj.paused;
             
-            c = findobj('tag','uic_pause');
+            c = findobj(obj.figH,'tag','uic_pause');
             if obj.paused
                 c(1).Label = 'Catch up >';
             else
@@ -108,7 +109,7 @@ classdef OnlinePlot < gui.PlotHelper
                 catch
                     vprintf(0,1,'Unable to read the RPvds parameter: %s\nUpdate the trialParam to an existing parameter in the RPvds circuit', ...
                         obj.trialParam)
-                    c = findobj('Tag','uic_plotType');
+                    c = findobj(obj.figH,'Tag','uic_plotType');
                     delete(c);
                     obj.trialParam = '';
                 end
@@ -182,7 +183,7 @@ classdef OnlinePlot < gui.PlotHelper
         
         function stay_on_top(obj,varargin)
             obj.stayOnTop = ~obj.stayOnTop;
-            c = findobj('Tag','uic_stayOnTop');
+            c = findobj(obj.figH,'Tag','uic_stayOnTop');
             if obj.stayOnTop
                 c.Label = 'Don''t Keep Window on Top';
                 obj.figH.Name = [obj.figName ' - *On Top*'];
@@ -195,7 +196,7 @@ classdef OnlinePlot < gui.PlotHelper
         
         function plot_type(obj,varargin)
             obj.trialLocked = ~obj.trialLocked;
-            c = findobj('Tag','uic_plotType');
+            c = findobj(obj.figH,'Tag','uic_plotType');
             atw = abs(obj.timeWindow);
             if isempty(obj.trialParam)
                 vprintf(0,1,'Unable to set the plot to Trial-Locked mode because the trialParam is empty')
@@ -220,7 +221,7 @@ classdef OnlinePlot < gui.PlotHelper
                 return
             end
             obj.timeWindow = seconds(r(:)');
-            c = findobj('Tag','uic_timeWindow');
+            c = findobj(obj.figH,'Tag','uic_timeWindow');
             c.Label = sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number);
             FigOnTop(obj.figH,obj.stayOnTop);
         end
