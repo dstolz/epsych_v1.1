@@ -122,5 +122,79 @@ classdef PlotHelper < gui.Helper
         function h = get.figH(obj)
             h = ancestor(obj.ax,'figure');
         end
+
+        
+        
+        
+        function add_context_menu(obj)
+            c = uicontextmenu;
+            c.Parent = obj.figH;
+            uimenu(c,'Tag','uic_stayOnTop','Label','Keep Window on Top','Callback',@obj.stay_on_top);
+            uimenu(c,'Tag','uic_pause','Label','Pause ||','Callback',@obj.pause);
+            uimenu(c,'Tag','uic_plotType','Label','Set Plot to Trial-Locked','Callback',@obj.plot_type);
+            uimenu(c,'Tag','uic_timeWindow','Label',sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number),'Callback',@obj.update_window);
+            obj.ax.UIContextMenu = c;
+        end
+
+        function pause(obj,varargin)
+            obj.paused = ~obj.paused;
+            
+            c = findobj(obj.figH,'tag','uic_pause');
+            if obj.paused
+                c(1).Label = 'Catch up >';
+            else
+                c(1).Label = 'Pause ||';
+            end
+        end
+        
+        function stay_on_top(obj,varargin)
+            obj.stayOnTop = ~obj.stayOnTop;
+            c = findobj(obj.figH,'Tag','uic_stayOnTop');
+            if obj.stayOnTop
+                c.Label = 'Don''t Keep Window on Top';
+                obj.figH.Name = [obj.figName ' - *On Top*'];
+            else
+                c.Label = 'Keep Window on Top';
+                obj.figH.Name = obj.figName;
+            end
+            FigOnTop(obj.figH,obj.stayOnTop);
+        end
+        
+        function plot_type(obj,varargin)
+            obj.trialLocked = ~obj.trialLocked;
+            c = findobj(obj.figH,'Tag','uic_plotType');
+            atw = abs(obj.timeWindow);
+            if isempty(obj.trialParam)
+                vprintf(0,1,'Unable to set the plot to Trial-Locked mode because the trialParam is empty')
+            elseif obj.trialLocked
+                obj.timeWindow = [-min(atw) max(atw)];
+                c.Label = 'Set Plot to Free-Running';
+            else
+                obj.timeWindow = [-max(atw) min(atw)];
+                c.Label = 'Set Plot to Trial-Locked';
+            end
+        end
+        
+        function update_window(obj,varargin)
+            % temporarily disable stay on top if selected
+            FigOnTop(obj.figH,false);
+            r = inputdlg('Adjust time windpw (seconds)','Online Plot', ...
+                1,{sprintf('[%.1f %.1f]',obj.timeWindow2number)});
+            if isempty(r), return; end
+            r = str2num(char(r)); %#ok<ST2NM>
+            if numel(r) ~= 2
+                vprintf(0,1,'Must enter 2 values for the time window')
+                return
+            end
+            obj.timeWindow = seconds(r(:)');
+            c = findobj(obj.figH,'Tag','uic_timeWindow');
+            c.Label = sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number);
+            FigOnTop(obj.figH,obj.stayOnTop);
+        end
+        
+        function s = timeWindow2number(obj)
+            s = cellstr(char(obj.timeWindow));
+            s = cellfun(@(a) str2double(a(1:find(a==' ',1,'last')-1)),s);
+        end
     end
 end

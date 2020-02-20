@@ -1,5 +1,5 @@
 classdef SignalPlot < gui.PlotHelper
-% obj = SignalPlot(TDTActiveX,watchedParams,[ax],[BoxID])
+% obj = SignalPlot(watchedParams,[ax],[BoxID])
 
     methods
         function obj = SignalPlot(watchedParams,varargin)
@@ -9,12 +9,13 @@ classdef SignalPlot < gui.PlotHelper
             
             obj.watchedParams = watchedParams;
             
+            obj.add_context_menu;
+
             start(obj.Timer);
 
             
 
         end
-
     end
 
     
