@@ -1,4 +1,4 @@
-classdef Parameter < handle & matlab.mixin.Copyable
+classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     % P = epsych.Parameter('Property','Value',...)
 
     properties
@@ -17,7 +17,6 @@ classdef Parameter < handle & matlab.mixin.Copyable
         Values
         
         isBuffer
-        isPaired
     end
     
     methods
@@ -54,6 +53,8 @@ classdef Parameter < handle & matlab.mixin.Copyable
             
             v = obj.Values(obj.Index);
          
+            if v < obj.ValueBounds(1), v = obj.ValueBounds(1); end
+            if v > obj.ValueBounds(2), v = obj.ValueBounds(2); end
         end
 
         function v = get.Values(obj)
@@ -68,6 +69,12 @@ classdef Parameter < handle & matlab.mixin.Copyable
             end
         end
         
+        function set.ValueBounds(obj,vb)
+            assert(numel(vb)==2 & isnumeric(vb),'epsych.Parameter:set.ValueBounds:InvalidEntry', ...
+                'Parameter ValueBounds must contain 2 numeric values');
+            obj.ValueBounds = sort(vb(:)','ascend');
+        end
+        
         function set.SelectFunction(obj,h)
             obj.SelectFunction = h;
             obj.Select = 'custom';
@@ -77,9 +84,6 @@ classdef Parameter < handle & matlab.mixin.Copyable
             tf = numel(obj.Value) > 1;
         end
         
-        function tf = get.isPaired(obj)
-            tf = ~isempty(obj.PairName);
-        end
     end
 
     

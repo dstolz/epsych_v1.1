@@ -8,8 +8,10 @@ classdef ParameterSet
         Compiled
         N
         Names
+        
         PairNames
-        PairIndex
+        
+        isPaired
     end
     
     methods
@@ -17,7 +19,10 @@ classdef ParameterSet
             if nargin == 0, return; end
             
             obj.Parameters = Parameters;
+            
+            obj.test_unique_names;
         end
+        
         
         function n = get.N(obj)
             n = length(obj.Parameters);
@@ -28,45 +33,58 @@ classdef ParameterSet
         end
         
         function n = get.PairNames(obj)
-            n = unique({obj.Parameters.PairName});
+            n = {obj.Parameters.PairName};
         end
         
-        function pidx = get.PairIndex(obj)
-            pidx = nan;
-            pn  = {obj.Parameters.PairName};
-            pn(cellfun(@isempty,pn)) = [];
-            if isempty(pn), return; end
-            upn = unique(pn);
-            pidx = nan(1,obj.N);
-            k = 1;
-            for i = 1:obj.N
-                ind = ismember(pn,upn{i});
-                if ~any(ind), continue; end
-                pidx(ind) = k;
-                k = k + 1;
-            end
-        end
-        
-        function p = getPairs(obj,idx)
-            p = [];
-            pidx = obj.PairIndex;
-            if isnan(pidx), return; end
-            if nargin == 0 % return all pairs
-                for i = pidx
-                    p{1,i} = obj.getPairs(i);
-                end
-                return
-            end
-            
-            p = obj.Parameters(idx == pidx);
+        function tf = get.isPaired(obj)
+            tf = ~cellfun(@isempty,obj.PairNames);
         end
         
         function c = get.Compiled(obj)
-            ps = obj.getPairs;
-            pn = cellfun(@(a) a.N,ps);
+            c = {};
+            pnames  = obj.PairNames;
+            upnames = unique(pnames);
+            ok = arrayfun(@(a) test_pair_length(obj,a),upnames);
+            if ~all(ok)
+                fprintf(2,'epsych.ParameterSet:get.Compiled:InvalidPairLength\n%s\n', ...
+                    'Paired Parameters must evaluate to the same lengths')
+                return
+            end
+            
+            % how many permutations do we have?
+            x = [obj.Parameters(arrayfun(@(a) find(ismember(pnames,a),1),upnames)).N];
+            nP = prod(x);
+            nNP = prod([obj.Parameters(~obj.isPaired).N]);
+            
+            nT = nP*nNP;
+            
+            for i = 1:length(upnames)
+                ind = ismember(pnames,upnames{i});
+                
+            end
+            
             
         end
         
+        function ok = test_pair_length(obj,idx)
+            ind = ismember(obj.PairNames,idx);
+            n = [obj.Parameters(ind).N];
+            ok = all(n == n(1));
+        end
+        
+        function p = getPair(obj,idx)
+            pn = {obj.Parameters.PairName};
+            ind = ismember(pn,idx);
+            p = obj.Parameters(ind);
+        end
+    end
+    
+    methods (Access = private)
+        function test_unique_names(obj)
+            tf = length(unique(obj.Names)) == obj.N;
+            assert(tf,'epsych.ParameterSet:test_unique_names:NonUniqueNames', ...
+                'All Parameter names in the ParameterSet must be unique');
+        end
     end
 
 end
