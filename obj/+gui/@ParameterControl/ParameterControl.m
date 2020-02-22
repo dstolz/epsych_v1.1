@@ -1,37 +1,40 @@
-classdef ParameterControl < handle & matlab.mixin.SetGet
-
+classdef (Abstract) ParameterControl < handle & matlab.mixin.SetGet
+    
+    
     properties
         Value
         
         LabelString     (1,:) char
         LabelPosition   (1,:) {mustBeMember(LabelPosition,{'left','right','above','below'})} = 'left';
 
-        position        (1,4) double {mustBeFinite,mustBeNonNan,mustBeNonempty} = [0 0 1 1];
+        Position        (1,4) double {mustBeFinite,mustBeNonNan,mustBeNonempty} = [0 0 100 22];
+        PositionX       (1,1) double {mustBeFinite,mustBeNonNan,mustBeNonempty} = 0;
+        PositionY       (1,1) double {mustBeFinite,mustBeNonNan,mustBeNonempty} = 0;
+        Width           (1,1) double {mustBeFinite,mustBeNonNan,mustBeNonempty} = 100;
+        Height          (1,1) double {mustBeFinite,mustBeNonNan,mustBeNonempty} = 22;
 
         Parameter       (1,1) epsych.Parameter
         
     end
 
-    properties (SetAccess = private)
+    properties (SetAccess = protected)
         hLabel
         hControl
-        
-        Style   (1,:) char {mustBeMember(Style,{'checkbox','edit','listbox','popupmenu','slider','auto'})} = 'auto';
-    end
-
-    properties (SetAccess = immutable)
+       
         parent
     end
-
+    
+    methods (Abstract)
+        create(obj);
+    end
+    
     methods
-        function obj = ParameterControl(Parameter,parent,position,style,varargin)
-            narginchk(3,5);
-
+        function obj = ParameterControl(Parameter,parent,varargin)
+            narginchk(1,4);
+            
             obj.Parameter = Parameter;
-            obj.parent    = parent;
-            obj.position  = position;
-
-            if nargin >= 4 && ~isempty(style), obj.Style = style; end
+            
+            if nargin >= 2 && ~isempty(parent), obj.parent = parent; end
 
             p = properties(obj);
             for i = 1:2:length(varargin)
@@ -43,81 +46,66 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
 
             obj.create;
         end
+        
+        
+        function set.PositionX(obj,x)
+            obj.hControl.Position(1) = x;
+            obj.update_position;
+        end
+        
+        function set.PositionY(obj,y)
+            obj.hControl.Position(2) = y;
+            obj.update_position;
+        end
+        
+        function set.Width(obj,w)
+            obj.hControl.Position(3) = w;
+            obj.update_position;
+        end
+        
+        function set.Height(obj,h)
+            obj.hControl.Position(1) = h;
+            obj.update_position;
+        end
+        
+        function set.Position(obj,position)
+            obj.hControl.Position = position;
+            obj.update_position;
+        end
+        
 
-        function create(obj)
+        function modify_parameter(obj,hObj,event)
+            disp(event)
+        end
 
-            if isequal(obj.Style,'auto')
-                if obj.Parameter.N == 1
-                    obj.Style = 'edit';
-
-                elseif obj.Parameter.isLogical
-                    obj.Style = 'checkbox';
-
-                elseif obj.Parameter.isMultiselect
-                    obj.Style = 'listbox';
-
-                elseif obj.Parameter.isRange
-                    obj.Style = 'slider';
-
-                else
-                    obj.Style = 'popupmenu';
-                end
-            end
-
-            h = uicontrol(obj.parent, ...
-                'Style',   obj.Style, ...
-                'Position',obj.position, ...
-                'ButtonDownFcn',@obj.modify_parameter);
-                
-            switch obj.Style
-                case 'edit'
-                    h.String = obj.Parameter.Expression;
-
-                case 'checkbox'
-                    h.Value = obj.Parameter.Value;
-
-                case {'listbox','popupmenu'}
-                    h.String = obj.Parameter.ValuesStr;
-
-                case 'slider'
-                    error('slider not yet implemented')
-
-            end
-
-            obj.hControl = h;
+    end
+    
+    methods (Access = protected)
+        
+        function update_position(obj)
+            hp = obj.hControl.Position;
+            lp = obj.hLabel.Position;
             
-
-            hL = uicontrol(obj.parent, ...
-                'Style',   'text', ...
-                'String',   obj.Parameter.Name);
-            hL.Position([1 2]) = h.Position([1 2]);
-
             switch obj.LabelPosition
                 case 'left'
-                    hL.Position(1) = h.Position(1)-hL.Position(3);
-                    hL.HorizontalAlignment = 'right';
+                    obj.hLabel.Position(1) = (1)-lp(3);
+                    obj.hLabel.HorizontalAlignment = 'right';
 
                 case 'right'
-                    hL.Position(1) = sum(h.Position([1 3]));
-                    hL.HorizontalAlignment = 'left';
+                    obj.hLabel.Position(1) = sum(hp([1 3]));
+                    obj.hLabel.HorizontalAlignment = 'left';
 
                 case 'above'
-                    hL.Position(2) = sum(h.Position([2 4]));
-                    hL.HorizontalAlignment = 'left';
+                    obj.hLabel.Position(2) = sum(hp([2 4]));
+                    obj.hLabel.HorizontalAlignment = 'left';
 
                 case 'below'
-                    hL.Position(2) = h.Position(2)-hL.Position(4);
-                    hL.HorizontalAlignment = 'left';
+                    obj.hLabel.Position(2) = hp(2)-lp(4);
+                    obj.hLabel.HorizontalAlignment = 'left';
             end
-
-            obj.hLabel = hL;
         end
-
-
-        function modify_parameter(obj,varargin)
-            disp(obj)
-        end
-
+        
+        
     end
 
 end

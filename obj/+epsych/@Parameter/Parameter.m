@@ -2,7 +2,7 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     % P = epsych.Parameter('Property','Value',...)
 
     properties
-        Expression      (1,:) 
+        Expression      (1,:) char
         Index           (1,:) double {mustBeInteger,mustBePositive,mustBeNonempty} = 1;
         Name            (1,:) char = 'NO NAME';
         PairName        (1,:) char
@@ -150,6 +150,8 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         function tf = get.isBuffer(obj)
             tf = numel(obj.Value) > 1;
         end
+        
+        
         
     end
 
