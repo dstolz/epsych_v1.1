@@ -10,9 +10,7 @@ classdef uilistbox < gui.ParameterControl
 
     methods
         function obj = uilistbox(varargin)
-            
             obj = obj@gui.ParameterControl(varargin{:});
-            obj.Position = [200 50 150 200];
             obj.ValueType = obj.ValueType;
         end
         

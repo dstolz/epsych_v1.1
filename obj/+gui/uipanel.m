@@ -10,7 +10,9 @@ classdef uipanel < handle & matlab.mixin.SetGet
     
     properties (SetAccess = private)
         hPanel
-        hParameters     (1,:) 
+        hParameters
+        hVerticalSlider
+        Styles          (1,:) cell
     end
     
     properties (SetAccess = private, GetAccess = private)
@@ -19,9 +21,7 @@ classdef uipanel < handle & matlab.mixin.SetGet
 
     properties (SetAccess = immutable)
         ParameterSet    (1,1) epsych.ParameterSet
-        Styles          (1,:) cell
         parent
-        
     end
     
     methods
@@ -36,7 +36,7 @@ classdef uipanel < handle & matlab.mixin.SetGet
             obj.parent = parent;
 
             if ischar(Styles) && isequal(Styles,'auto')
-                obj.Styles = rempat({'auto'},1,ParameterSet.N);
+                obj.Styles = repmat({'auto'},1,ParameterSet.N);
             end
             
             obj.create;
@@ -48,8 +48,6 @@ classdef uipanel < handle & matlab.mixin.SetGet
                     'Invalid property "%s"',varargin{i})
                 obj.(p{ind}) = varargin{i+1};
             end
-
-                       
         end
         
         % Destructor
@@ -67,42 +65,51 @@ classdef uipanel < handle & matlab.mixin.SetGet
             w = obj.hPanel.Position(3);
             h = obj.hPanel.Position(4);
 
-            a = 25;
-            d = 5;
+            a = 22;
+            d = 3;
 
-            position = [w/2-20 h-a-d w/2-20 a];
+            position = [w/2-22 h w/2-22 a];
 
             for i = 1:obj.ParameterSet.N
                 if isequal(obj.Styles{i},'auto')
                     obj.Styles{i} = gui.uipanel.guess_uistyle(obj.ParameterSet.Parameters(i));
                 end
+                
+                switch obj.Styles{i}
+                    case 'listbox'
+                        position(2) = position(2) - 50 - d;
+                        position(4) = 50;
+                        
+                    otherwise
+                        position(2) = position(2) - 22 - d;
+                        position(4) = 22;
+                end
+                
+                h = gui.(['ui' obj.Styles{i}])(obj.ParameterSet.Parameters(i),obj.parent, ...
+                    'Position',position);
 
-                h = gui.ParameterControl(obj.ParameterSet.Parameters(i),obj.parent, ...
-                    'Style',obj.Styles{i},'Position',position);
+                obj.OriginalPosition{i} = h.Position;
 
-                obj.OriginalPosition(i) = h.Position;
-
-                a = h.Position(2);
-
-                position(1) = position(1) - a - d;
-
-                obj.hParameters(i) = h;
+                obj.hParameters{i} = h;
+            
             end
 
-            if position(1) < 0
+            if position(2) < 0 % do we need a slider?
                 pos = obj.parent.Position;
                 obj.hVerticalSlider = uicontrol( ...
                     'Style',     'slider', ...
                     'Parent',    obj.parent, ...
                     'Tag',       'StimControlProperties_slider', ...
-                    'Value',     position(1), ...
+                    'Value',     pos(4)-position(4), ...
                     'Units',     'pixels', ...
-                    'Position',  [pos(3)-1 5 20 pos(4)-10], ...
+                    'Position',  [pos(3)-21 5 20 pos(4)-10], ...
                     'Min',       0, ...
-                    'Max',       position(1), ...
+                    'Max',       pos(4)-position(4), ...
                     'SliderStep',[0.05 0.20], ...
                     'Callback',  @obj.vertical_slider);
             end
+
+
         end
         
         function set.Position(obj,pos)
@@ -150,15 +157,12 @@ classdef uipanel < handle & matlab.mixin.SetGet
     methods (Access = private)
         function vertical_slider(obj,hObj,event)
             v = hObj.Max - hObj.Value;
-
             for i = 1:obj.ParameterSet.N
-                pos = obj.hParameters(i),'UserData');
-                pos(2) = pos(2) + v;
-                obj.hParameters(i).Position = pos;
+                obj.hParameters{i}.PositionY = obj.OriginalPosition{i}(2) + v;
             end
         end
     end
-    
+
     methods (Static)
         function style = guess_uistyle(P)
             if P.N == 1

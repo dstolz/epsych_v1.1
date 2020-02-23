@@ -39,13 +39,15 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
     
     methods
         % Constructor
-        function obj = ParameterControl(Parameter,parent,varargin)
-            narginchk(1,3);
-            
+        function obj = ParameterControl(Parameter,parent,varargin)            
             obj.Parameter = Parameter;
             
-            if nargin < 2 || isempty(parent), obj.parent = gcf; end
+            if nargin < 2 || isempty(parent), parent = gcf; end
 
+            obj.parent = parent;
+            
+            obj.create;
+            
             p = properties(obj);
             for i = 1:2:length(varargin)
                 ind = strcmpi(p,varargin{i});
@@ -54,7 +56,6 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
                 obj.(p{ind}) = varargin{i+1};
             end
 
-            obj.create;
         end
         
         % Destructor
@@ -67,6 +68,7 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
             obj.hControl = uicontrol(obj.parent, ...
                 'Style',        obj.Style, ...
                 'Callback',     @obj.Callback, ...
+                'Tooltip',      obj.Parameter.Expression, ...
                 'ButtonDownFcn',@obj.modify_parameter);
                 
             if ~isequal(obj.LabelPosition,'none')
