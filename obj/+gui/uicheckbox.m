@@ -11,7 +11,6 @@ classdef uicheckbox < gui.ParameterControl
     methods
         function obj = uicheckbox(varargin)
             obj = obj@gui.ParameterControl(varargin{:});
-            
             obj.hControl.Value = obj.Parameter.Value;
         end
         
@@ -21,13 +20,6 @@ classdef uicheckbox < gui.ParameterControl
             obj.hControl.String = obj.Parameter.(obj.ValueType);
         end
         
-        function modify_parameter(obj,hObj,event)
-            disp(event)
-        end
-        
-        function Callback(obj,hObj,event)
-            disp(event)
-        end
     end
 
 end

@@ -24,13 +24,6 @@ classdef uilistbox < gui.ParameterControl
         end
         
         
-        function modify_parameter(obj,hObj,event)
-            disp(event)
-        end
-        
-        function Callback(obj,hObj,event)
-            disp(event)
-        end
         
     end
 

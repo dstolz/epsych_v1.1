@@ -19,14 +19,6 @@ classdef uipopupmenu < gui.ParameterControl
             obj.ValueType = type;
             obj.hControl.String = obj.Parameter.(obj.ValueType);
         end
-        
-        function modify_parameter(obj,hObj,event)
-            disp(event)
-        end
-        
-        function Callback(obj,hObj,event)
-            disp(event)
-        end
     end
 
 end

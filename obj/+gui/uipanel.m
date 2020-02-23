@@ -30,7 +30,7 @@ classdef uipanel < handle & matlab.mixin.SetGet
             narginchk(1,3);
             
             if nargin < 3 || isempty(parent), parent = gcf; end
-            if nargin < 2 || isempty(parent), Styles = 'auto'; end
+            if nargin < 2 || isempty(Styles), Styles = 'auto'; end
 
             obj.ParameterSet = ParameterSet;
             obj.parent = parent;
@@ -52,7 +52,8 @@ classdef uipanel < handle & matlab.mixin.SetGet
         
         % Destructor
         function delete(obj)
-            delete(obj.hPanel);
+            cellfun(@delete,obj.hParameters);
+            delete(obj.hVerticalSlider);
         end
         
         
@@ -63,7 +64,7 @@ classdef uipanel < handle & matlab.mixin.SetGet
             obj.hPanel.Units = 'pixels';
 
             w = obj.hPanel.Position(3);
-            h = obj.hPanel.Position(4);
+            h = obj.hPanel.Position(4)-5;
 
             a = 22;
             d = 3;
@@ -72,7 +73,7 @@ classdef uipanel < handle & matlab.mixin.SetGet
 
             for i = 1:obj.ParameterSet.N
                 if isequal(obj.Styles{i},'auto')
-                    obj.Styles{i} = gui.uipanel.guess_uistyle(obj.ParameterSet.Parameters(i));
+                    obj.Styles{i} = gui.ParameterControl.guess_uistyle(obj.ParameterSet.Parameters(i));
                 end
                 
                 switch obj.Styles{i}
@@ -85,7 +86,8 @@ classdef uipanel < handle & matlab.mixin.SetGet
                         position(4) = 22;
                 end
                 
-                h = gui.(['ui' obj.Styles{i}])(obj.ParameterSet.Parameters(i),obj.parent, ...
+                h = gui.(['ui' obj.Styles{i}])(obj.ParameterSet.Parameters(i), ...
+                    obj.parent, ...
                     'Position',position);
 
                 obj.OriginalPosition{i} = h.Position;
@@ -100,11 +102,11 @@ classdef uipanel < handle & matlab.mixin.SetGet
                     'Style',     'slider', ...
                     'Parent',    obj.parent, ...
                     'Tag',       'StimControlProperties_slider', ...
-                    'Value',     pos(4)-position(4), ...
+                    'Value',     pos(4)-position(2), ...
                     'Units',     'pixels', ...
-                    'Position',  [pos(3)-21 5 20 pos(4)-10], ...
-                    'Min',       0, ...
-                    'Max',       pos(4)-position(4), ...
+                    'Position',  [pos(3)-25 5 20 pos(4)-10], ...
+                    'Min',       pos(4)-position(4), ...
+                    'Max',       pos(4)-position(2), ...
                     'SliderStep',[0.05 0.20], ...
                     'Callback',  @obj.vertical_slider);
             end
@@ -163,24 +165,4 @@ classdef uipanel < handle & matlab.mixin.SetGet
         end
     end
 
-    methods (Static)
-        function style = guess_uistyle(P)
-            if P.N == 1
-                style = 'edit';
-
-            elseif P.isLogical
-                style = 'checkbox';
-
-            elseif P.isMultiselect
-                style = 'listbox';
-
-            elseif P.isContinuous
-                style = 'slider';
-
-            else
-                style = 'popupmenu';
-            end
-        end
-    end
-    
 end

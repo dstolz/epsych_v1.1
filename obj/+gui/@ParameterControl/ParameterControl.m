@@ -33,9 +33,6 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
         parent
     end
     
-    methods (Abstract)
-        modify_parameter(obj,hObj,event)
-    end
     
     methods
         % Constructor
@@ -55,7 +52,6 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
                     'Invalid property "%s"',varargin{i})
                 obj.(p{ind}) = varargin{i+1};
             end
-
         end
         
         % Destructor
@@ -64,24 +60,6 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
             delete(obj.hLabel);
         end
         
-        function create(obj)
-            obj.hControl = uicontrol(obj.parent, ...
-                'Style',        obj.Style, ...
-                'Callback',     @obj.Callback, ...
-                'Tooltip',      obj.Parameter.Expression, ...
-                'ButtonDownFcn',@obj.modify_parameter);
-                
-            if ~isequal(obj.LabelPosition,'none')
-                obj.hLabel = uicontrol(obj.parent, ...
-                    'Style',   'text', ...
-                    'String',   obj.Parameter.Name);
-                obj.hLabel.Position([1 2]) = obj.hControl.Position([1 2]);
-            end
-            
-            obj.update_position;
-        end
-                    
-
         function set.Position(obj,pos)
             obj.hControl.Position = pos;
             obj.update_position;
@@ -135,6 +113,30 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
     end
     
     methods (Access = protected)
+                
+        function modify_parameter(obj,hObj,event)
+            str = sprintf('Modify Parameter Expression for "%s":',obj.Parameter.Name);
+            
+            options.Resize='on';
+            options.WindowStyle='normal';
+            options.Interpreter='none';
+            
+            a = inputdlg(str,obj.Parameter.Name,1, ...
+                {obj.Parameter.Expression},options);
+            if isempty(a), return; end
+            
+            obj.Parameter.Expression = char(a);
+           
+            obj.ValueType = obj.ValueType;
+            
+            obj.create;
+            
+            obj.hControl.Tooltip = sprintf('%s: %s',obj.Parameter.Name,obj.Parameter.Expression);
+        end
+        
+        function Callback(obj,hObj,event)
+            disp(event)
+        end
         
         function update_position(obj)
             hp = obj.hControl.Position;
@@ -166,8 +168,57 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
                     obj.hLabel.Visible = 'off';
             end
         end
-        
-        
+    end
+    
+    methods (Access = private)
+        function create(obj)
+            if isempty(obj.hControl)
+                obj.hControl = uicontrol(obj.parent, ...
+                    'Style',        obj.Style, ...
+                    'Callback',     @obj.Callback, ...
+                    'Tooltip',      sprintf('%s: %s',obj.Parameter.Name,obj.Parameter.Expression), ...
+                    'ButtonDownFcn',@obj.modify_parameter);
+                
+                if ~isequal(obj.LabelPosition,'none')
+                    obj.hLabel = uicontrol(obj.parent, ...
+                        'Style',   'text', ...
+                        'String',   obj.Parameter.Name, ...
+                        'ButtonDownFcn',@obj.modify_parameter);
+                    obj.hLabel.Position([1 2]) = obj.hControl.Position([1 2]);
+                end
+                obj.update_position;
+            else
+                style = gui.ParameterControl.guess_uistyle(obj.Parameter);
+                if isequal(obj.hControl.Style,style), return; end
+                position = obj.Position;
+                delete(obj.hControl);
+                delete(obj.hLabel);
+                obj.hControl = [];
+                obj.create;
+                obj.hControl.Position = position;
+            end
+            
+        end
     end
 
+    methods (Static)
+        function style = guess_uistyle(P)
+            if P.N == 1
+                style = 'edit';
+
+            elseif P.isLogical
+                style = 'checkbox';
+
+            elseif P.isMultiselect
+                style = 'listbox';
+
+            elseif P.isContinuous
+                style = 'slider';
+
+            else
+                style = 'popupmenu';
+            end
+        end
+    end
+    
 end

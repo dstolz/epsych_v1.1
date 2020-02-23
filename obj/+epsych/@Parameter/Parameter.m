@@ -2,7 +2,7 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     % P = epsych.Parameter('Property','Value',...)
 
     properties
-        Expression      (1,:) char
+        Expression      
         Index           (1,:) double {mustBeInteger,mustBePositive,mustBeNonempty} = 1;
         Name            (1,:) char = 'NO NAME';
         PairName        (1,:) char
@@ -50,6 +50,13 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         
         function n = get.N(obj)
             n = length(obj.Values);
+        end
+        
+        function set.Expression(obj,e)
+            if ~ischar(e)
+                e = mat2str(e);
+            end
+            obj.Expression = e;
         end
         
         function v = get.Value(obj)
@@ -105,13 +112,12 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             end
             
             if isempty(obj.Units)
-                c = cellfun(@num2str,v);
+                c = arrayfun(@num2str,v,'uni',0);
             else
                 c = arrayfun(@(a) sprintf('%g %s',a,obj.Units),v,'uni',0);
             end
             
             for i = 1:obj.N
-                c{i} = num2str(v(i));
                 if ~isempty(obj.Units)
                     c{i} = sprintf('%s %s',c{i},obj.Units);
                 end
