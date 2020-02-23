@@ -176,14 +176,14 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
                 obj.hControl = uicontrol(obj.parent, ...
                     'Style',        obj.Style, ...
                     'Callback',     @obj.Callback, ...
-                    'Tooltip',      sprintf('%s: %s',obj.Parameter.Name,obj.Parameter.Expression), ...
-                    'ButtonDownFcn',@obj.modify_parameter);
+                    'Tooltip',      sprintf('%s: %s',obj.Parameter.Name,obj.Parameter.Expression));
+%                     'ButtonDownFcn',@obj.modify_parameter);
                 
                 if ~isequal(obj.LabelPosition,'none')
                     obj.hLabel = uicontrol(obj.parent, ...
                         'Style',   'text', ...
-                        'String',   obj.Parameter.Name, ...
-                        'ButtonDownFcn',@obj.modify_parameter);
+                        'String',   obj.Parameter.Name);
+%                         'ButtonDownFcn',@obj.modify_parameter);
                     obj.hLabel.Position([1 2]) = obj.hControl.Position([1 2]);
                 end
                 obj.update_position;
@@ -197,7 +197,6 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
                 obj.create;
                 obj.hControl.Position = position;
             end
-            
         end
     end
 
