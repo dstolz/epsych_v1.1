@@ -8,11 +8,7 @@ classdef PlotHelper < gui.Helper
 
         timeWindow  (1,2) duration = seconds([-10 1]);
 
-        lineWidth   (:,1) double {mustBePositive,mustBeFinite} % line plot width [obj.N,1]
-        lineColors  (:,3) double {mustBeNonnegative,mustBeLessThanOrEqual(lineColors,1)} % line colors [obj.N,3]
-        
         stayOnTop   (1,1) logical = false;
-        
         
         paused      (1,1) logical = false;
         
@@ -46,8 +42,8 @@ classdef PlotHelper < gui.Helper
     end
     
     properties (Dependent)
-        figH        (1,1)  %matlab.ui.Figure
-        N           (1,:)  double % number of watched parameters
+        figH       %matlab.ui.Figure
+        N          % number of watched parameters
     end
 
     properties (SetAccess = immutable)
@@ -138,6 +134,16 @@ classdef PlotHelper < gui.Helper
 
 
 
+        
+        
+        function remove_param(obj,param)
+            ind = ismember(obj.watchedParams,param);
+            obj.lineH(ind) = [];
+            obj.ax.YAxis.TickLabels(ind) = [];
+            obj.watchedParams(ind) = [];
+        end
+
+        
 
 
 
@@ -145,26 +151,6 @@ classdef PlotHelper < gui.Helper
             s = numel(obj.watchedParams);
         end
         
-        function w = get.lineWidth(obj)
-            w = get(obj.lineH,'LineWidth');
-        end
-
-        function set.lineWidth(obj,w)
-            % sets all lines to a width w
-            set(obj.lineH,'LineWidth',w);
-        end
-
-        
-        function c = get.lineColors(obj)
-            c = get(obj.lineH,'Color'); 
-            if isempty(c), c = lines; end
-        end
-
-        function set.lineColors(obj,c)
-            for i = 1:size(c,1)
-                obj.lineH(i).Color = c(i,:);
-            end
-        end
 
         function h = get.figH(obj)
             h = ancestor(obj.ax,'figure');
@@ -178,10 +164,12 @@ classdef PlotHelper < gui.Helper
         
         function add_context_menu(obj)
             c = uicontextmenu(obj.figH);
-            uimenu(c,'Tag','uic_stayOnTop','Label','Keep Window on Top','Callback',@obj.stay_on_top);
+%             uimenu(c,'Tag','uic_stayOnTop','Label','Keep Window on Top','Callback',@obj.stay_on_top);
             uimenu(c,'Tag','uic_pause','Label','Pause ||','Callback',@obj.pause);
             uimenu(c,'Tag','uic_plotType','Label','Set Plot to Trial-Locked','Callback',@obj.plot_type);
             uimenu(c,'Tag','uic_timeWindow','Label',sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number),'Callback',@obj.update_window);
+            uimenu(h,'Tag','uic_AddParam','Label','Add Parameter','Callback',@obj.addremove_param);
+            uimenu(h,'Tag','uic_RemoveParam','Label','Remove Parameter','Callback',@obj.addremove_param);
             obj.ax.UIContextMenu = c;
         end
 

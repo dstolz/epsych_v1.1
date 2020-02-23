@@ -3,7 +3,6 @@ classdef OnlinePlot < gui.PlotHelper
 
     properties
         yPositions  (:,1) double {mustBeFinite}
-        
     end
     
     
@@ -57,15 +56,8 @@ classdef OnlinePlot < gui.PlotHelper
             end
         end
         
-        
-
 
     end
-    
-    
-    
-    
-    
     
     
     
@@ -104,17 +96,8 @@ classdef OnlinePlot < gui.PlotHelper
             
         end
         
-
         function setup(obj,varargin)
             delete(obj.lineH);
-            
-            colors = lines(numel(obj.watchedParams));
-            for i = 1:length(obj.watchedParams)
-                obj.lineH(i) = line(obj.ax,seconds(0),obj.yPositions(i), ...
-                    'color',colors(i,:), ...
-                    'linewidth',11);
-            end
-            
             
             xtickformat(obj.ax,'mm:ss.S');
             grid(obj.ax,'on');
@@ -124,18 +107,34 @@ classdef OnlinePlot < gui.PlotHelper
             obj.ax.YAxis.Limits = [.8 obj.yPositions(end)+.2];
             obj.ax.YAxis.TickValues = obj.yPositions;
             obj.ax.YAxis.TickLabelInterpreter = 'none';
+            obj.ax.XAxis.Label.String = 'time since start (mm:ss)';
+           
             wp = obj.watchedParams;
             for i = 1:length(wp)
+                obj.add_param(wp{i});
                 if wp{i}(1) == '~',wp{i}(1) = []; end
             end
             obj.ax.YAxis.TickLabels = wp;
-            obj.ax.XAxis.Label.String = 'time since start (mm:ss)';
-            
+                        
             obj.startTime = clock;
         end
+
         
-        
-        
+        function add_param(obj,param)
+            idx = find(ismember(obj.watchedParams,param));
+            if isempty(idx)
+                idx = length(obj.lineH) + 1;
+            end
+            
+            % initialize new line object
+            obj.lineH(idx) = line(obj.ax, ...
+                seconds(0),obj.yPositions(idx), ...
+                'LineWidth',10);
+            
+            if idx > length(obj.watchedParams)
+                obj.watchedParams{idx} = param;
+            end
+        end
     end
     
     

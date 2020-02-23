@@ -16,7 +16,6 @@ classdef SignalPlot < gui.PlotHelper
             obj.add_context_menu; % function inherited from gui.PlotHelper
             
             obj.more_context_menus;
-
             
             % assign local functions to timer inherited from gui.PlotHelper
             obj.Timer.StartFcn = @obj.setup;
@@ -31,16 +30,6 @@ classdef SignalPlot < gui.PlotHelper
 
     
 
-    methods (Access = private)
-        function more_context_menus(obj)
-            h = obj.ax.UIContextMenu;
-            y = uimenu(h,'Tag','uic_yAxisScaling','Label','Y-Axis Scaling');
-            uimenu(y,'Tag','uic_yScaleAuto','Label','Auto','Callback',@obj.yscaling);
-            uimenu(y,'Tag','uic_yScaleEqual','Label','Equal','Callback',@obj.yscaling);
-        end
-    end
-
-
 
 
     methods (Access = protected)
@@ -53,26 +42,21 @@ classdef SignalPlot < gui.PlotHelper
         function setup(obj,varargin)
             delete(obj.lineH);
             
-            colors = lines(numel(obj.watchedParams));
-            for i = 1:length(obj.watchedParams)
-                obj.lineH(i) = line(obj.ax,seconds(0),0, ...
-                    'color',colors(i,:), ...
-                    'linewidth',2);
-            end 
 
             xtickformat(obj.ax,'mm:ss.S');
 
             grid(obj.ax,'on');
             obj.ax.Box = 'on';
-            wp = obj.watchedParams;
-            for i = 1:length(wp)
-                if wp{i}(1) == '~',wp{i}(1) = []; end
-            end
             obj.ax.XAxis.Label.String = 'time since start (mm:ss)';
+            
+            
+            for i = 1:length(wp)
+                obj.add_param(obj.watchedParams{i});
+            end
+            set(obj.lineH,'LineWidth',2);
             
             obj.startTime = clock;
         end
-        
         
         function update(obj,varargin)
             global PRGMSTATE
@@ -118,12 +102,35 @@ classdef SignalPlot < gui.PlotHelper
                 case 'Auto'
                     obj.ax.YLimMode = 'auto';
             end
-
-
-
             drawnow limitrate
-            
         end
         
+        
+        function add_param(obj,param)
+            idx = find(ismember(obj.watchedParams,param));
+            if isempty(idx)
+                idx = length(obj.lineH) + 1;
+            end
+            
+            % initialize new line object
+            obj.lineH(idx) = line(obj.ax, ...
+                seconds(0),obj.yPositions(idx), ...
+                'LineWidth',2);
+            
+            if idx > length(obj.watchedParams)
+                obj.watchedParams{idx} = param;
+            end
+        end
+    end
+    
+    
+
+    methods (Access = private)
+        function more_context_menus(obj)
+            h = obj.ax.UIContextMenu;
+            y = uimenu(h,'Tag','uic_yAxisScaling','Label','Y-Axis Scaling');
+            uimenu(y,'Tag','uic_yScaleAuto','Label','Auto','Callback',@obj.yscaling);
+            uimenu(y,'Tag','uic_yScaleEqual','Label','Equal','Callback',@obj.yscaling);
+        end
     end
 end
