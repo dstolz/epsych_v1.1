@@ -7,7 +7,7 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         Name            (1,:) char = 'NO NAME';
         PairName        (1,:) char
         Select          (1,:) char   {mustBeMember(Select,{'index','randIndex','randRange','custom'})} = 'index';
-        SelectFunction  (1,1) 
+        SelectFunction  (1,1) % function handle
         Units           (1,:) char
         UnitScale       (1,1) double = 1;
         ValueBounds     (1,2) double {mustBeNonNan,mustBeNonempty} = [-inf inf];
@@ -17,6 +17,7 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         isLogical       (1,1) logical = false;
         isMultiselect   (1,1) logical = false;
         isRange         (1,1) logical = false;
+        isContinuous    (1,1) logical = false;
     end
 
     properties (Dependent)

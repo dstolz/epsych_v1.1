@@ -1,24 +1,23 @@
-classdef uiedit < gui.ParameterControl
+classdef uipopupmenu < gui.ParameterControl
     
-    properties 
-        ValueType = 'Expression';
+    properties         
+        ValueType = 'ValuesStr';
     end
     
     properties (Constant)
-        Style = 'edit';
+        Style = 'popupmenu';
     end
 
     methods
-        function obj = uiedit(varargin)
+        function obj = uipopupmenu(varargin)
             obj = obj@gui.ParameterControl(varargin{:});
-            obj.Position  = [0 0 150 25];
             obj.ValueType = obj.ValueType;
-        end        
+        end
         
         function set.ValueType(obj,type)
-            mustBeMember(type,{'Expression','Value','ValueStr','Values','ValuesStr'})
+            mustBeMember(type,{'Values','ValuesStr'})
             obj.ValueType = type;
-            obj.hControl.String = h.Parameter.(obj.ValueType);
+            obj.hControl.String = obj.Parameter.(obj.ValueType);
         end
         
         function modify_parameter(obj,hObj,event)

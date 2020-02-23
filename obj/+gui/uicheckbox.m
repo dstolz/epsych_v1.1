@@ -1,24 +1,24 @@
-classdef uiedit < gui.ParameterControl
+classdef uicheckbox < gui.ParameterControl
     
-    properties 
-        ValueType = 'Expression';
+    properties
+        ValueType = 'Value';
     end
     
     properties (Constant)
-        Style = 'edit';
+        Style = 'uicheckbox';
     end
 
     methods
-        function obj = uiedit(varargin)
+        function obj = uicheckbox(varargin)
             obj = obj@gui.ParameterControl(varargin{:});
-            obj.Position  = [0 0 150 25];
-            obj.ValueType = obj.ValueType;
-        end        
+            
+            obj.hControl.Value = obj.Parameter.Value;
+        end
         
         function set.ValueType(obj,type)
-            mustBeMember(type,{'Expression','Value','ValueStr','Values','ValuesStr'})
+            mustBeMember(type,{'Values'})
             obj.ValueType = type;
-            obj.hControl.String = h.Parameter.(obj.ValueType);
+            obj.hControl.String = obj.Parameter.(obj.ValueType);
         end
         
         function modify_parameter(obj,hObj,event)
