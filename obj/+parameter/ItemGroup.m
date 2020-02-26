@@ -1,7 +1,7 @@
-classdef ParameterSet < handle
+classdef ItemGroup < handle
 
     properties
-        Parameters (1,:) epsych.Parameter
+        Items (1,:) parameter.Item
     end
 
     properties (Dependent)
@@ -15,25 +15,25 @@ classdef ParameterSet < handle
     end
     
     methods
-        function obj = ParameterSet(Parameters)
+        function obj = ItemGroup(Items)
             if nargin == 0, return; end
             
-            obj.Parameters = Parameters;
+            obj.Items = Items;
             
             obj.test_unique_names;
         end
         
         
         function n = get.N(obj)
-            n = length(obj.Parameters);
+            n = length(obj.Items);
         end
         
         function n = get.Names(obj)
-            n = {obj.Parameters.Name};
+            n = {obj.Items.Name};
         end
         
         function n = get.PairNames(obj)
-            n = {obj.Parameters.PairName};
+            n = {obj.Items.PairName};
         end
         
         function tf = get.isPaired(obj)
@@ -46,15 +46,15 @@ classdef ParameterSet < handle
             upnames = unique(pnames);
             ok = arrayfun(@(a) test_pair_length(obj,a),upnames);
             if ~all(ok)
-                fprintf(2,'epsych.ParameterSet:get.Compiled:InvalidPairLength\n%s\n', ...
-                    'Paired Parameters must evaluate to the same lengths')
+                fprintf(2,'epsych.ItemGroup:get.Compiled:InvalidPairLength\n%s\n', ...
+                    'Paired Items must evaluate to the same lengths')
                 return
             end
             
             % how many permutations do we have?
-            x = [obj.Parameters(arrayfun(@(a) find(ismember(pnames,a),1),upnames)).N];
+            x = [obj.Items(arrayfun(@(a) find(ismember(pnames,a),1),upnames)).N];
             nP = prod(x);
-            nNP = prod([obj.Parameters(~obj.isPaired).N]);
+            nNP = prod([obj.Items(~obj.isPaired).N]);
             
             nT = nP*nNP;
             
@@ -68,22 +68,22 @@ classdef ParameterSet < handle
         
         function ok = test_pair_length(obj,idx)
             ind = ismember(obj.PairNames,idx);
-            n = [obj.Parameters(ind).N];
+            n = [obj.Items(ind).N];
             ok = all(n == n(1));
         end
         
         function p = getPair(obj,idx)
-            pn = {obj.Parameters.PairName};
+            pn = {obj.Items.PairName};
             ind = ismember(pn,idx);
-            p = obj.Parameters(ind);
+            p = obj.Items(ind);
         end
     end
     
     methods (Access = private)
         function test_unique_names(obj)
             tf = length(unique(obj.Names)) == obj.N;
-            assert(tf,'epsych.ParameterSet:test_unique_names:NonUniqueNames', ...
-                'All Parameter names in the ParameterSet must be unique');
+            assert(tf,'epsych.ItemGroup:test_unique_names:NonUniqueNames', ...
+                'All Parameter names in the ItemGroup must be unique');
         end
     end
 

@@ -1,4 +1,4 @@
-classdef ParameterControl < handle & matlab.mixin.SetGet
+classdef UIControl < handle & matlab.mixin.SetGet
     
     properties
         Value
@@ -6,7 +6,7 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
         LabelString     (1,:) char
         LabelPosition   (1,:) char {mustBeMember(LabelPosition,{'left','right','above','below','none'})} = 'left';
 
-        Parameter       (1,1) epsych.Parameter
+        Parameter       (1,1) parameter.Item
         
         Position        (1,4) double {mustBeFinite,mustBeNonNan}
         
@@ -36,7 +36,7 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
     
     methods
         % Constructor
-        function obj = ParameterControl(Parameter,parent,varargin)            
+        function obj = UIControl(Parameter,parent,varargin)            
             obj.Parameter = Parameter;
             
             if nargin < 2 || isempty(parent), parent = gcf; end
@@ -48,7 +48,7 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
             p = properties(obj);
             for i = 1:2:length(varargin)
                 ind = strcmpi(p,varargin{i});
-                assert(any(ind),'gui.ParameterControl:ParameterControl:InvalidParameter', ...
+                assert(any(ind),'gui.UIControl:UIControl:InvalidParameter', ...
                     'Invalid property "%s"',varargin{i})
                 obj.(p{ind}) = varargin{i+1};
             end
@@ -188,7 +188,7 @@ classdef ParameterControl < handle & matlab.mixin.SetGet
                 end
                 obj.update_position;
             else
-                style = gui.ParameterControl.guess_uistyle(obj.Parameter);
+                style = gui.UIControl.guess_uistyle(obj.Parameter);
                 if isequal(obj.hControl.Style,style), return; end
                 position = obj.Position;
                 delete(obj.hControl);

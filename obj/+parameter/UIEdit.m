@@ -1,4 +1,4 @@
-classdef uiedit < gui.ParameterControl
+classdef UIEdit < parameter.UIControl
     
     properties 
         ValueType = 'ValuesStr';
@@ -9,8 +9,8 @@ classdef uiedit < gui.ParameterControl
     end
 
     methods
-        function obj = uiedit(varargin)
-            obj = obj@gui.ParameterControl(varargin{:});
+        function obj = UIEdit(varargin)
+            obj = obj@parameter.UIControl(varargin{:});
             obj.ValueType = obj.ValueType;
         end        
         

@@ -1,4 +1,4 @@
-classdef uipanel < handle & matlab.mixin.SetGet
+classdef UIPanel < handle & matlab.mixin.SetGet
     
     properties
         Position        (1,4) double {mustBeFinite,mustBeNonNan}
@@ -10,7 +10,7 @@ classdef uipanel < handle & matlab.mixin.SetGet
     
     properties (SetAccess = private)
         hPanel
-        hParameters
+        hItems
         hVerticalSlider
         Styles          (1,:) cell
     end
@@ -20,23 +20,23 @@ classdef uipanel < handle & matlab.mixin.SetGet
     end
 
     properties (SetAccess = immutable)
-        ParameterSet    (1,1) epsych.ParameterSet
+        ItemGroup    (1,1) parameter.ItemSet
         parent
     end
     
     methods
         % Constructor
-        function obj = uipanel(ParameterSet,Styles,parent,varargin)
+        function obj = UIPanel(ItemGroup,Styles,parent,varargin)
             narginchk(1,3);
             
             if nargin < 3 || isempty(parent), parent = gcf; end
             if nargin < 2 || isempty(Styles), Styles = 'auto'; end
 
-            obj.ParameterSet = ParameterSet;
+            obj.ItemGroup = ItemGroup;
             obj.parent = parent;
 
             if ischar(Styles) && isequal(Styles,'auto')
-                obj.Styles = repmat({'auto'},1,ParameterSet.N);
+                obj.Styles = repmat({'auto'},1,ItemGroup.N);
             end
             
             obj.create;
@@ -44,7 +44,7 @@ classdef uipanel < handle & matlab.mixin.SetGet
             p = properties(obj);
             for i = 1:2:length(varargin)
                 ind = strcmpi(p,varargin{i});
-                assert(any(ind),'gui.uipanel:uipanel:InvalidParameter', ...
+                assert(any(ind),'gui.UIPanel:UIPanel:InvalidParameter', ...
                     'Invalid property "%s"',varargin{i})
                 obj.(p{ind}) = varargin{i+1};
             end
@@ -52,13 +52,13 @@ classdef uipanel < handle & matlab.mixin.SetGet
         
         % Destructor
         function delete(obj)
-            cellfun(@delete,obj.hParameters);
+            cellfun(@delete,obj.hItems);
             delete(obj.hVerticalSlider);
         end
         
         
         function create(obj)
-            obj.hPanel = uipanel(obj.parent);
+            obj.hPanel = UIPanel(obj.parent);
             obj.hPanel.Position = obj.Position;
 
             obj.hPanel.Units = 'pixels';
@@ -71,9 +71,9 @@ classdef uipanel < handle & matlab.mixin.SetGet
 
             position = [w/2-22 h w/2-22 a];
 
-            for i = 1:obj.ParameterSet.N
+            for i = 1:obj.ItemGroup.N
                 if isequal(obj.Styles{i},'auto')
-                    obj.Styles{i} = gui.ParameterControl.guess_uistyle(obj.ParameterSet.Parameters(i));
+                    obj.Styles{i} = parameter.UIControl.guess_uistyle(obj.ItemGroup.Parameters(i));
                 end
                 
                 switch obj.Styles{i}
@@ -86,13 +86,13 @@ classdef uipanel < handle & matlab.mixin.SetGet
                         position(4) = 22;
                 end
                 
-                h = gui.(['ui' obj.Styles{i}])(obj.ParameterSet.Parameters(i), ...
+                h = gui.(['ui' obj.Styles{i}])(obj.ItemGroup.Parameters(i), ...
                     obj.parent, ...
                     'Position',position);
 
                 obj.OriginalPosition{i} = h.Position;
 
-                obj.hParameters{i} = h;
+                obj.hItems{i} = h;
             
             end
 
@@ -101,7 +101,6 @@ classdef uipanel < handle & matlab.mixin.SetGet
                 obj.hVerticalSlider = uicontrol( ...
                     'Style',     'slider', ...
                     'Parent',    obj.parent, ...
-                    'Tag',       'StimControlProperties_slider', ...
                     'Value',     pos(4)-position(2), ...
                     'Units',     'pixels', ...
                     'Position',  [pos(3)-25 5 20 pos(4)-10], ...
@@ -159,8 +158,8 @@ classdef uipanel < handle & matlab.mixin.SetGet
     methods (Access = private)
         function vertical_slider(obj,hObj,event)
             v = hObj.Max - hObj.Value;
-            for i = 1:obj.ParameterSet.N
-                obj.hParameters{i}.PositionY = obj.OriginalPosition{i}(2) + v;
+            for i = 1:obj.ItemGroup.N
+                obj.hItems{i}.PositionY = obj.OriginalPosition{i}(2) + v;
             end
         end
     end

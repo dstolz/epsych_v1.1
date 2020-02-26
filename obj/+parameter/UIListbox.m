@@ -1,16 +1,16 @@
-classdef uipopupmenu < gui.ParameterControl
+classdef UIListbox < parameter.UIControl
     
-    properties         
+    properties
         ValueType = 'ValuesStr';
     end
     
     properties (Constant)
-        Style = 'popupmenu';
+        Style = 'listbox';
     end
 
     methods
-        function obj = uipopupmenu(varargin)
-            obj = obj@gui.ParameterControl(varargin{:});
+        function obj = UIListbox(varargin)
+            obj = obj@parameter.UIControl(varargin{:});
             obj.ValueType = obj.ValueType;
         end
         
@@ -18,7 +18,13 @@ classdef uipopupmenu < gui.ParameterControl
             mustBeMember(type,{'Values','ValuesStr'})
             obj.ValueType = type;
             obj.hControl.String = obj.Parameter.(obj.ValueType);
+            obj.hControl.Value = 1;
+            obj.hControl.Min = 1;
+            obj.hControl.Max = 100 * obj.Parameter.isMultiselect;
         end
+        
+        
+        
     end
 
 end

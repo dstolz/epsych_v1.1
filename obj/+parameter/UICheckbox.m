@@ -1,16 +1,16 @@
-classdef uicheckbox < gui.ParameterControl
+classdef UICheckbox < parameter.UIControl
     
     properties
         ValueType = 'Value';
     end
     
     properties (Constant)
-        Style = 'uicheckbox';
+        Style = 'UICheckbox';
     end
 
     methods
-        function obj = uicheckbox(varargin)
-            obj = obj@gui.ParameterControl(varargin{:});
+        function obj = UICheckbox(varargin)
+            obj = obj@parameter.UIControl(varargin{:});
             obj.hControl.Value = obj.Parameter.Value;
         end
         

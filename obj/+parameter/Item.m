@@ -1,5 +1,5 @@
-classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
-    % P = epsych.Parameter('Property','Value',...)
+classdef Item < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
+    % P = parameter.Item('Property','Value',...)
 
     properties
         Expression      
@@ -36,7 +36,7 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             p = properties(obj);
             for i = 1:2:length(varargin)
                 ind = strcmpi(p,varargin{i});
-                assert(any(ind),'epsych.Parameter:Parameter:InvalidParameter', ...
+                assert(any(ind),'parameter.Item:Parameter:InvalidParameter', ...
                     'Invalid property "%s"',varargin{i})
                 obj.(p{ind}) = varargin{i+1};
             end
@@ -133,7 +133,7 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         end
 
         function set.ValueBounds(obj,vb)
-            assert(numel(vb)==2 & isnumeric(vb),'epsych.Parameter:set.ValueBounds:InvalidEntry', ...
+            assert(numel(vb)==2 & isnumeric(vb),'parameter.Item:set.ValueBounds:InvalidEntry', ...
                 'Parameter ValueBounds must contain 2 numeric values');
             obj.ValueBounds = sort(vb(:)','ascend');
         end
@@ -142,7 +142,7 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             obj.Select = s;
             switch s
                 case 'randRange'
-                    assert(obj.N == 2,'epsych.Parameter:set.Select:InvalidNumVals', ...
+                    assert(obj.N == 2,'parameter.Item:set.Select:InvalidNumVals', ...
                         'The randRange select option requires the parameter to have exactly 2 values');
                     obj.isRange = true;
             end
