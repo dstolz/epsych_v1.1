@@ -1,8 +1,9 @@
 classdef OnlinePlot < gui.PlotHelper
 % obj = OnlinePlot(watchedParams,[ax],[BoxID])
 
-    properties
+    properties (Access = protected)
         yPositions  (:,1) double {mustBeFinite}
+        lineColors  (:,3) = lines;
     end
     
     
@@ -99,7 +100,13 @@ classdef OnlinePlot < gui.PlotHelper
         function setup(obj,varargin)
             delete(obj.lineH);
             
-            xtickformat(obj.ax,'mm:ss.S');
+           
+            wp = obj.watchedParams;
+            for i = 1:length(wp)
+                obj.add_param(wp{i});
+                if wp{i}(1) == '~',wp{i}(1) = []; end
+            end
+             
             grid(obj.ax,'on');
             
             obj.ax.XMinorGrid = 'on';
@@ -109,14 +116,9 @@ classdef OnlinePlot < gui.PlotHelper
             obj.ax.YAxis.TickLabelInterpreter = 'none';
             obj.ax.XAxis.Label.String = 'time since start (mm:ss)';
            
-            wp = obj.watchedParams;
-            for i = 1:length(wp)
-                obj.add_param(wp{i});
-                if wp{i}(1) == '~',wp{i}(1) = []; end
-            end
             obj.ax.YAxis.TickLabels = wp;
-                        
-            obj.startTime = clock;
+            
+            xtickformat(obj.ax,'mm:ss.S');
         end
 
         
@@ -129,7 +131,8 @@ classdef OnlinePlot < gui.PlotHelper
             % initialize new line object
             obj.lineH(idx) = line(obj.ax, ...
                 seconds(0),obj.yPositions(idx), ...
-                'LineWidth',10);
+                'LineWidth',10, ...
+                'Color',obj.lineColors(idx,:));
             
             if idx > length(obj.watchedParams)
                 obj.watchedParams{idx} = param;

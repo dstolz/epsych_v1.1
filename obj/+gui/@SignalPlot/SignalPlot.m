@@ -57,21 +57,17 @@ classdef SignalPlot < gui.PlotHelper
 
         function setup(obj,varargin)
             delete(obj.lineH);
-            
 
-            xtickformat(obj.ax,'mm:ss.S');
-
-            grid(obj.ax,'on');
-            obj.ax.Box = 'on';
-            obj.ax.XAxis.Label.String = 'time since start (mm:ss)';
-            
-            
-            for i = 1:length(wp)
+            for i = 1:length(obj.watchedParams)
                 obj.add_param(obj.watchedParams{i});
             end
             set(obj.lineH,'LineWidth',2);
             
-            obj.startTime = clock;
+            grid(obj.ax,'on');
+            obj.ax.Box = 'on';
+            obj.ax.XAxis.Label.String = 'time since start (mm:ss)';                     
+            
+            xtickformat(obj.ax,'mm:ss.S');
         end
         
         function update(obj,varargin)
@@ -130,7 +126,7 @@ classdef SignalPlot < gui.PlotHelper
             
             % initialize new line object
             obj.lineH(idx) = line(obj.ax, ...
-                seconds(0),obj.yPositions(idx), ...
+                seconds(0),nan, ...
                 'LineWidth',2);
             
             if idx > length(obj.watchedParams)
@@ -141,12 +137,4 @@ classdef SignalPlot < gui.PlotHelper
     
     
 
-    methods (Access = private)
-        function more_context_menus(obj)
-            h = obj.ax.UIContextMenu;
-            y = uimenu(h,'Tag','uic_yAxisScaling','Label','Y-Axis Scaling');
-            uimenu(y,'Tag','uic_yScaleAuto','Label','Auto','Callback',@obj.yscaling);
-            uimenu(y,'Tag','uic_yScaleEqual','Label','Equal','Callback',@obj.yscaling);
-        end
-    end
 end

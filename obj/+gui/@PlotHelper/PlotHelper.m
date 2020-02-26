@@ -6,7 +6,7 @@ classdef PlotHelper < gui.Helper
         
         trialParam  (1,:) char
 
-        timeWindow  (1,2) duration = seconds([-10 1]);
+        timeWindow  (1,2) duration = seconds([-10 0]);
 
         stayOnTop   (1,1) logical = false;
         
@@ -109,10 +109,10 @@ classdef PlotHelper < gui.Helper
 
 
         function call_timer_StartFcn(obj,varargin)
-            global PRGMSTATE
+            global PRGMSTATE RUNTIME
 
-            % stop if the program state has changed
-            if ismember(PRGMSTATE,{'STOP','ERROR'}), stop(obj.Timer); return; end
+            obj.startTime = clock;
+
             
             feval(obj.timer_StartFcn,varargin{:});            
         end
