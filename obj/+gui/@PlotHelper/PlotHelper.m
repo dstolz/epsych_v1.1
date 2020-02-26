@@ -35,12 +35,19 @@ classdef PlotHelper < gui.Helper
         Buffers     (:,:) single
         trialBuffer (1,:) single
         Time        (:,1) duration
+
+        menuStayOnTop
+        menuPause
+        menuTrialType
+        menuTimeWindow
     end
 
     properties (SetAccess = protected,Hidden)
         Timer       (1,1)
     end
+
     
+
     properties (Dependent)
         figH       %matlab.ui.Figure
         N          % number of watched parameters
@@ -160,38 +167,31 @@ classdef PlotHelper < gui.Helper
         end
 
         
-        
-        
         function add_context_menu(obj)
             c = uicontextmenu(obj.figH);
-%             uimenu(c,'Tag','uic_stayOnTop','Label','Keep Window on Top','Callback',@obj.stay_on_top);
-            uimenu(c,'Tag','uic_pause','Label','Pause ||','Callback',@obj.pause);
-            uimenu(c,'Tag','uic_plotType','Label','Set Plot to Trial-Locked','Callback',@obj.plot_type);
-            uimenu(c,'Tag','uic_timeWindow','Label',sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number),'Callback',@obj.update_window);
-            uimenu(h,'Tag','uic_AddParam','Label','Add Parameter','Callback',@obj.addremove_param);
-            uimenu(h,'Tag','uic_RemoveParam','Label','Remove Parameter','Callback',@obj.addremove_param);
+            obj.menuStayOnTop  = uimenu(c,'Label','Keep Window on Top','Callback',@obj.stay_on_top);
+            obj.menuPause      = uimenu(c,'Label','Pause ||','Callback',@obj.pause);
+            obj.menuTrialType  = uimenu(c,'Label','Set Plot to Trial-Locked','Callback',@obj.plot_type);
+            obj.menuTimeWindow = uimenu(c,'Label',sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number),'Callback',@obj.update_window);
             obj.ax.UIContextMenu = c;
         end
 
         function pause(obj,varargin)
             obj.paused = ~obj.paused;
-            
-            c = findobj(obj.figH,'tag','uic_pause');
             if obj.paused
-                c(1).Label = 'Catch up >';
+                obj.menuPause.Label = 'Catch up >';
             else
-                c(1).Label = 'Pause ||';
+                obj.menuPause.Label = 'Pause ||';
             end
         end
         
         function stay_on_top(obj,varargin)
             obj.stayOnTop = ~obj.stayOnTop;
-            c = findobj(obj.figH,'Tag','uic_stayOnTop');
             if obj.stayOnTop
-                c.Label = 'Don''t Keep Window on Top';
+                obj.menuStayOnTop.Label = 'Don''t Keep Window on Top';
                 obj.figH.Name = [obj.figName ' - *On Top*'];
             else
-                c.Label = 'Keep Window on Top';
+                obj.menuStayOnTop.Label = 'Keep Window on Top';
                 obj.figH.Name = obj.figName;
             end
             FigOnTop(obj.figH,obj.stayOnTop);
@@ -199,16 +199,15 @@ classdef PlotHelper < gui.Helper
         
         function plot_type(obj,varargin)
             obj.trialLocked = ~obj.trialLocked;
-            c = findobj(obj.figH,'Tag','uic_plotType');
             atw = abs(obj.timeWindow);
             if isempty(obj.trialParam)
                 vprintf(0,1,'Unable to set the plot to Trial-Locked mode because the trialParam is empty')
             elseif obj.trialLocked
                 obj.timeWindow = [-min(atw) max(atw)];
-                c.Label = 'Set Plot to Free-Running';
+                obj.menuTrialType.Label = 'Set Plot to Free-Running';
             else
                 obj.timeWindow = [-max(atw) min(atw)];
-                c.Label = 'Set Plot to Trial-Locked';
+                obj.menuTrialType.Label = 'Set Plot to Trial-Locked';
             end
         end
         
@@ -224,8 +223,7 @@ classdef PlotHelper < gui.Helper
                 return
             end
             obj.timeWindow = seconds(r(:)');
-            c = findobj(obj.figH,'Tag','uic_timeWindow');
-            c.Label = sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number);
+            obj.menuTimeWindow.Label = sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number);
             FigOnTop(obj.figH,obj.stayOnTop);
         end
         

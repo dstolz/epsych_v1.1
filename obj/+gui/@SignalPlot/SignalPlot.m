@@ -1,8 +1,13 @@
 classdef SignalPlot < gui.PlotHelper
 % obj = SignalPlot(watchedParams,[ax],[BoxID])
 
-    properties
+    properties 
         yScaleMode (1,:) char {mustBeMember(yScaleMode,{'Auto','Equal'})} = 'Equal';
+    end
+
+    properties (SetAccess = protected)
+        menuYScalingAuto
+        menuYScalingEqual
     end
 
     methods
@@ -29,6 +34,17 @@ classdef SignalPlot < gui.PlotHelper
     end
 
     
+
+    methods (Access = private)
+        function more_context_menus(obj)
+            h = obj.ax.UIContextMenu;
+            y = uimenu(h,'Label','Y-Axis Scaling');
+            obj.menuYScalingAuto  = uimenu(y,'Label','Auto','Callback',@obj.yscaling);
+            obj.menuYScalingEqual = uimenu(y,'Label','Equal','Callback',@obj.yscaling);
+            obj.yscaling(obj.(sprintf('menuYScaling%s',obj.yScaleMode)));
+        end
+    end
+
 
 
 
