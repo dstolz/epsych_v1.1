@@ -1,4 +1,4 @@
-classdef ParameterSet
+classdef ParameterSet < handle
 
     properties
         Parameters (1,:) epsych.Parameter
