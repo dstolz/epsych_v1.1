@@ -41,16 +41,23 @@ classdef PlotHelper < gui.Helper
         menuTrialType
         menuTimeWindow
     end
+    
+    properties (Constant, Abstract)
+        style
+    end
 
     properties (SetAccess = protected,Hidden)
         Timer       (1,1)
     end
 
-    
+    properties (Access = private)
+        prefName
+    end
 
     properties (Dependent)
         figH       %matlab.ui.Figure
         N          % number of watched parameters
+        timeWindow2number
     end
 
     properties (SetAccess = immutable)
@@ -69,7 +76,6 @@ classdef PlotHelper < gui.Helper
             
             if nargin < 2 || isempty(ax), ax = gca;     end
             if nargin < 3 || isempty(BoxID), BoxID = 1; end
-            
             
             
             obj.ax = ax;
@@ -93,6 +99,12 @@ classdef PlotHelper < gui.Helper
             obj.Timer.StopFcn  = @obj.call_timer_StopFcn;
             obj.Timer.ErrorFcn = @obj.call_timer_ErrorFcn;
             obj.Timer.Period = 0.05;
+            
+            
+            obj.prefName = sprintf('PlotHelper_%s',obj.style);
+            obj.stayOnTop   = getpref(obj.prefName,'stayOnTop',false);
+            obj.timeWindow  = getpref(obj.prefName,'timeWindow',seconds([-10 0]));
+            obj.trialLocked = getpref(obj.prefName,'trialLocked',false);
         end
         
         % Destructor
@@ -109,11 +121,10 @@ classdef PlotHelper < gui.Helper
 
 
         function call_timer_StartFcn(obj,varargin)
-            global PRGMSTATE RUNTIME
+            global RUNTIME
 
-            obj.startTime = clock;
+            obj.startTime = RUNTIME.StartTime;
 
-            
             feval(obj.timer_StartFcn,varargin{:});            
         end
 
@@ -169,24 +180,29 @@ classdef PlotHelper < gui.Helper
         
         function add_context_menu(obj)
             c = uicontextmenu(obj.figH);
-            obj.menuStayOnTop  = uimenu(c,'Label','Keep Window on Top','Callback',@obj.stay_on_top);
-            obj.menuPause      = uimenu(c,'Label','Pause ||','Callback',@obj.pause);
-            obj.menuTrialType  = uimenu(c,'Label','Set Plot to Trial-Locked','Callback',@obj.plot_type);
-            obj.menuTimeWindow = uimenu(c,'Label',sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number),'Callback',@obj.update_window);
+            obj.menuStayOnTop  = uimenu(c,'Label','Keep Window on Top','Callback',@obj.toggle_stayOnTop);
+            obj.menuPause      = uimenu(c,'Label','Pause ||','Callback',@obj.toggle_Paused);
+            obj.menuTrialType  = uimenu(c,'Label','Set Plot to Trial-Locked','Callback',@obj.toggle_trialLocked);
+            obj.menuTimeWindow = uimenu(c,'Label',sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number),'Callback',@obj.update_timeWindow);
             obj.ax.UIContextMenu = c;
         end
-
-        function pause(obj,varargin)
-            obj.paused = ~obj.paused;
+        
+        function set.paused(obj,p)
+            obj.paused = p;
             if obj.paused
                 obj.menuPause.Label = 'Catch up >';
             else
                 obj.menuPause.Label = 'Pause ||';
             end
         end
+
+        function toggle_Paused(obj,varargin)
+            obj.paused = ~obj.paused;
+        end
         
-        function stay_on_top(obj,varargin)
-            obj.stayOnTop = ~obj.stayOnTop;
+        
+        function set.stayOnTop(obj,t)
+            obj.stayOnTop = t;
             if obj.stayOnTop
                 obj.menuStayOnTop.Label = 'Don''t Keep Window on Top';
                 obj.figH.Name = [obj.figName ' - *On Top*'];
@@ -195,10 +211,16 @@ classdef PlotHelper < gui.Helper
                 obj.figH.Name = obj.figName;
             end
             FigOnTop(obj.figH,obj.stayOnTop);
+            
+            setpref(obj.prefName,'stayOnTop',obj.stayOnTop);
         end
         
-        function plot_type(obj,varargin)
-            obj.trialLocked = ~obj.trialLocked;
+        function toggle_stayOnTop(obj,varargin)
+            obj.stayOnTop = ~obj.stayOnTop;
+        end
+        
+        function set.trialLocked(obj,t)
+            obj.trialLocked = t;
             atw = abs(obj.timeWindow);
             if isempty(obj.trialParam)
                 vprintf(0,1,'Unable to set the plot to Trial-Locked mode because the trialParam is empty')
@@ -209,27 +231,36 @@ classdef PlotHelper < gui.Helper
                 obj.timeWindow = [-max(atw) min(atw)];
                 obj.menuTrialType.Label = 'Set Plot to Trial-Locked';
             end
+            
+            setpref(obj.prefName,'trialLocked',obj.trialLocked);
         end
         
-        function update_window(obj,varargin)
+        function toggle_trialLocked(obj,varargin)
+            obj.trialLocked = ~obj.trialLocked;
+        end
+        
+        function set.timeWindow(obj,w)
+            if isa(w,'duration')
+                obj.timeWindow = w;
+            else
+                obj.timeWindow = seconds(w);
+            end
+            obj.menuTimeWindow.Label = sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number);            
+            setpref(obj.prefName,'timeWindow',obj.timeWindow);
+        end
+        
+        function update_timeWindow(obj,varargin)
             % temporarily disable stay on top if selected
             FigOnTop(obj.figH,false);
-            r = inputdlg('Adjust time windpw (seconds)','Online Plot', ...
+            w = inputdlg('Adjust time windpw (seconds)','Online Plot', ...
                 1,{sprintf('[%.1f %.1f]',obj.timeWindow2number)});
-            if isempty(r), return; end
-            r = str2num(char(r)); %#ok<ST2NM>
-            if numel(r) ~= 2
-                vprintf(0,1,'Must enter 2 values for the time window')
-                return
-            end
-            obj.timeWindow = seconds(r(:)');
-            obj.menuTimeWindow.Label = sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number);
             FigOnTop(obj.figH,obj.stayOnTop);
+            if isempty(w), return; end
+            obj.timeWindow = seconds(str2num(char(w))); %#ok<ST2NM>
         end
         
-        function s = timeWindow2number(obj)
-            s = cellstr(char(obj.timeWindow));
-            s = cellfun(@(a) str2double(a(1:find(a==' ',1,'last')-1)),s);
+        function s = get.timeWindow2number(obj)
+            s = seconds(obj.timeWindow);
         end
 
         

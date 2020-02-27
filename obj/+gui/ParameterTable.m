@@ -1,7 +1,7 @@
 classdef ParameterTable < handle
     
     properties
-        table
+        table        
     end
     
     properties (Access = protected)
@@ -10,6 +10,14 @@ classdef ParameterTable < handle
     
     properties (Access = private)
         hl_NewTrial
+        originalData
+        recentData
+        
+        origColors
+    end
+    
+    properties (Dependent)
+        Data
     end
     
     events
@@ -32,6 +40,11 @@ classdef ParameterTable < handle
             delete(obj.hl_NewTrial);
         end
         
+        
+        function d = get.Data(obj)
+            d = obj.table.Data;
+        end
+        
         function set.parent(obj,parent)
             obj.parent = parent;
         end
@@ -40,7 +53,6 @@ classdef ParameterTable < handle
             ou = get(obj.parent,'Units');
             
             set(obj.parent,'Units','Normalized');
-            
             
             
             % TRIALS matrix
@@ -98,20 +110,35 @@ classdef ParameterTable < handle
             % update table data and info, including original parameters in case user
             % wants to reset the table
             
-            obj.table = ParameterTable(obj.parent, ...
+            obj.table = uitable(obj.parent, ...
                 'Units','normalized', ...
-                'Position',[0.05 0.05 0.9 0.9], ...
+                'Position',[0 0 1 1], ...
                 'Data',T, ...
                 'FontSize',12, ...
                 'ColumnEditable',true, ...
                 'RowName',fn, ...
-                'UserData',RUNTIME.TRIALS.trials, ...
                 'BackgroundColor',c, ...
                 'CellEditCallback',@obj.tbl_TrialParameters_CellEdit);
+                        
+            obj.origColors = c;
+            
+            obj.highlight_trial_column;
             
             set(obj.parent,'Units',ou);
+            
+            obj.originalData = obj.table.Data;
+            obj.recentData   = obj.table.Data;
+            
         end
         
+        function highlight_trial_column(obj)
+            global RUNTIME
+            tid = RUNTIME.TRIALS.NextTrialID;
+
+            n = arrayfun(@num2str,1:size(obj.Data,2),'uni',0);
+            n{tid} = sprintf('< %d >',tid);
+            obj.table.ColumnName = n;
+        end
         
         
         function update(obj,source,event)
@@ -139,7 +166,7 @@ classdef ParameterTable < handle
             
             obj.table.Data = tpData;
             
-            
+            obj.highlight_trial_column;
         end
         
         
@@ -163,12 +190,42 @@ classdef ParameterTable < handle
             end
             
             notify(obj,'ParametersModified');
-
-            
             
         end
         
+        function commit_parameters(obj)
+            global RUNTIME
+            
+            % Update the TRIALS structure with the active trials used by the trial
+            % selection function
+            RUNTIME.TRIALS.activeTrials = [obj.table.Data{1,:}]';
+            
+            obj.recentData = obj.Data;
+            
+            data = obj.Data(2:end,:)';
+            
+            wp = RUNTIME.TRIALS.writeparams;
+            
+            rn = obj.table.RowName; % table rows may be in a different order than the TRIALS tructure
+            
+            
+            rn(ismember(rn,'ACTIVE')) = [];
+            for i = 1:length(wp)
+                ind = ismember(rn,wp{i});
+                if ~any(ind), continue; end
+                RUNTIME.TRIALS.trials(:,i) = data(:,ind);
+            end
+        end
+        
+        function reset_parameters(obj,howFar)
+            if nargin < 2 || isempty(howFar), howFar = 'original'; end
+            
+            howFar = lower(howFar);
+            
+            mustBeMember(howFar,{'original','recent'});
+            
+            obj.table.Data = obj.(sprintf('%sData',howFar));
+        end
         
     end
-    
 end

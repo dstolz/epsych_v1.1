@@ -6,6 +6,9 @@ classdef OnlinePlot < gui.PlotHelper
         lineColors  (:,3) = lines;
     end
     
+    properties (Constant)
+        style = 'Online';
+    end
     
     methods
         
@@ -23,8 +26,8 @@ classdef OnlinePlot < gui.PlotHelper
             
             
             % assign local functions to timer inherited from gui.PlotHelper
-            obj.Timer.StartFcn = @obj.setup;
-            obj.Timer.TimerFcn = @obj.update;
+            obj.timer_StartFcn = @obj.setup;
+            obj.timer_TimerFcn = @obj.update;
             
             start(obj.Timer);
             

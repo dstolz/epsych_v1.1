@@ -9,6 +9,10 @@ classdef SignalPlot < gui.PlotHelper
         menuYScalingAuto
         menuYScalingEqual
     end
+    
+    properties (Constant)
+        style = 'Signal';
+    end
 
     methods
         function obj = SignalPlot(watchedParams,varargin)
@@ -23,9 +27,8 @@ classdef SignalPlot < gui.PlotHelper
             obj.more_context_menus;
             
             % assign local functions to timer inherited from gui.PlotHelper
-            obj.Timer.StartFcn = @obj.setup;
-            obj.Timer.TimerFcn = @obj.update;
-            
+            obj.timer_StartFcn = @obj.setup;
+            obj.timer_TimerFcn = @obj.update;
             
             start(obj.Timer);
 
