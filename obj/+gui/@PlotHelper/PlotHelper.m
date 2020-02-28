@@ -8,7 +8,6 @@ classdef PlotHelper < gui.Helper
 
         timeWindow  (1,2) duration = seconds([-10 0]);
 
-        stayOnTop   (1,1) logical = false;
         
         paused      (1,1) logical = false;
         
@@ -36,7 +35,6 @@ classdef PlotHelper < gui.Helper
         trialBuffer (1,:) single
         Time        (:,1) duration
 
-        menuStayOnTop
         menuPause
         menuTrialType
         menuTimeWindow
@@ -102,7 +100,6 @@ classdef PlotHelper < gui.Helper
             
             
             obj.prefName = sprintf('PlotHelper_%s',obj.style);
-            obj.stayOnTop   = getpref(obj.prefName,'stayOnTop',false);
             obj.timeWindow  = getpref(obj.prefName,'timeWindow',seconds([-10 0]));
             obj.trialLocked = getpref(obj.prefName,'trialLocked',false);
         end
@@ -180,7 +177,6 @@ classdef PlotHelper < gui.Helper
         
         function add_context_menu(obj)
             c = uicontextmenu(obj.figH);
-            obj.menuStayOnTop  = uimenu(c,'Label','Keep Window on Top','Callback',@obj.toggle_stayOnTop);
             obj.menuPause      = uimenu(c,'Label','Pause ||','Callback',@obj.toggle_Paused);
             obj.menuTrialType  = uimenu(c,'Label','Set Plot to Trial-Locked','Callback',@obj.toggle_trialLocked);
             obj.menuTimeWindow = uimenu(c,'Label',sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number),'Callback',@obj.update_timeWindow);
@@ -200,24 +196,6 @@ classdef PlotHelper < gui.Helper
             obj.paused = ~obj.paused;
         end
         
-        
-        function set.stayOnTop(obj,t)
-            obj.stayOnTop = t;
-            if obj.stayOnTop
-                obj.menuStayOnTop.Label = 'Don''t Keep Window on Top';
-                obj.figH.Name = [obj.figName ' - *On Top*'];
-            else
-                obj.menuStayOnTop.Label = 'Keep Window on Top';
-                obj.figH.Name = obj.figName;
-            end
-            FigOnTop(obj.figH,obj.stayOnTop);
-            
-            setpref(obj.prefName,'stayOnTop',obj.stayOnTop);
-        end
-        
-        function toggle_stayOnTop(obj,varargin)
-            obj.stayOnTop = ~obj.stayOnTop;
-        end
         
         function set.trialLocked(obj,t)
             obj.trialLocked = t;
@@ -251,10 +229,10 @@ classdef PlotHelper < gui.Helper
         
         function update_timeWindow(obj,varargin)
             % temporarily disable stay on top if selected
-            FigOnTop(obj.figH,false);
-            w = inputdlg('Adjust time windpw (seconds)','Online Plot', ...
+            curState = FigOnTop(obj.figH,false);
+            w = inputdlg('Adjust time window (seconds)','Online Plot', ...
                 1,{sprintf('[%.1f %.1f]',obj.timeWindow2number)});
-            FigOnTop(obj.figH,obj.stayOnTop);
+            FigOnTop(obj.figH,curState);
             if isempty(w), return; end
             obj.timeWindow = seconds(str2num(char(w))); %#ok<ST2NM>
         end
