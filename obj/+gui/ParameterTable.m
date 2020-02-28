@@ -122,7 +122,8 @@ classdef ParameterTable < handle
                         
             obj.origColors = c;
             
-            obj.highlight_trial_column;
+            evnt.Data.NextTrialID = RUNTIME.TRIALS.NextTrialID;
+            obj.highlight_trial_column([],evnt);
             
             set(obj.parent,'Units',ou);
             
@@ -131,17 +132,15 @@ classdef ParameterTable < handle
             
         end
         
-        function highlight_trial_column(obj)
-            global RUNTIME
-            tid = RUNTIME.TRIALS.NextTrialID;
-
+        function highlight_trial_column(obj,src,event)           
+            tid = event.Data.NextTrialID;
             n = arrayfun(@num2str,1:size(obj.Data,2),'uni',0);
             n{tid} = sprintf('< %d >',tid);
             obj.table.ColumnName = n;
         end
         
         
-        function update(obj,source,event)
+        function update(obj,src,event)
             
             rn = obj.table.RowName;
             rn(ismember(rn,'ACTIVE')) = [];
@@ -166,7 +165,7 @@ classdef ParameterTable < handle
             
             obj.table.Data = tpData;
             
-            obj.highlight_trial_column;
+            obj.highlight_trial_column(src,event);
 
             drawnow
         end

@@ -68,8 +68,7 @@ classdef OnlinePlot < gui.PlotHelper
     
     
     methods (Access = protected)
-        function update(obj,varargin)
-
+        function update(obj,varargin)            
             if ~isempty(obj.trialParam)
                 try
                     obj.trialBuffer(end+1) = obj.getParamVals(obj.TDTActiveX,obj.trialParam);
@@ -92,10 +91,16 @@ classdef OnlinePlot < gui.PlotHelper
             end
             
             if obj.trialLocked && ~isempty(obj.trialParam)
-                obj.ax.XLim = obj.last_trial_onset + obj.timeWindow;
+                obj.ax.XLim = obj.latest_trial_onset + obj.timeWindow;
             else
                 obj.ax.XLim = obj.Time(end) + obj.timeWindow;
             end
+            
+            obj.plot_trial_onset;
+            
+            title(obj.ax,sprintf('Trial #%d - Trial Type %d', ...
+                obj.currentTrialIndex,obj.currentTrialType));
+            
             drawnow limitrate
             
         end

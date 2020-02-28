@@ -50,8 +50,14 @@ classdef PlotHelper < gui.Helper
 
     properties (Access = private)
         prefName
+        lastTrialOnset = seconds(0);
     end
 
+    properties (SetAccess = private)
+        currentTrialIndex
+        currentTrialType
+    end
+    
     properties (Dependent)
         figH       %matlab.ui.Figure
         N          % number of watched parameters
@@ -122,6 +128,8 @@ classdef PlotHelper < gui.Helper
 
             obj.startTime = RUNTIME.StartTime;
 
+            addlistener(RUNTIME.HELPER,'NewTrial',@obj.new_trial);
+            
             feval(obj.timer_StartFcn,varargin{:});            
         end
 
@@ -135,13 +143,19 @@ classdef PlotHelper < gui.Helper
         end
 
         function call_timer_StopFcn(obj,varargin)
-            if isempty(obj.timer_StopFcn), return; end
-            feval(obj.timer_StopFcn,varargin{:});            
+            if isempty(obj.timer_StopFcn)
+                stop(obj.Timer)
+            else
+                feval(obj.timer_StopFcn,varargin{:});
+            end
         end
 
         function call_timer_ErrorFcn(obj,varargin)
-            if isempty(obj.timer_ErrorFcn), return; end
-            feval(obj.timer_ErrorFcn,varargin{:});            
+            if isempty(obj.timer_ErrorFcn)
+                stop(obj.Timer)
+            else
+                feval(obj.timer_ErrorFcn,varargin{:});
+            end
         end
 
 
@@ -178,7 +192,12 @@ classdef PlotHelper < gui.Helper
         function add_context_menu(obj)
             c = uicontextmenu(obj.figH);
             obj.menuPause      = uimenu(c,'Label','Pause ||','Callback',@obj.toggle_Paused);
-            obj.menuTrialType  = uimenu(c,'Label','Set Plot to Trial-Locked','Callback',@obj.toggle_trialLocked);
+            if obj.trialLocked
+                str = 'Set Plot to Free-Running';
+            else
+                str = 'Set Plot to Trial-Locked';
+            end
+            obj.menuTrialType  = uimenu(c,'Label',str,'Callback',@obj.toggle_trialLocked);
             obj.menuTimeWindow = uimenu(c,'Label',sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number),'Callback',@obj.update_timeWindow);
             obj.ax.UIContextMenu = c;
         end
@@ -186,7 +205,7 @@ classdef PlotHelper < gui.Helper
         function set.paused(obj,p)
             obj.paused = p;
             if obj.paused
-                obj.menuPause.Label = 'Catch up >';
+                obj.menuPause.Label = 'Resume >';
             else
                 obj.menuPause.Label = 'Pause ||';
             end
@@ -240,18 +259,32 @@ classdef PlotHelper < gui.Helper
         function s = get.timeWindow2number(obj)
             s = seconds(obj.timeWindow);
         end
-
         
         
-        function to = last_trial_onset(obj)
+        function to = latest_trial_onset(obj)
             B = obj.trialBuffer;
             idx = find(B(2:end) > B(1:end-1),1,'last'); % find onsets
             if isempty(idx)
-                to = obj.Time(end);
+                to = seconds(0);
             else
                 to = obj.Time(idx);
             end                
         end
         
+        
+        function h = plot_trial_onset(obj)
+            h = [];
+            lo = obj.latest_trial_onset;
+            
+            if isempty(lo) || obj.lastTrialOnset == lo, return; end
+                            
+            h = line(obj.ax,[lo lo],[-1 1].*1e6,'color',[1 0.2 0.2]);
+            obj.lastTrialOnset = lo;
+        end
+        
+        function new_trial(obj,~,trialData)
+            obj.currentTrialIndex = trialData.Data.TrialIndex;
+            obj.currentTrialType  = trialData.Data.NextTrialID;
+        end
     end
 end

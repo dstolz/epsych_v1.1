@@ -11,12 +11,11 @@ classdef History < gui.Helper
         ColumnName
         Data
         Info
-        
     end
     
     methods
 
-        function obj = History(pObj,container)
+        function obj = History(pObj,container,watchedParams)
             if nargin < 2 || isempty(container), container = figure; end
             
             

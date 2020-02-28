@@ -3,6 +3,7 @@ classdef SignalPlot < gui.PlotHelper
 
     properties 
         yScaleMode (1,:) char {mustBeMember(yScaleMode,{'Auto','Equal'})} = 'Equal';
+        lineColor = lines;
     end
 
     properties (SetAccess = protected)
@@ -74,10 +75,6 @@ classdef SignalPlot < gui.PlotHelper
         end
         
         function update(obj,varargin)
-            global PRGMSTATE
-            
-            % stop if the program state has changed
-            if ismember(PRGMSTATE,{'STOP','ERROR'}), stop(obj.Timer); return; end
             
             if ~isempty(obj.trialParam)
                 try
@@ -102,7 +99,7 @@ classdef SignalPlot < gui.PlotHelper
             
             % adjust X axis
             if obj.trialLocked && ~isempty(obj.trialParam)
-                obj.ax.XLim = obj.last_trial_onset + obj.timeWindow;
+                obj.ax.XLim = obj.latest_trial_onset + obj.timeWindow;
             else
                 obj.ax.XLim = obj.Time(end) + obj.timeWindow;
             end
@@ -117,6 +114,9 @@ classdef SignalPlot < gui.PlotHelper
                 case 'Auto'
                     obj.ax.YLimMode = 'auto';
             end
+            
+            obj.plot_trial_onset;
+            
             drawnow limitrate
         end
         
@@ -130,7 +130,8 @@ classdef SignalPlot < gui.PlotHelper
             % initialize new line object
             obj.lineH(idx) = line(obj.ax, ...
                 seconds(0),nan, ...
-                'LineWidth',2);
+                'LineWidth',2, ...
+                'Color',obj.lineColor(idx,:));
             
             if idx > length(obj.watchedParams)
                 obj.watchedParams{idx} = param;
