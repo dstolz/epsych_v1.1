@@ -1,5 +1,5 @@
-function FigOnTop(figh,state)
-% FigOnTop(figh,state)
+function curState = FigOnTop(figh,state)
+% [curState] = FigOnTop(figh,state)
 % 
 % Maintain figure (figure handle = figh) on top of all other windows if
 % state = true.
@@ -20,9 +20,13 @@ try %#ok<TRYNC>
     warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
     J = get(figh,'JavaFrame');
    if verLessThan('matlab','8.1')
+        curState = J.fHG1Client.getWindow.isAlwaysOnTop;
         J.fHG1Client.getWindow.setAlwaysOnTop(state);
     else
+        curState = J.fHG2Client.getWindow.isAlwaysOnTop;
         J.fHG2Client.getWindow.setAlwaysOnTop(state);
     end
     warning('on','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
 end
+
+                
