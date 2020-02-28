@@ -167,6 +167,8 @@ classdef ParameterTable < handle
             obj.table.Data = tpData;
             
             obj.highlight_trial_column;
+
+            drawnow
         end
         
         
