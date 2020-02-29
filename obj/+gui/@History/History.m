@@ -1,7 +1,7 @@
 classdef History < gui.Helper
 
     properties
-        PsychophysicsObj
+        physObj
     end
 
     properties (SetAccess = private)
@@ -24,7 +24,7 @@ classdef History < gui.Helper
             obj.build;
             
             if nargin >= 1 && ~isempty(pObj)
-                obj.PsychophysicsObj = pObj;
+                obj.physObj = pObj;
 
             end
 
@@ -59,31 +59,31 @@ classdef History < gui.Helper
             obj.update_row_colors;
         end
         
-        function set.PsychophysicsObj(obj,pobj)
-            assert(epsych.Helper.valid_psych_obj(pobj),'gui.History:set.PsychophysicsObj', ...
-                'PsychophysicsObj must be from the toolbox "psychophysics"');
-            obj.PsychophysicsObj = pobj;
+        function set.physObj(obj,pobj)
+            assert(epsych.Helper.valid_psych_obj(pobj),'gui.History:set.physObj', ...
+                'physObj must be from the toolbox "phys"');
+            obj.physObj = pobj;
             obj.update;
         end
     end
 
     methods (Access = private)
         function update_row_colors(obj)
-            if ~epsych.Helper.valid_psych_obj(obj.PsychophysicsObj), return; end
+            if ~epsych.Helper.valid_psych_obj(obj.physObj), return; end
             C(size(obj.Data,1),3) = 0;
             R = cellfun(@epsych.BitMask,obj.Data(:,2),'uni',0);
             R = [R{:}];
-            for i = 1:length(obj.PsychophysicsObj.BitsInUse)
-                ind = R == obj.PsychophysicsObj.BitsInUse(i);
+            for i = 1:length(obj.physObj.TrialTypesInUse)
+                ind = R == obj.physObj.TrialTypesInUse(i);
                 if ~any(ind), continue; end
-                C(ind,:) = repmat(obj.PsychophysicsObj.BitColors(i,:),sum(ind),1);
+                C(ind,:) = repmat(obj.physObj.TrialTypeColors(i,:),sum(ind),1);
             end
             obj.TableH.BackgroundColor = flipud(C);
             obj.TableH.RowStriping = 'on';
         end
         
         function rearrange_data(obj)           
-            DataIn = obj.PsychophysicsObj.DATA;
+            DataIn = obj.physObj.DATA;
             
             if isempty(DataIn(1).TrialID)
                 obj.Data = [];
@@ -101,7 +101,7 @@ classdef History < gui.Helper
             obj.Info.RelativeTimestamp = tdStr(:);            
             
 
-            Response = obj.PsychophysicsObj.ResponsesChar;
+            Response = obj.physObj.ResponsesChar;
             
             
             % remove these fields

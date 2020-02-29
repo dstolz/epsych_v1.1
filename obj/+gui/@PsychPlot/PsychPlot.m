@@ -5,7 +5,7 @@ classdef PsychPlot < gui.Helper
         
         ParameterName (1,:) char
         
-        PsychophysicsObj
+        physObj
         
         % must jive with obj.ValidPlotTypes
         PlotType    (1,:) char {mustBeMember(PlotType,{'DPrime','Hit_Rate','FA_Rate','Bias'})} = 'DPrime';
@@ -38,7 +38,7 @@ classdef PsychPlot < gui.Helper
             obj.AxesH = ax;
             
             if nargin >= 1 && ~isempty(pObj)
-                obj.PsychophysicsObj = pObj;
+                obj.physObj = pObj;
                 obj.setup_xaxis_label;
                 obj.setup_yaxis_label;
                 obj.update;
@@ -56,7 +56,7 @@ classdef PsychPlot < gui.Helper
         
         function set.ParameterName(obj,name)
             ind = ismember(obj.ValidParameters,name);
-            assert(any(ind),'ep_Psychophysics_Detection:set.ParameterName','Invalid parameter name: %s',name);
+            assert(any(ind),'ep_phys_Detection:set.ParameterName','Invalid parameter name: %s',name);
             obj.ParameterName = name;
             obj.update;
         end
@@ -71,7 +71,7 @@ classdef PsychPlot < gui.Helper
        
         
         function update(obj,src,event)
-            % although data is updated in src and event, just use the obj.PsychophysicsObj
+            % although data is updated in src and event, just use the obj.physObj
             lh = obj.LineH;
             sh = obj.ScatterH;
             if isempty(lh) || isempty(sh) || ~isvalid(lh) || ~isvalid(sh)
@@ -86,10 +86,10 @@ classdef PsychPlot < gui.Helper
             end
             
             
-            X = obj.PsychophysicsObj.ParameterValues;
-            Y = obj.PsychophysicsObj.(obj.PlotType);
-            %C = obj.PsychophysicsObj.Trial_Count;
-            C = [obj.PsychophysicsObj.Go_Count' obj.PsychophysicsObj.NoGo_Count'];
+            X = obj.physObj.ParameterValues;
+            Y = obj.physObj.(obj.PlotType);
+            %C = obj.physObj.Trial_Count;
+            C = [obj.physObj.Go_Count' obj.physObj.NoGo_Count'];
             
             lh.XData = X;
             lh.YData = Y;
@@ -119,9 +119,9 @@ classdef PsychPlot < gui.Helper
             
 
             tstr = sprintf('%s [%d] - Trial %d', ...
-                obj.PsychophysicsObj.SUBJECT.Name, ...
-                obj.PsychophysicsObj.BoxID, ...
-                obj.PsychophysicsObj.Trial_Index);
+                obj.physObj.SUBJECT.Name, ...
+                obj.physObj.BoxID, ...
+                obj.physObj.Trial_Index);
             
             title(obj.AxesH,tstr);
         end
@@ -130,16 +130,16 @@ classdef PsychPlot < gui.Helper
             % TO DO: support multiple parameters at a time
             switch hObj.Tag
                 case 'abscissa'
-                    i = find(ismember(obj.PsychophysicsObj.ValidParameters,obj.PsychophysicsObj.ParameterName));
-                    [sel,ok] = listdlg('ListString',obj.PsychophysicsObj.ValidParameters, ...
+                    i = find(ismember(obj.physObj.ValidParameters,obj.physObj.ParameterName));
+                    [sel,ok] = listdlg('ListString',obj.physObj.ValidParameters, ...
                         'SelectionMode','single', ...
                         'InitialValue',i,'Name','Plot', ...
                         'PromptString','Select Independent Variable:', ...
                         'ListSize',[180 150]);
                     if ~ok, return; end
-                    obj.PsychophysicsObj.ParameterName = obj.PsychophysicsObj.ValidParameters{sel};
+                    obj.physObj.ParameterName = obj.physObj.ValidParameters{sel};
                     try
-                        delete(obj.TextH(length(obj.PsychophysicsObj.ParameterValues)+1:end));
+                        delete(obj.TextH(length(obj.physObj.ParameterValues)+1:end));
                     end
                     
                 case 'ordinate'
@@ -158,7 +158,7 @@ classdef PsychPlot < gui.Helper
         
         
         function setup_xaxis_label(obj)
-            x = xlabel(obj.AxesH,obj.PsychophysicsObj.ParameterName,'Tag','abscissa','Interpreter','none');
+            x = xlabel(obj.AxesH,obj.physObj.ParameterName,'Tag','abscissa','Interpreter','none');
             x.ButtonDownFcn = @obj.update_parameter;
         end
         
@@ -167,11 +167,11 @@ classdef PsychPlot < gui.Helper
             y.ButtonDownFcn = @obj.update_parameter;
         end
         
-        function set.PsychophysicsObj(obj,pobj)
+        function set.physObj(obj,pobj)
             assert(epsych.Helper.valid_psych_obj(pobj), ...
                 'gui.History:set.PsychophysiccsObj', ...
-                'PsychophysicsObj must be from the toolbox "psychophysics"');
-            obj.PsychophysicsObj = pobj;
+                'physObj must be from the toolbox "phys"');
+            obj.physObj = pobj;
             obj.update;
         end
     end

@@ -1,7 +1,7 @@
 function varargout = ep_RunExpt(varargin)
 % ep_RunExpt
 %
-% Run Psychophysics experiment with/without electrophysiology using OpenEx
+% Run phys experiment with/without electrophysiology using OpenEx
 % 
 % Daniel.Stolzberg@gmail.com 2014
 
