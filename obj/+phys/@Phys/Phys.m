@@ -1,7 +1,7 @@
 classdef Phys < handle & matlab.mixin.Copyable
 
     properties (Abstract, SetAccess = protected)
-        TrialTypesInUse
+        BitmaskInUse
     end
 
     properties
@@ -158,7 +158,7 @@ classdef Phys < handle & matlab.mixin.Copyable
         function r = get.ResponsesEnum(obj)
             RC = obj.ResponseCodes;
             r(length(RC),1) = epsych.BitMask(0);
-            for i = obj.TrialTypesInUse
+            for i = obj.BitmaskInUse
                 ind = logical(bitget(RC,i));
                 if ~any(ind), continue; end
                 r(ind) = i;
@@ -176,9 +176,9 @@ classdef Phys < handle & matlab.mixin.Copyable
         end
 
         function s = get.Ind(obj)
-            TT = arrayfun(@char,obj.TrialTypesInUse,'uni',0);
+            TT = arrayfun(@char,obj.BitmaskInUse,'uni',0);
             for i = 1:length(TT)
-                s.(TT{i}) = [obj.DATA.TrialType] == obj.TrialTypesInUse(i);
+                s.(TT{i}) = [obj.DATA.TrialType] == obj.BitmaskInUse(i);
             end
         end
 

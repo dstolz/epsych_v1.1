@@ -1,7 +1,7 @@
 classdef TwoAFC < phys.Phys
 
     properties (SetAccess = protected)
-        TrialTypesInUse phys.TrialType = [1 6 7 11 12]
+        BitmaskInUse phys.Bitmask = [phys.Bitmask.Hit, phys.Bitmask.Miss, phys.Bitmask.Abort, phys.Bitmask.Choice_1, phys.Bitmask.Choice_2];
     end
 
 

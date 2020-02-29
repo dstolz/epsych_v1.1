@@ -73,8 +73,8 @@ classdef History < gui.Helper
             C(size(obj.Data,1),3) = 0;
             R = cellfun(@epsych.BitMask,obj.Data(:,2),'uni',0);
             R = [R{:}];
-            for i = 1:length(obj.physObj.TrialTypesInUse)
-                ind = R == obj.physObj.TrialTypesInUse(i);
+            for i = 1:length(obj.physObj.BitmaskInUse)
+                ind = R == obj.physObj.BitmaskInUse(i);
                 if ~any(ind), continue; end
                 C(ind,:) = repmat(obj.physObj.TrialTypeColors(i,:),sum(ind),1);
             end

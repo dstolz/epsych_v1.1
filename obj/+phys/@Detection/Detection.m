@@ -7,7 +7,7 @@ classdef Detection < phys.Phys
     
     
     properties (SetAccess = protected)
-        TrialTypesInUse phys.TrialType = [6 7 4 5 1] % [Hit Miss CR FA Abort]
+        BitmaskInUse phys.Bitmask = [phys.Bitmask.Hit, phys.Bitmask.Miss, phys.Bitmask.CorrectReject, phys.Bitmask.FalseAlarm, phys.Bitmask.Abort];
     end
     
     properties (SetAccess = private)
@@ -27,7 +27,7 @@ classdef Detection < phys.Phys
         FA_Count    (1,:) double
         CR_Count    (1,:) double
         
-        Trial_Count (1,:) double
+        TrialCount (1,:) double
         
         Hit_Rate    (1,:) double
         Miss_Rate   (1,:) double
@@ -76,18 +76,18 @@ classdef Detection < phys.Phys
         end
         
         function i = get.Go_Ind(obj)
-            i = [obj.DATA.TrialType] == phys.TrialType.Go;
+            i = [obj.DATA.TrialType] == phys.Bitmask.Go;
         end
         
         function i = get.NoGo_Ind(obj)
-            i = [obj.DATA.TrialType] == phys.TrialType.NoGO;
+            i = [obj.DATA.TrialType] == phys.Bitmask.NoGO;
         end
         
         % Count -----------------------------------------------------
         function n = get.Go_Count(obj)
             v = obj.ParameterValues;
             d = obj.ParameterData;
-            ind = obj.Go_Ind;
+            ind = obj.Ind.Go;
             for i =1:length(v)
                 n(i) = sum(ind & d == v(i));
             end
@@ -96,13 +96,13 @@ classdef Detection < phys.Phys
         function n = get.NoGo_Count(obj)
             v = obj.ParameterValues;
             d = obj.ParameterData;
-            ind = obj.NoGo_Ind;
+            ind = obj.Ind.NoGo;
             for i =1:length(v)
                 n(i) = sum(ind & d == v(i));
             end
         end
         
-        function n = get.Trial_Count(obj)
+        function n = get.TrialCount(obj)
             v = obj.ParameterValues;
             d = obj.ParameterData;
             for i =1:length(v)
