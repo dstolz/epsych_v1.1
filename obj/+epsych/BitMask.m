@@ -13,10 +13,14 @@ classdef Bitmask < uint32
         TrialType_1   (9)
         TrialType_2   (10)
         TrialType_3   (11)
+        StimulusTrial (12)
+        CatchTrial    (13)
+        UserDefined_0 (14)
         UserDefined_1 (15)
         UserDefined_2 (16)
         UserDefined_3 (17)
         UserDefined_4 (18)
+        UserDefined_5 (19)
         Reminder      (20)
         Choice_1      (21)
         Choice_2      (22)
@@ -28,6 +32,8 @@ classdef Bitmask < uint32
         Choice_8      (28)
         Choice_9      (29)
         Choice_10     (30)
+        Response_A    (31)
+        Response_B    (32)
     end
 
 end
