@@ -190,7 +190,8 @@ classdef ParameterTable < handle
                 return
             end
             
-            notify(obj,'ParametersModified');
+            ev = epsych.ParameterData(hObj.Data);
+            notify(obj,'ParametersModified',ev);
             
         end
         
