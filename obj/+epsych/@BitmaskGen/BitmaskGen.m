@@ -52,9 +52,10 @@ classdef BitmaskGen < handle
         
         function load(obj,src,~)
             if ~isa(src,'char') && ~isa(src,'string')
+                pn = getpref('epsych_BitmaskGen','projectDir',cd);
                 [fn,pn] = uigetfile( ...
                     {'*.ebm','EPsych Bitmask File (*.ebm)'}, ...
-                    'Load Bitmask');
+                    'Load Bitmask',pn);
                 if isequal(fn,0), figure(obj.parent); return; end
                 obj.filename = fullfile(pn,fn);
             end
@@ -64,11 +65,16 @@ classdef BitmaskGen < handle
             obj.VarTable.Data  = vars;
             obj.ExptTypeDropdown.Value = opts.ExptType;
             fprintf(' done\n')
+            
+            setpref('epsych_BitmaskGen','projectDir',pn);
+            
+            figure(obj.parent);
         end
         
         function save(obj,~,~)
+            pn = getpref('epsych_BitmaskGen','projectDir',cd);
             [fn,pn] = uiputfile({'*.ebm','EPsych Bitmask File (*.ebm)'}, ...
-                'Save Bitmask');
+                'Save Bitmask',pn);
             if isequal(fn,0), figure(obj.parent); return; end
             obj.filename = fullfile(pn,fn);
             
@@ -80,6 +86,10 @@ classdef BitmaskGen < handle
             fprintf('Saving Bitmask Data "%s" ...',obj.filename)
             save(obj.filename,'data','vars','opts','-mat');
             fprintf(' done\n')
+            
+            setpref('epsych_BitmaskGen','projectDir',pn);
+            
+            figure(obj.parent);
         end
         
         
@@ -91,10 +101,6 @@ classdef BitmaskGen < handle
             end
         end
         
-        function set.filename(obj,ffn)
-            obj.filename = ffn;
-            obj.load(ffn);
-        end
     end
     
     methods (Access = private)
@@ -154,7 +160,7 @@ classdef BitmaskGen < handle
             hL = uilabel(g);
             hL.Layout.Column = [3 5];
             hL.Layout.Row    = 2;
-            hL.Text          = 'Data Table';
+            hL.Text          = 'RPvds State Machine Data Table';
             hL.HorizontalAlignment = 'center';
             hL.FontSize      = 16;
             hL.FontWeight    = 'bold';
@@ -215,7 +221,7 @@ classdef BitmaskGen < handle
         end
         
         function select_data(obj,src,event)
-            if event.Indices(1) <= 4
+            if event.Indices(1) <= 4 || event.Indices(2) == 1
                 obj.bmIdx = [];
             else
                 obj.bmIdx = event.Indices(end,:);
@@ -229,9 +235,14 @@ classdef BitmaskGen < handle
             
             if x(1) <= 4
                 if d > 4
-                    uialert(obj.parent,'Values must be less than or equal to the number of states (<=4)','Invalid Value')
+                    uialert(obj.parent,'Values must be less than or equal to the number of states (<=4)','Invalid Value','Icon','info')
                     src.Data{x(1),x(2)} = event.PreviousData;
                 end
+            
+            elseif x(2) == 1
+                uialert(obj.parent,'State 0 (S0) must always be zero.','Invalid Value','Icon','info')
+                src.Data{x(1),x(2)} = 0;
+                
             else
                 obj.update_variable_table;
             end
