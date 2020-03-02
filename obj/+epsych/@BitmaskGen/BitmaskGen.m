@@ -185,7 +185,7 @@ classdef BitmaskGen < handle
             obj.DataTable = hD;
             obj.DataTableTitle = hL;
             
-            obj.DataTable.Data = num2cell(zeros(8,5,'uint32'));
+            obj.DataTable.Data = num2cell(zeros(8,5,'uint16'));
             
             obj.load_expts;
         end
@@ -250,7 +250,7 @@ classdef BitmaskGen < handle
         
         function update_variable_table(obj)
             a = obj.CurrentBitmask;
-            m = epsych.Bitmask(find(bitget(a,1:32,'uint32'))); %#ok<FNDSB>
+            m = epsych.Bitmask(find(bitget(a,1:16,'uint16'))); %#ok<FNDSB>
             d = obj.VarTable.Data;
             d(cellfun(@isempty,d),:) = [];
             if ~isempty(m)
@@ -339,9 +339,9 @@ classdef BitmaskGen < handle
         end
         
         function ind = decode(a)
-            ind = false(1,32);
+            ind = false(1,16);
             for i = 1:length(a)
-                ind = ind | bitget(a,1:32,'uint32');
+                ind = ind | bitget(a,1:16,'uint16');
             end
         end
     end
