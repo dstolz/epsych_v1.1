@@ -1,8 +1,8 @@
-classdef Item < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
-    % P = parameter.Item('Property','Value',...)
+classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
+    % P = epsych.Parameter('Property','Value',...)
 
     properties
-        Expression      
+        Expression      (1,:) char
         Index           (1,:) double {mustBeInteger,mustBePositive,mustBeNonempty} = 1;
         Name            (1,:) char = 'NO NAME';
         PairName        (1,:) char
@@ -36,7 +36,7 @@ classdef Item < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             p = properties(obj);
             for i = 1:2:length(varargin)
                 ind = strcmpi(p,varargin{i});
-                assert(any(ind),'parameter.Item:Parameter:InvalidParameter', ...
+                assert(any(ind),'epsych.Parameter:Parameter:InvalidParameter', ...
                     'Invalid property "%s"',varargin{i})
                 obj.(p{ind}) = varargin{i+1};
             end
@@ -50,13 +50,6 @@ classdef Item < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         
         function n = get.N(obj)
             n = length(obj.Values);
-        end
-        
-        function set.Expression(obj,e)
-            if ~ischar(e)
-                e = mat2str(e);
-            end
-            obj.Expression = e;
         end
         
         function v = get.Value(obj)
@@ -112,12 +105,13 @@ classdef Item < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             end
             
             if isempty(obj.Units)
-                c = arrayfun(@num2str,v,'uni',0);
+                c = cellfun(@num2str,v);
             else
                 c = arrayfun(@(a) sprintf('%g %s',a,obj.Units),v,'uni',0);
             end
             
             for i = 1:obj.N
+                c{i} = num2str(v(i));
                 if ~isempty(obj.Units)
                     c{i} = sprintf('%s %s',c{i},obj.Units);
                 end
@@ -133,7 +127,7 @@ classdef Item < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         end
 
         function set.ValueBounds(obj,vb)
-            assert(numel(vb)==2 & isnumeric(vb),'parameter.Item:set.ValueBounds:InvalidEntry', ...
+            assert(numel(vb)==2 & isnumeric(vb),'epsych.Parameter:set.ValueBounds:InvalidEntry', ...
                 'Parameter ValueBounds must contain 2 numeric values');
             obj.ValueBounds = sort(vb(:)','ascend');
         end
@@ -142,7 +136,7 @@ classdef Item < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             obj.Select = s;
             switch s
                 case 'randRange'
-                    assert(obj.N == 2,'parameter.Item:set.Select:InvalidNumVals', ...
+                    assert(obj.N == 2,'epsych.Parameter:set.Select:InvalidNumVals', ...
                         'The randRange select option requires the parameter to have exactly 2 values');
                     obj.isRange = true;
             end

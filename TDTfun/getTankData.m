@@ -128,7 +128,7 @@ if strcmpi(cfg.blocks,'all')
     
     cfg.blocks = 1:length(blocklist);
 else
-    if iscellstr(cfg.blocks)
+    if isstring(cfg.blocks)
         blocklist = cfg.blocks;
     elseif ischar(cfg.blocks)
         blocklist = {cfg.blocks};

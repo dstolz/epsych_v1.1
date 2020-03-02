@@ -137,7 +137,7 @@ if isfield(S,'node')
     
     if isfield(S.node,'shape')
         assert(size(S.node.shape,1)==size(A,1)&size(S.node.shape,2)==1& ...
-            iscellstr(S.node.shape),'S.size should be Nx1 cellstring');
+            isstring(S.node.shape),'S.size should be Nx1 cellstring');
         F.node.shape = true;
     end
 end
