@@ -5,10 +5,9 @@ classdef (ConstructOnLoad) ParameterData < event.EventData
    end
    
    methods
-      function data = ParameterData(data)
-         
-         data.Data = trials.data;
-         data.BoxID   = trials.BoxID;
+      function data = ParameterData(BoxID,Data)
+         data.Data  = Data;
+         data.BoxID = BoxID;
       end
    end
 end

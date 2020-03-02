@@ -35,10 +35,11 @@ classdef ParameterTable < handle
             if nargin == 2, obj.BoxID = BoxID; end
 
             obj.parent = parent;
-            
-            obj.create(RUNTIME)
-            
+                        
             obj.hl_NewTrial = addlistener(RUNTIME.HELPER(obj.BoxID),'NewTrial',@obj.update);
+
+            obj.create(RUNTIME)
+
         end
         
         function delete(obj)
@@ -50,9 +51,6 @@ classdef ParameterTable < handle
             d = obj.table.Data;
         end
         
-        function set.parent(obj,parent)
-            obj.parent = parent;
-        end
         
         function create(obj,RUNTIME)
             ou = get(obj.parent,'Units');
@@ -195,7 +193,7 @@ classdef ParameterTable < handle
                 return
             end
             
-            ev = epsych.ParameterData(hObj.Data);
+            ev = epsych.ParameterData(obj.BoxID,hObj.Data);
             notify(obj,'ParametersModified',ev);
             
         end
