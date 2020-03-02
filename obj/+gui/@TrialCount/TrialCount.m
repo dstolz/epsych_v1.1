@@ -33,18 +33,15 @@ classdef TrialCount < handle
             if nargin == 2 && ~isempty(BoxID), obj.BoxID = BoxID; end
             
             obj.hl_NewTrial = addlistener(RUNTIME.HELPER(obj.BoxID),'NewTrial',@obj.update);
+
+            obj.create;
+
         end
         
         % Destructor
         function delete(obj)
             delete(obj.hl_NewTrial);
         end
-        
-        function set.parent(obj,parent)
-            obj.parent = parent;
-            obj.create;
-        end
-        
         function create(obj)
             ou = get(obj.parent,'Units');
             
