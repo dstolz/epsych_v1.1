@@ -1,7 +1,9 @@
 classdef TwoAFC < phys.Phys
 
-    properties (SetAccess = protected)
-        BitmaskInUse phys.Bitmask = [phys.Bitmask.Hit, phys.Bitmask.Miss, phys.Bitmask.Abort, phys.Bitmask.Choice_1, phys.Bitmask.Choice_2];
+
+    properties (SetAccess = protected) % define abstract properties inherited from phys.Phys
+        BitmaskGroups = [epsych.Bitmask.TrialType_0, epsych.Bitmask.TrialType_1];
+        BitmaskInUse  = [epsych.Bitmask.Hit, epsych.Bitmask.Miss, epsych.Bitmask.Response_A, epsych.Bitmask.Response_B, epsych.Bitmask.Abort];
     end
 
 

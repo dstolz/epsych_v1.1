@@ -2,31 +2,31 @@ classdef Phys < handle & matlab.mixin.Copyable
 
     properties (Abstract, SetAccess = protected)
         BitmaskGroups % define which bit will be used to group data analysis.
-                      % for example:
-                      % BitmaskGroups = [epsych.Bitmask.StimulusTrial epsych.Bitmask.CatchTrial]
+                      % ex: BitmaskGroups = [epsych.Bitmask.StimulusTrial epsych.Bitmask.CatchTrial]
         
-        AnalysisParameter % Define which parameter (char) is used for analysis.
-                          % for example:
-                          % AnalysisParameter = 'StimulusFrequency'; % where 'StimulusFrequency' is a parameter tag                          
+        BitmaskInUse  % defines which bits are in use 
+                      % ex: BitmaskInUse = [epsych.Bitmask.Hit, epsych.Bitmask.Miss, epsych.Bitmask.CorrectReject, epsych.Bitmask.FalseAlarm, epsych.Bitmask.Abort];
     end
 
     properties
+        ParameterName  % defines which parameter(s) to analyze
+                       % ex: obj.ParameterName = "StimulusFrequency"
+
+
         TrialTypeColors = lines;
     end
 
     properties (Dependent)
-        NumTrials       (1,1) uint16
+        NumTrials           (1,1) uint32
         
-        Responses   (1,:) epsych.Bitmask
-        ResponsesChar   (1,:) cell
-        ResponseCodes   (1,:) uint16
+        ResponsesBitmask    (1,:) epsych.Bitmask
+        ResponsesChar       (1,:) cell
+        ResponseCodes       (1,:) uint32
 
-        Trial_Index     (1,1) double
+        Trial_Index         (1,1) double
 
-        TrialTypeInd    (1,:)  % 1xN structure with fields organized by trial type
-        ResponseInd     (1,:)  % 1xN structure with fields organized by response code
-
-        SUBJECT
+        TrialTypeInd        (1,:)  % 1xN structure with fields organized by trial type
+        ResponseInd         (1,:)  % 1xN structure with fields organized by response code
         
         ParameterValues     (1,:)
         ParameterCount      (1,1)
@@ -39,6 +39,8 @@ classdef Phys < handle & matlab.mixin.Copyable
         Rate
 
         ValidParameters
+
+        Subject     % subject info structure
     end
 
     properties (SetAccess = private)
@@ -157,7 +159,7 @@ classdef Phys < handle & matlab.mixin.Copyable
             d = obj.TRIALS.DATA;
         end
         
-        function s = get.SUBJECT(obj)
+        function s = get.Subject(obj)
             s = obj.TRIALS.Subject;
         end
         
@@ -165,7 +167,7 @@ classdef Phys < handle & matlab.mixin.Copyable
             i = obj.TRIALS.TrialIndex;
         end
 
-        function r = get.Responses(obj)
+        function r = get.ResponsesBitmask(obj)
             RC = obj.ResponseCodes;
             r(length(RC),1) = epsych.Bitmask(0);
             for i = obj.BitmaskInUse
@@ -176,7 +178,7 @@ classdef Phys < handle & matlab.mixin.Copyable
         end
         
         function c = get.ResponsesChar(obj)
-            c = cellfun(@char,num2cell(obj.Responses),'uni',0);
+            c = cellfun(@char,num2cell(obj.ResponsesBitmask),'uni',0);
         end
 
 
@@ -198,7 +200,7 @@ classdef Phys < handle & matlab.mixin.Copyable
     methods (Access = private)
         function update(obj,src,event)
             obj.TRIALS  = event.Data;
-            obj.SUBJECT = event.Subject;
+            obj.Subject = event.Subject;
         end
     end
 

@@ -1,14 +1,11 @@
 classdef Detection < phys.Phys
         
-    properties
-        ParameterName   (1,:) char
-        ParameterIDs    (1,:) uint8
+
+    properties (SetAccess = protected) % define abstract properties inherited from phys.Phys
+        BitmaskGroups = [epsych.Bitmask.StimulusTrial, epsych.Bitmask.CatchTrial];
+        BitmaskInUse  = [epsych.Bitmask.Hit, epsych.Bitmask.Miss, epsych.Bitmask.CorrectReject, epsych.Bitmask.FalseAlarm, epsych.Bitmask.Abort];
     end
-    
-    
-    properties (SetAccess = protected)
-        BitmaskInUse phys.Bitmask = [phys.Bitmask.Hit, phys.Bitmask.Miss, phys.Bitmask.CorrectReject, phys.Bitmask.FalseAlarm, phys.Bitmask.Abort];
-    end
+
     
     properties (SetAccess = private)
         Go_Ind       (1,:) logical
