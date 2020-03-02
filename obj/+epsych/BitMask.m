@@ -31,7 +31,7 @@ classdef Bitmask < uint32
         Choice_7      (27)
         Choice_8      (28)
         Choice_9      (29)
-        Choice_10     (30)
+        NoResponse    (30)
         Response_A    (31)
         Response_B    (32)
     end

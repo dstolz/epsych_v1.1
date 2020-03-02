@@ -9,6 +9,7 @@ classdef BitmaskGen < handle
         DataTable
         ExptTypeDropdown
         CopyButton
+        DataTableTitle
         
         bmIdx
     end
@@ -54,12 +55,13 @@ classdef BitmaskGen < handle
                 [fn,pn] = uigetfile( ...
                     {'*.ebm','EPsych Bitmask File (*.ebm)'}, ...
                     'Load Bitmask');
-                if isequal(fn,0), return; end
+                if isequal(fn,0), figure(obj.parent); return; end
                 obj.filename = fullfile(pn,fn);
             end
             fprintf('Loading Bitmask Data "%s" ...',obj.filename)
-            load(obj.filename,'data','opts','-mat');
+            load(obj.filename,'data','vars','opts','-mat');
             obj.DataTable.Data = data;
+            obj.VarTable.Data  = vars;
             obj.ExptTypeDropdown.Value = opts.ExptType;
             fprintf(' done\n')
         end
@@ -67,14 +69,16 @@ classdef BitmaskGen < handle
         function save(obj,~,~)
             [fn,pn] = uiputfile({'*.ebm','EPsych Bitmask File (*.ebm)'}, ...
                 'Save Bitmask');
-            if isequal(fn,0), return; end
+            if isequal(fn,0), figure(obj.parent); return; end
             obj.filename = fullfile(pn,fn);
             
             data = obj.DataTable.Data;
+            vars = obj.VarTable.Data;
+            vars(:,2) = num2cell(false(size(vars,1),1));
             opts = struct('ExptType',obj.ExptTypeDropdown.Value);
             
             fprintf('Saving Bitmask Data "%s" ...',obj.filename)
-            save(obj.filename,'data','opts','-mat');
+            save(obj.filename,'data','vars','opts','-mat');
             fprintf(' done\n')
         end
         
@@ -168,6 +172,7 @@ classdef BitmaskGen < handle
             obj.ExptTypeDropdown = hE;
             obj.VarTable  = hV;
             obj.DataTable = hD;
+            obj.DataTableTitle = hL;
             
             obj.DataTable.Data = num2cell(zeros(8,5,'uint32'));
             
@@ -255,26 +260,42 @@ classdef BitmaskGen < handle
                     if isempty(name), return; end
                     name = char(name);
                     fn  = matlab.lang.makeValidName(name);
-                    ffn = fullfile(pn,[fn '.ebmx']);
+                    fn  = [fn '.ebmx'];
+                    ffn = fullfile(pn,fn);
                     fprintf('Saving new template: "%s" ...', name)
                     data = obj.DataTable.Data(1:4,:);
-                    save(ffn,'data','name','-mat');
+                    vars = obj.VarTable.Data;
+                    vars(:,2) = num2cell(false(size(vars,1),1));
+                    save(ffn,'data','vars','name','-mat');
                     obj.load_expts;
                     obj.ExptTypeDropdown.Value = fn;
+                    fprintf(' done\n')
                     
                 otherwise
-                    load(fullfile(pn,et),'data','-mat');
+                    load(fullfile(pn,et),'data','vars','-mat');
                     d = obj.DataTable.Data;
                     d(1:4,:) = repmat({0},4,size(d,2));
                     if isnumeric(data), data = num2cell(data); end
                     d(1:4,1:size(data,2)) = data;
                     obj.DataTable.Data = d;
+                    obj.VarTable.Data = vars;
+                    
             end
             setpref('epsych_BitmaskGen','expt',obj.ExptTypeDropdown.Value);
         end
         
-        function copy_datatable(obj)
+        function copy_datatable(obj,~,~)
             
+            d = obj.DataTable.Data;
+            d = reshape([d{:}],size(d));
+            
+            s = '';
+            for j = 1:size(d,1)
+                s = sprintf('%s%d\t%d\t%d\t%d\t%d\n',s,d(j,:));
+            end
+            fprintf(['The following matrix has been copied to the clipboard.\n', ...
+                'Highlight all cells in your RPvds state machine data table and use ''Ctrl+v'' to paste.\n\n%s'],s)
+            clipboard('copy',s)
         end
         
         function load_expts(obj)
