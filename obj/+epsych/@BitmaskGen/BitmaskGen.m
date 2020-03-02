@@ -40,7 +40,7 @@ classdef BitmaskGen < handle
                 obj.parent = uifigure( ...
                     'Name','Bitmask Generator', ...
                     'NumberTitle', 'off', ...
-                    'Position',[400 250 650 360]);
+                    'Position',[400 250 720 360]);
             end
             
             obj.create_gui;
@@ -89,6 +89,11 @@ classdef BitmaskGen < handle
             else
                 m = obj.DataTable.Data{obj.bmIdx(1),obj.bmIdx(2)};
             end
+        end
+        
+        function set.filename(obj,ffn)
+            obj.filename = ffn;
+            obj.load(ffn);
         end
     end
     
@@ -161,7 +166,7 @@ classdef BitmaskGen < handle
             hD.ColumnName     = {'S0','S1','S2','S3','S4'};
             hD.ColumnEditable = true;
             hD.ColumnFormat   = {'numeric','numeric','numeric','numeric','numeric'};
-            hD.ColumnWidth    = num2cell(60.*ones(1,5));
+            hD.ColumnWidth    = num2cell(80.*ones(1,5));
             hD.RowName        = {'If None','If JmpA','If JmpB','If Both','Output-0','Output-1','Output-2','Output-3'};
             hD.FontSize       = 16;
             hD.CellSelectionCallback = @obj.select_data;
@@ -221,13 +226,13 @@ classdef BitmaskGen < handle
         function edit_data(obj,src,event)
             x = event.Indices(end,:);
             d = event.NewData;
-            if d < 0
-                errordlg('Values must be >= 0','BitmaskGen','modal');
-                src.Data{x(1),x(2)} = event.PreviousData;
-                return
-            end
             
-            if x(1) >= 5
+            if x(1) <= 4
+                if d > 4
+                    uialert(obj.parent,'Values must be less than or equal to the number of states (<=4)','Invalid Value')
+                    src.Data{x(1),x(2)} = event.PreviousData;
+                end
+            else
                 obj.update_variable_table;
             end
         end
@@ -293,9 +298,11 @@ classdef BitmaskGen < handle
             for j = 1:size(d,1)
                 s = sprintf('%s%d\t%d\t%d\t%d\t%d\n',s,d(j,:));
             end
-            fprintf(['The following matrix has been copied to the clipboard.\n', ...
-                'Highlight all cells in your RPvds state machine data table and use ''Ctrl+v'' to paste.\n\n%s'],s)
+            
             clipboard('copy',s)
+            s = ['The data table has been copied to the clipboard.\n', ...
+                'Highlight all cells in your RPvds state machine data table and use ''Ctrl+v'' to paste.'];
+            uialert(obj.parent,s,'Data Table Copied','Icon','success');
         end
         
         function load_expts(obj)
