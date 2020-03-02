@@ -1,7 +1,13 @@
 classdef Phys < handle & matlab.mixin.Copyable
 
     properties (Abstract, SetAccess = protected)
-        BitmaskInUse
+        BitmaskGroups % define which bit will be used to group data analysis.
+                      % for example:
+                      % BitmaskGroups = [epsych.Bitmask.StimulusTrial epsych.Bitmask.CatchTrial]
+        
+        AnalysisParameter % Define which parameter (char) is used for analysis.
+                          % for example:
+                          % AnalysisParameter = 'StimulusFrequency'; % where 'StimulusFrequency' is a parameter tag                          
     end
 
     properties
@@ -11,7 +17,7 @@ classdef Phys < handle & matlab.mixin.Copyable
     properties (Dependent)
         NumTrials       (1,1) uint16
         
-        ResponsesEnum   (1,:) epsych.BitMask
+        Responses   (1,:) epsych.Bitmask
         ResponsesChar   (1,:) cell
         ResponseCodes   (1,:) uint16
 
@@ -40,6 +46,10 @@ classdef Phys < handle & matlab.mixin.Copyable
         DATA % TRIALS.DATA ... should be a value object
     end
 
+    properties (Access = private)
+        el_NewData
+    end
+
     properties (SetAccess = immutable)
         BoxID
         CreatedOn
@@ -50,6 +60,7 @@ classdef Phys < handle & matlab.mixin.Copyable
             global RUNTIME
 
             if nargin < 1 || isempty(BoxID), BoxID = 1; end
+                
             if nargin < 2 || isempty(parameterName)
                 % choose most variable parameter
                 p = obj.ValidParameters;
@@ -74,7 +85,7 @@ classdef Phys < handle & matlab.mixin.Copyable
             obj.ParameterName = parameterName;
             obj.CreatedOn     = datestr(now);
 
-            addlistener(RUNTIME.HELPER,'NewData',@obj.update);
+            obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
         end
 
         function n = get.NumTrials(obj)
@@ -94,7 +105,6 @@ classdef Phys < handle & matlab.mixin.Copyable
         
 
         % Parameter -------------------------------------------------
-
         function v = get.ParameterValues(obj)
             v = [];
             if isempty(obj.ParameterName), return; end
@@ -155,9 +165,9 @@ classdef Phys < handle & matlab.mixin.Copyable
             i = obj.TRIALS.TrialIndex;
         end
 
-        function r = get.ResponsesEnum(obj)
+        function r = get.Responses(obj)
             RC = obj.ResponseCodes;
-            r(length(RC),1) = epsych.BitMask(0);
+            r(length(RC),1) = epsych.Bitmask(0);
             for i = obj.BitmaskInUse
                 ind = logical(bitget(RC,i));
                 if ~any(ind), continue; end
@@ -166,7 +176,7 @@ classdef Phys < handle & matlab.mixin.Copyable
         end
         
         function c = get.ResponsesChar(obj)
-            c = cellfun(@char,num2cell(obj.ResponsesEnum),'uni',0);
+            c = cellfun(@char,num2cell(obj.Responses),'uni',0);
         end
 
 
@@ -187,8 +197,8 @@ classdef Phys < handle & matlab.mixin.Copyable
 
     methods (Access = private)
         function update(obj,src,event)
-            obj.DATA = event.Data;
-            obj.TRIALS = event; %????
+            obj.TRIALS  = event.Data;
+            obj.SUBJECT = event.Subject;
         end
     end
 

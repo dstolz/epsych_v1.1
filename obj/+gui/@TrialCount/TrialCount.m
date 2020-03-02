@@ -1,5 +1,9 @@
 classdef TrialCount < handle
     
+    properties
+        BoxID   (1,1) uint8 {mustBeNonempty,mustBeNonNan} = 1;
+    end
+
     properties (Access = protected)
         txt_TrialCount
         txt_TrialType
@@ -9,21 +13,26 @@ classdef TrialCount < handle
         lbl_TrialType
         lbl_CurrentTrialIndex
                
-        parent
+        
     end
     
     properties (Access = private)
         hl_NewTrial
     end
+
+    properties (SetAccess = immutable)
+        parent
+    end
     
     methods
         % Constructor
-        function obj = TrialCount(parent)
+        function obj = TrialCount(parent,BoxID)
             global RUNTIME
             
             obj.parent = parent;
+            if nargin == 2 && ~isempty(BoxID), obj.BoxID = BoxID; end
             
-            obj.hl_NewTrial = addlistener(RUNTIME.HELPER,'NewTrial',@obj.update);
+            obj.hl_NewTrial = addlistener(RUNTIME.HELPER(obj.BoxID),'NewTrial',@obj.update);
         end
         
         % Destructor
@@ -101,7 +110,6 @@ classdef TrialCount < handle
         
         
         function update(obj,source,event)
-            
             trc = event.Data.DATA(end).TrialID;
             if isempty(trc), trc = '---'; end
             obj.txt_TrialCount.String = trc;
@@ -117,6 +125,14 @@ classdef TrialCount < handle
                 tt = event.Data.trials{idx,ttind};
             end
             obj.txt_TrialType.String = tt;
+        end
+
+        
+        function set.BoxID(obj,id)
+            global RUNTIME
+            obj.BoxID = id;
+            delete(obj.el_NewTrial); % destroy old listener and create a new one for the new BoxID
+            obj.el_NewTrial = addlistener(RUNTIME.HELPER(obj.BoxID),'NewTrial',@obj.new_trial);
         end
     end
     

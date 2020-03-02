@@ -15,6 +15,7 @@ classdef PlotHelper < gui.Helper
 
         setZeroToNan (1,1) logical = false;
 
+        BoxID       (1,1)  uint8 {mustBeNonempty,mustBeNonNan} = 1;
 
         timer_StartFcn
         timer_TimerFcn
@@ -29,7 +30,6 @@ classdef PlotHelper < gui.Helper
         
         startTime   (1,6)  double % = clock
         
-        BoxID       (1,1)  uint8 = 1;
         
         Buffers     (:,:) single
         trialBuffer (1,:) single
@@ -56,6 +56,8 @@ classdef PlotHelper < gui.Helper
     properties (SetAccess = private)
         currentTrialIndex
         currentTrialType
+        
+        el_NewTrial % event listener
     end
     
     properties (Dependent)
@@ -128,7 +130,7 @@ classdef PlotHelper < gui.Helper
 
             obj.startTime = RUNTIME.StartTime;
 
-            addlistener(RUNTIME.HELPER,'NewTrial',@obj.new_trial);
+            obj.el_NewTrial = addlistener(RUNTIME.HELPER(obj.BoxID),'NewTrial',@obj.new_trial);
             
             feval(obj.timer_StartFcn,varargin{:});            
         end
@@ -285,6 +287,14 @@ classdef PlotHelper < gui.Helper
         function new_trial(obj,~,trialData)
             obj.currentTrialIndex = trialData.Data.TrialIndex;
             obj.currentTrialType  = trialData.Data.NextTrialID;
+        end
+
+
+        function set.BoxID(obj,id)
+            global RUNTIME
+            obj.BoxID = id;
+            delete(obj.el_NewTrial); % destroy old listener and create a new one for the new BoxID
+            obj.el_NewTrial = addlistener(RUNTIME.HELPER(obj.BoxID),'NewTrial',@obj.new_trial);
         end
     end
 end

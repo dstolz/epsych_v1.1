@@ -12,6 +12,8 @@ classdef PsychPlot < gui.Helper
         
         LineColor   (:,:) double {mustBeNonnegative,mustBeLessThanOrEqual(LineColor,1)}   = [.2 .6 1; 1 .6 .2];
         MarkerColor (:,:) double {mustBeNonnegative,mustBeLessThanOrEqual(MarkerColor,1)} = [0 .4 .8; .8 .4 0];
+
+        BoxID       (1,1)  uint8 {mustBeNonempty,mustBeNonNan} = 1;
     end
     
     properties (SetAccess = private)
@@ -20,7 +22,7 @@ classdef PsychPlot < gui.Helper
         TextH
     end
     
-    
+
     properties (Constant)
         ValidPlotTypes = {'DPrime','Hit_Rate','FA_Rate','Bias'};
     end
@@ -32,9 +34,11 @@ classdef PsychPlot < gui.Helper
     
     
     methods
-        function obj = PsychPlot(pObj,ax)
+        function obj = PsychPlot(pObj,ax,BoxID)
             if nargin < 2 || isempty(ax), ax = gca; end
             
+            if nargin == 3 && ~isempty(BoxID), obj.BoxID = BoxID; end
+
             obj.AxesH = ax;
             
             if nargin >= 1 && ~isempty(pObj)
@@ -47,7 +51,7 @@ classdef PsychPlot < gui.Helper
             
             
             global RUNTIME
-            obj.listener_NewData = addlistener(RUNTIME.HELPER,'NewData',@obj.update);
+            obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
             
             
         end
@@ -172,6 +176,14 @@ classdef PsychPlot < gui.Helper
                 'gui.History:set.PsychophysiccsObj', ...
                 'physObj must be from the toolbox "phys"');
             obj.physObj = pobj;
+            obj.update;
+        end
+        
+        function set.BoxID(obj,id)
+            global RUNTIME
+            obj.BoxID = id;
+            delete(obj.el_NewData); % destroy old listener and create a new one for the new BoxID
+            obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
             obj.update;
         end
     end

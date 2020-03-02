@@ -56,22 +56,22 @@ classdef Detection < phys.Phys
         
         % Ind ------------------------------------------------------
         function r = get.Hit_Ind(obj)
-            r = bitget(obj.ResponseCodes,epsych.BitMask.Hit);
+            r = bitget(obj.ResponseCodes,epsych.Bitmask.Hit);
             r = logical(r);
         end
         
         function r = get.Miss_Ind(obj)
-            r = bitget(obj.ResponseCodes,epsych.BitMask.Miss);
+            r = bitget(obj.ResponseCodes,epsych.Bitmask.Miss);
             r = logical(r);
         end
         
         function r = get.FA_Ind(obj)
-            r = bitget(obj.ResponseCodes,epsych.BitMask.FalseAlarm);
+            r = bitget(obj.ResponseCodes,epsych.Bitmask.FalseAlarm);
             r = logical(r);
         end
         
         function r = get.CR_Ind(obj)
-            r = bitget(obj.ResponseCodes,epsych.BitMask.CorrectReject);
+            r = bitget(obj.ResponseCodes,epsych.Bitmask.CorrectReject);
             r = logical(r);
         end
         

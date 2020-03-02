@@ -42,7 +42,7 @@ for i = 1:RUNTIME.NSubjects
         
         % Broadcast event data has been updated
         evtdata = epsych.TrialsData(RUNTIME.TRIALS(i));
-        RUNTIME.HELPER.notify('NewData',evtdata);
+        RUNTIME.HELPER(RUNTIME.TRIALS(i).BoxID).notify('NewData',evtdata);
         
         
         % Save runtime data in case of crash
@@ -145,7 +145,7 @@ for i = 1:RUNTIME.NSubjects
 
     % Broadcast event data has been updated
     evtdata = epsych.TrialsData(RUNTIME.TRIALS(i));
-    RUNTIME.HELPER.notify('NewTrial',evtdata);
+    RUNTIME.HELPER(RUNTIME.TRIALS(i).BoxID).notify('NewTrial',evtdata);
     
 
 end

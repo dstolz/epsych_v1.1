@@ -2,6 +2,7 @@ classdef History < gui.Helper
 
     properties
         physObj
+        BoxID       (1,1)  uint8 {mustBeNonempty,mustBeNonNan} = 1;
     end
 
     properties (SetAccess = private)
@@ -11,14 +12,20 @@ classdef History < gui.Helper
         ColumnName
         Data
         Info
+
+    end
+
+    properties (Access = private)
+        el_NewData
     end
     
     methods
 
-        function obj = History(pObj,container,watchedParams)
+        function obj = History(pObj,container,watchedParams,BoxID)
             if nargin < 2 || isempty(container), container = figure; end
             
-            
+            if nargin == 4 && ~isempty(BoxID), obj.BoxID = BoxID; end
+
             obj.ContainerH = container;
 
             obj.build;
@@ -29,7 +36,7 @@ classdef History < gui.Helper
             end
 
             global RUNTIME
-            obj.listener_NewData = addlistener(RUNTIME.HELPER,'NewData',@obj.update);
+            obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
             
         end
 
@@ -65,13 +72,21 @@ classdef History < gui.Helper
             obj.physObj = pobj;
             obj.update;
         end
+
+        
+        function set.BoxID(obj,id)
+            global RUNTIME
+            obj.BoxID = id;
+            delete(obj.el_NewData); % destroy old listener and create a new one for the new BoxID
+            obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewTrial',@obj.new_trial);
+        end
     end
 
     methods (Access = private)
         function update_row_colors(obj)
             if ~epsych.Helper.valid_psych_obj(obj.physObj), return; end
             C(size(obj.Data,1),3) = 0;
-            R = cellfun(@epsych.BitMask,obj.Data(:,2),'uni',0);
+            R = cellfun(@epsych.Bitmask,obj.Data(:,2),'uni',0);
             R = [R{:}];
             for i = 1:length(obj.physObj.BitmaskInUse)
                 ind = R == obj.physObj.BitmaskInUse(i);

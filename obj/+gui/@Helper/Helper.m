@@ -3,7 +3,7 @@ classdef Helper < handle
     properties
         TDTActiveX  % COM.RPco_X || COM.TDevAcc_X
         
-        listener_NewData
+        el_NewData
     end
     
     
@@ -19,7 +19,7 @@ classdef Helper < handle
         % Destructor
         function delete(obj)
             try
-                delete(obj.listener_NewData)
+                delete(obj.el_NewData)
             end
         end
         

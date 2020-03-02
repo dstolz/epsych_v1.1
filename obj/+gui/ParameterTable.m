@@ -1,12 +1,11 @@
 classdef ParameterTable < handle
     
     properties
-        table        
+        table
+
+        BoxID       (1,1)  uint8 {mustBeNonempty,mustBeNonNan} = 1;
     end
     
-    properties (Access = protected)
-        parent
-    end
     
     properties (Access = private)
         hl_NewTrial
@@ -20,20 +19,26 @@ classdef ParameterTable < handle
         Data
     end
     
+    properties (SetAccess = immutable)
+        parent
+    end
+    
     events
         ParametersModified
     end
     
     methods
         
-        function obj = ParameterTable(parent)
+        function obj = ParameterTable(parent,BoxID)
             global RUNTIME
             
+            if nargin == 2, obj.BoxID = BoxID; end
+
             obj.parent = parent;
             
             obj.create(RUNTIME)
             
-            obj.hl_NewTrial = addlistener(RUNTIME.HELPER,'NewTrial',@obj.update);
+            obj.hl_NewTrial = addlistener(RUNTIME.HELPER(obj.BoxID),'NewTrial',@obj.update);
         end
         
         function delete(obj)
