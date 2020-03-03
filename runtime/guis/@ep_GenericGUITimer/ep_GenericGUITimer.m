@@ -28,17 +28,22 @@ classdef ep_GenericGUITimer < handle
             obj.HFig = hFig;
             
             % make sure timer name does not exist
-            timerNameBase = [timerName '_EPsychTimer'];
-            i = 1;
-            while 1
-                timerName = sprintf('%s%02d',timerNameBase,i);
-                T = timerfind('Name',timerName);
-                if isempty(T)
-                    obj.Timer = timer('Name',timerName);
-                    break
-                end
-                i = i + 1;
+            T = timerfindall('Name',timerName);
+            if ~isempty(T)
+                try, stop(T); end
+                try, delete(T); end
             end
+            % timerNameBase = [timerName '_EPsychTimer'];
+            % i = 1;
+            % while 1
+            %     timerName = sprintf('%s%02d',timerNameBase,i);
+            %     T = timerfind('Name',timerName);
+            %     if isempty(T)
+            %         obj.Timer = timer('Name',timerName);
+            %         break
+            %     end
+            %     i = i + 1;
+            % end
         end
         
         % Destructor
