@@ -203,7 +203,7 @@ if protocol.OPTIONS.compile_at_runtime
     protocol.COMPILED = rmfield(protocol.COMPILED,'trials');
 end
 
-E = EPsychInfo;
+E = epsych.Info;
 protocol.meta = E.meta;
 
 save(fn,'protocol','-mat','-v7.3');

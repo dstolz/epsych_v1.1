@@ -1,4 +1,4 @@
-classdef EPsychInfo < handle
+classdef Info < handle
     % class contains general inormation for the EPsych software
     
     properties (SetAccess = private)

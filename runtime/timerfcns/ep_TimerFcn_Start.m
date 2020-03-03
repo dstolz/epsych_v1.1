@@ -13,7 +13,7 @@ function RUNTIME = ep_TimerFcn_Start(CONFIG, RUNTIME, AX)
 
 % Copyright (C) 2019  Daniel Stolzberg, PhD
 
-E = EPsychInfo;
+E = epsych.Info;
 
 
 

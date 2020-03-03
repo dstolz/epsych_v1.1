@@ -571,7 +571,7 @@ funcs  = FUNCS; %#ok<NASGU>
 if isempty(FUNCS), FUNCS = GetDefaultFuncs; end
 funcs = FUNCS;
 
-E = EPsychInfo;
+E = epsych.Info;
 meta = E.meta;
 
 save(fullfile(pn,fn),'config','funcs','meta','-mat');
@@ -1043,7 +1043,7 @@ FigOnTop(h.figure1,ontop);
 setpref('ep_RunExpt','AlwaysOnTop',ontop);
 
 function version_info
-E = EPsychInfo;
+E = epsych.Info;
 disp(E.meta)
 commandwindow
 
