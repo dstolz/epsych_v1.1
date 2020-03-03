@@ -12,13 +12,17 @@ classdef History < gui.Helper
         ColumnName
         Data
         Info
-
+        
+        el_NewPhysData
     end
     
     methods
 
         function obj = History(pObj,container,watchedParams,BoxID)
             narginchk(1,4);
+            
+            
+            obj.physObj = pObj;
             
             if nargin < 2 || isempty(container), container = figure;        end
             if nargin < 3 || isempty(watchedParams), watchedParams = 'all'; end
@@ -33,10 +37,6 @@ classdef History < gui.Helper
 
             obj.build;
             
-            if nargin >= 1 && ~isempty(pObj)
-                obj.physObj = pObj;
-
-            end
             
         end
 
@@ -75,10 +75,9 @@ classdef History < gui.Helper
 
         
         function set.BoxID(obj,id)
-            global RUNTIME
             obj.BoxID = id;
-            delete(obj.el_NewData); % destroy old listener and create a new one for the new BoxID
-            obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
+            delete(obj.el_NewPhysData); % destroy old listener and create a new one for the new BoxID
+            obj.el_NewPhysData = addlistener(obj.physObj,'NewPhysData',@obj.update);
         end
     end
 

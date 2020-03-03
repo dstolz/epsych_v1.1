@@ -38,7 +38,6 @@ classdef Phys < handle & matlab.mixin.Copyable
         Rate
 
         ValidParameters
-
     end
 
     properties (SetAccess = private)
@@ -55,6 +54,10 @@ classdef Phys < handle & matlab.mixin.Copyable
         BoxID
         CreatedOn
     end    
+
+    events
+        NewPhysData
+    end
 
     methods
         function obj = Phys(parameterName,BoxID)
@@ -197,6 +200,8 @@ classdef Phys < handle & matlab.mixin.Copyable
             obj.TRIALS  = event.Data;
             obj.DATA    = event.Data.DATA;
             obj.Subject = event.Subject;
+
+            notify(obj,'NewPhysData');
         end
     end
 
