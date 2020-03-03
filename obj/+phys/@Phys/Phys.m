@@ -12,7 +12,6 @@ classdef Phys < handle & matlab.mixin.Copyable
         ParameterName  % defines which parameter(s) to analyze
                        % ex: obj.ParameterName = "StimulusFrequency"
 
-
         TrialTypeColors = lines;
     end
 
@@ -40,11 +39,11 @@ classdef Phys < handle & matlab.mixin.Copyable
 
         ValidParameters
 
-        DATA        % TRIALS.DATA
     end
 
     properties (SetAccess = private)
         TRIALS
+        DATA        % TRIALS.DATA
         Subject     % subject info structure
     end
 
@@ -58,12 +57,8 @@ classdef Phys < handle & matlab.mixin.Copyable
     end    
 
     methods
-        function obj = Phys(BoxID,parameterName)
-            global RUNTIME
-
-            if nargin < 1 || isempty(BoxID), BoxID = 1; end
-                
-            if nargin < 2 || isempty(parameterName)
+        function obj = Phys(parameterName,BoxID)
+            if nargin < 1 || isempty(parameterName)
                 % choose most variable parameter
                 p = obj.ValidParameters;
                 T = obj.TRIALS;
@@ -83,10 +78,13 @@ classdef Phys < handle & matlab.mixin.Copyable
                 parameterName = p{m};
             end
 
+            if nargin < 2 || isempty(BoxID), BoxID = 1; end
+                
             obj.BoxID         = BoxID;
             obj.ParameterName = parameterName;
             obj.CreatedOn     = datestr(now);
 
+            global RUNTIME
             obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
         end
 
@@ -155,10 +153,6 @@ classdef Phys < handle & matlab.mixin.Copyable
             p(~ismember(p,obj.TRIALS.Mwriteparams)) = [];
         end
 
-        function d = get.DATA(obj)
-            d = obj.TRIALS.DATA;
-        end
-        
         
         function i = get.Trial_Index(obj)
             i = obj.TRIALS.TrialIndex;
@@ -194,13 +188,29 @@ classdef Phys < handle & matlab.mixin.Copyable
         
     end
 
+    
+    
+    
+    
     methods (Access = private)
         function update(obj,src,event)
             obj.TRIALS  = event.Data;
+            obj.DATA    = event.Data.DATA;
             obj.Subject = event.Subject;
         end
     end
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     methods (Static)
         
         function dp = dprime(hr,far,N)

@@ -14,19 +14,22 @@ classdef History < gui.Helper
         Info
 
     end
-
-    properties (Access = private)
-        el_NewData
-    end
     
     methods
 
         function obj = History(pObj,container,watchedParams,BoxID)
-            if nargin < 2 || isempty(container), container = figure; end
+            narginchk(1,4);
             
-            if nargin == 4 && ~isempty(BoxID), obj.BoxID = BoxID; end
+            if nargin < 2 || isempty(container), container = figure;        end
+            if nargin < 3 || isempty(watchedParams), watchedParams = 'all'; end
+            if nargin < 4 || isempty(BoxID), BoxID = 1;                     end
 
             obj.ContainerH = container;
+            obj.BoxID = BoxID;
+
+            if isequal(lower(watchedParams),'all')
+                
+            end
 
             obj.build;
             
@@ -34,9 +37,6 @@ classdef History < gui.Helper
                 obj.physObj = pObj;
 
             end
-
-            global RUNTIME
-            obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
             
         end
 
@@ -67,8 +67,8 @@ classdef History < gui.Helper
         end
         
         function set.physObj(obj,pobj)
-            assert(epsych.Helper.valid_psych_obj(pobj),'gui.History:set.physObj', ...
-                'physObj must be from the toolbox "phys"');
+%             assert(epsych.Helper.valid_psych_obj(pobj),'gui.History:set.physObj', ...
+%                 'physObj must be from the toolbox "phys"');
             obj.physObj = pobj;
             obj.update;
         end
@@ -78,7 +78,7 @@ classdef History < gui.Helper
             global RUNTIME
             obj.BoxID = id;
             delete(obj.el_NewData); % destroy old listener and create a new one for the new BoxID
-            obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewTrial',@obj.new_trial);
+            obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
         end
     end
 
@@ -100,7 +100,7 @@ classdef History < gui.Helper
         function rearrange_data(obj)           
             DataIn = obj.physObj.DATA;
             
-            if isempty(DataIn(1).TrialID)
+            if isempty(DataIn) || isempty(DataIn(1).TrialID)
                 obj.Data = [];
                 return
             end
