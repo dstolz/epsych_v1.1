@@ -70,7 +70,7 @@ for i = 1:RUNTIME.NSubjects
     
     
     
-    
+    vprintf(3,'Trial %d: ResponseCode = %d',RUNTIME.TRIALS.DATA(end).TrialID,RUNTIME.TRIALS.DATA(end).ResponseCode)
 
     
     
