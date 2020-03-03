@@ -1,14 +1,14 @@
 classdef PsychPlot < gui.Helper
     
     properties
-        AxesH       (1,1)
+        ax       (1,1)
         
         ParameterName (1,:) char
         
-        physObj
+        physObj     (1,1) % phys.Phys object
         
         % must jive with obj.ValidPlotTypes
-        PlotType    (1,:) char {mustBeMember(PlotType,{'DPrime','Hit_Rate','FA_Rate','Bias'})} = 'DPrime';
+        PlotType    (1,:) char {mustBeMember(PlotType,{'d-prime','Hit Rate','FA Rate','Bias c','Bias ln(beta)'})} = 'd-prime';
         
         LineColor   (:,:) double {mustBeNonnegative,mustBeLessThanOrEqual(LineColor,1)}   = [.2 .6 1; 1 .6 .2];
         MarkerColor (:,:) double {mustBeNonnegative,mustBeLessThanOrEqual(MarkerColor,1)} = [0 .4 .8; .8 .4 0];
@@ -20,11 +20,13 @@ classdef PsychPlot < gui.Helper
         LineH
         ScatterH
         TextH
+        
+        el_NewPhysData
     end
     
 
     properties (Constant)
-        ValidPlotTypes = {'DPrime','Hit_Rate','FA_Rate','Bias'};
+        ValidPlotTypes = {'d-prime','Hit Rate','FA Rate','Bias c','Bias ln(beta)'};
     end
     
     
@@ -40,15 +42,13 @@ classdef PsychPlot < gui.Helper
             if nargin < 2 || isempty(ax), ax = gca; end
             if nargin < 3 || isempty(BoxID), BoxID = 1; end
 
-            obj.BoxID = BoxID;
-            obj.AxesH = ax;
+            obj.physObj = pObj;
+
+            obj.ax = ax;
             
-            if nargin >= 1 && ~isempty(pObj)
-                obj.physObj = pObj;
-                obj.setup_xaxis_label;
-                obj.setup_yaxis_label;
-                obj.update;
-            end
+            obj.build;
+            obj.BoxID = BoxID;
+            obj.update;
             
         end
         
@@ -62,34 +62,60 @@ classdef PsychPlot < gui.Helper
         end
         
         
-        
-
-        function h = get.LineH(obj)
-            h = findobj(obj.AxesH,'type','line');
+        function build(obj)
+            cla(obj.ax);
+            
+            obj.ScatterH = scatter(nan,nan,100,'filled','Parent',obj.ax,'Marker','s');
+            % 'MarkerFaceColor','flat');
+            
+            obj.LineH = line(obj.ax,nan,nan,'Marker','none', ...
+                'AlignVertexCenters','on', ...
+                'LineWidth',2,'Color',obj.LineColor(1,:));
+            grid(obj.ax,'on');
+            obj.setup_xaxis_label;
+            obj.setup_yaxis_label;
         end
-
-       
         
         function update(obj,src,event)
             % although data is updated in src and event, just use the obj.physObj
             lh = obj.LineH;
             sh = obj.ScatterH;
-            if isempty(lh) || isempty(sh) || ~isvalid(lh) || ~isvalid(sh)
-                sh = scatter(nan,nan,100,'filled','Parent',obj.AxesH,'Marker','s');
-%                     'MarkerFaceColor','flat');
-                
-                lh = line(obj.AxesH,nan,nan,'Marker','none', ...
-                    'AlignVertexCenters','on', ...
-                    'LineWidth',2,'Color',obj.LineColor(1,:));
-                
-                grid(obj.AxesH,'on');
-            end
             
+            if isempty(obj.physObj.TRIALS), return; end
             
             X = obj.physObj.ParameterValues;
-            Y = obj.physObj.(obj.PlotType);
+            
+            HR  = obj.physObj.Rate.Hit;
+            if isequal(obj.physObj.Paradigm,'TwoAFC')
+                FAR = obj.physObj.Rate.Miss;
+            else
+                FAR = obj.physObj.Rate.FalseAlarm;
+            end
+            
+            switch obj.PlotType
+                case 'd-prime'
+                    if isequal(obj.physObj.Paradigm,'TwoAFC')
+                        Y = phys.Phys.dprime_2afc(HR,FAR);
+                    else
+                        Y = phys.Phys.dprime(HR,FAR);
+                    end
+                    
+                case 'Hit Rate'
+                    Y = HR;
+                    
+                case 'FA Rate'
+                    Y = FAR;
+                    
+                case 'Bias c'
+                    Y = phys.Phys.bias_c(HR,FAR);
+                    
+                case 'Bias ln(beta)'
+                    Y = phys.Phys.bias_lnbeta(HR,FAR);
+            end
+            
             %C = obj.physObj.Trial_Count;
-            C = [obj.physObj.Go_Count' obj.physObj.NoGo_Count'];
+            C = obj.physObj.TrialTypeCount;
+            % C = [obj.physObj.Go_Count' obj.physObj.NoGo_Count'];
             
             lh.XData = X;
             lh.YData = Y;
@@ -109,7 +135,7 @@ classdef PsychPlot < gui.Helper
             for i = 1:length(X)
                 if i > size(C,1), break; end
                 if nnz(C(i,:)) == 0, continue; end
-                obj.TextH(i) = text(obj.AxesH,X(i),Y(i),num2str(C(i,:),'%d/%d'), ...
+                obj.TextH(i) = text(obj.ax,X(i),Y(i),num2str(C(i,:),'%d/%d'), ...
                     'HorizontalAlignment','center','VerticalAlignment','middle', ...
                     'Color',[0 0 0],'FontSize',9);
             end
@@ -121,9 +147,9 @@ classdef PsychPlot < gui.Helper
             tstr = sprintf('%s [%d] - Trial %d', ...
                 obj.physObj.SUBJECT.Name, ...
                 obj.physObj.BoxID, ...
-                obj.physObj.Trial_Index);
+                obj.physObj.TrialIndex);
             
-            title(obj.AxesH,tstr);
+            title(obj.ax,tstr);
         end
         
         function update_parameter(obj,hObj,mouse)
@@ -158,29 +184,20 @@ classdef PsychPlot < gui.Helper
         
         
         function setup_xaxis_label(obj)
-            x = xlabel(obj.AxesH,obj.physObj.ParameterName,'Tag','abscissa','Interpreter','none');
+            x = xlabel(obj.ax,obj.physObj.ParameterName,'Tag','abscissa','Interpreter','none');
             x.ButtonDownFcn = @obj.update_parameter;
         end
         
         function setup_yaxis_label(obj)
-            y = ylabel(obj.AxesH,obj.PlotType,'Tag','ordinate','Interpreter','none');
+            y = ylabel(obj.ax,obj.PlotType,'Tag','ordinate','Interpreter','none');
             y.ButtonDownFcn = @obj.update_parameter;
         end
         
-        function set.physObj(obj,pobj)
-            assert(epsych.Helper.valid_psych_obj(pobj), ...
-                'gui.History:set.PsychophysiccsObj', ...
-                'physObj must be from the toolbox "phys"');
-            obj.physObj = pobj;
-            obj.update;
-        end
         
         function set.BoxID(obj,id)
-            global RUNTIME
             obj.BoxID = id;
-            delete(obj.el_NewData); % destroy old listener and create a new one for the new BoxID
-            obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
-            obj.update;
+            delete(obj.el_NewPhysData); % destroy old listener and create a new one for the new BoxID
+            obj.el_NewPhysData = addlistener(obj.physObj,'NewPhysData',@obj.update);
         end
     end
     

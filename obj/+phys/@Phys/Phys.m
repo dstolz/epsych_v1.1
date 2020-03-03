@@ -6,6 +6,7 @@ classdef Phys < handle & matlab.mixin.Copyable
         
         BitmaskInUse  % defines which bits are in use 
                       % ex: BitmaskInUse = [epsych.Bitmask.Hit, epsych.Bitmask.Miss, epsych.Bitmask.CorrectReject, epsych.Bitmask.FalseAlarm, epsych.Bitmask.Abort];
+
     end
 
     properties
@@ -22,11 +23,13 @@ classdef Phys < handle & matlab.mixin.Copyable
         ResponsesChar       (1,:) cell
         ResponseCodes       (1,:) uint32
 
-        Trial_Index         (1,1) double
+        TrialIndex         (1,1) double
 
         TrialTypeInd        (1,:)  % 1xN structure with fields organized by trial type
         ResponseInd         (1,:)  % 1xN structure with fields organized by response code
         
+        TrialTypeCount
+
         ParameterValues     (1,:)
         ParameterCount      (1,1)
         ParameterIndex      (1,1)
@@ -53,6 +56,7 @@ classdef Phys < handle & matlab.mixin.Copyable
     properties (SetAccess = immutable)
         BoxID
         CreatedOn
+        Paradigm
     end    
 
     events
@@ -61,6 +65,9 @@ classdef Phys < handle & matlab.mixin.Copyable
 
     methods
         function obj = Phys(parameterName,BoxID)
+            d = dbstack;
+            obj.Paradigm = d(2).file(1:end-2);
+            
             if nargin < 1 || isempty(parameterName)
                 % choose most variable parameter
                 p = obj.ValidParameters;
@@ -104,13 +111,16 @@ classdef Phys < handle & matlab.mixin.Copyable
             
         end
 
+        function c = get.TrialTypeCount(obj)
+
+        end
 
         
 
         % Parameter -------------------------------------------------
         function v = get.ParameterValues(obj)
             v = [];
-            if isempty(obj.ParameterName), return; end
+            if isempty(obj.ParameterName) || isempty(obj.TRIALS), return; end
             a = obj.TRIALS.trials(:,obj.ParameterIndex);
             if isnumeric(a{1})
                 v = unique([a{:}]);
@@ -157,7 +167,7 @@ classdef Phys < handle & matlab.mixin.Copyable
         end
 
         
-        function i = get.Trial_Index(obj)
+        function i = get.TrialIndex(obj)
             i = obj.TRIALS.TrialIndex;
         end
 
@@ -175,16 +185,23 @@ classdef Phys < handle & matlab.mixin.Copyable
             c = cellfun(@char,num2cell(obj.ResponsesBitmask),'uni',0);
         end
 
-
+        function r = get.Rate(obj)
+            
+        end
 
         function c = get.Count(obj)
             c = structfun(@sum,obj.Ind,'uni',0);
         end
 
         function s = get.Ind(obj)
-            TT = arrayfun(@char,obj.BitmaskInUse,'uni',0);
+            % decode all 
+            idx = 1:16;
+            C = arrayfun(@(a) bitget(a,idx,'uint16'),obj.DATA.ResponseCode,'uni',0);
+            C = [C{:}];
+           
+            TT = arrayfun(@char,obj.BitmaskGroups,'uni',0);
             for i = 1:length(TT)
-                s.(TT{i}) = [obj.DATA.TrialType] == obj.BitmaskInUse(i);
+%                 s.(TT{i}) = 
             end
         end
 
