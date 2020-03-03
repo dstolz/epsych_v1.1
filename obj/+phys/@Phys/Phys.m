@@ -47,6 +47,8 @@ classdef Phys < handle & matlab.mixin.Copyable
         TRIALS
         DATA        % TRIALS.DATA
         Subject     % subject info structure
+        
+        BitmaskGroupsChar
     end
 
     properties (Access = private)
@@ -89,6 +91,8 @@ classdef Phys < handle & matlab.mixin.Copyable
             end
 
             if nargin < 2 || isempty(BoxID), BoxID = 1; end
+            
+            obj.BitmaskGroupsChar = arrayfun(@char,obj.BitmaskGroups,'uni',0);
                 
             obj.BoxID         = BoxID;
             obj.ParameterName = parameterName;
@@ -195,16 +199,14 @@ classdef Phys < handle & matlab.mixin.Copyable
 
         function s = get.Ind(obj)
             % decode all 
-            idx = 1:16;
-            C = arrayfun(@(a) bitget(a,idx,'uint16'),obj.DATA.ResponseCode,'uni',0);
-            C = [C{:}];
-           
-            TT = arrayfun(@char,obj.BitmaskGroups,'uni',0);
+            RC = [obj.ResponseCode];
+            A = bitget(RC,1:16,'uint16');  % decode
+            B = bitget(RC,obj.BitmaskGroups,'uint16');
+            TT = obj.BitmaskGroupsChar;
             for i = 1:length(TT)
-%                 s.(TT{i}) = 
+                s.(TT{i}) = bitand(A,B(i));
             end
         end
-
         
     end
 
@@ -304,5 +306,12 @@ classdef Phys < handle & matlab.mixin.Copyable
         end
 
         
+        
+        
+        function c = decode_ResponseCode(ResponseCode)
+            idx = 1:16;
+            d = arrayfun(@(a) bitget(a,idx,'uint16'),ResponseCode,'uni',0);
+            c = [d{:}];
+        end
     end
 end

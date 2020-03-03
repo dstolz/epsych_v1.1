@@ -1,7 +1,7 @@
 classdef Bitmask < uint16
 
     enumeration
-        Undef         (0)
+        Undefined     (0)
         Reward        (1)
         Punish        (2)
         Hit           (3)
