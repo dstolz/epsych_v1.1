@@ -35,10 +35,12 @@ classdef PsychPlot < gui.Helper
     
     methods
         function obj = PsychPlot(pObj,ax,BoxID)
-            if nargin < 2 || isempty(ax), ax = gca; end
-            
-            if nargin == 3 && ~isempty(BoxID), obj.BoxID = BoxID; end
+            narginchk(1,3);
 
+            if nargin < 2 || isempty(ax), ax = gca; end
+            if nargin < 3 || isempty(BoxID), BoxID = 1; end
+
+            obj.BoxID = BoxID;
             obj.AxesH = ax;
             
             if nargin >= 1 && ~isempty(pObj)
@@ -47,12 +49,6 @@ classdef PsychPlot < gui.Helper
                 obj.setup_yaxis_label;
                 obj.update;
             end
-            
-            
-            
-            global RUNTIME
-            obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
-            
             
         end
         
