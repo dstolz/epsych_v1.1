@@ -40,12 +40,12 @@ classdef Phys < handle & matlab.mixin.Copyable
 
         ValidParameters
 
-        Subject     % subject info structure
+        DATA        % TRIALS.DATA
     end
 
     properties (SetAccess = private)
         TRIALS
-        DATA % TRIALS.DATA ... should be a value object
+        Subject     % subject info structure
     end
 
     properties (Access = private)
@@ -124,8 +124,8 @@ classdef Phys < handle & matlab.mixin.Copyable
             d = [obj.DATA.(obj.ParameterFieldName)];
         end
 
-        function n = get.ParameterCount(obj)
-            n = [];
+        function count = get.ParameterCount(obj)
+            count = [];
             if isempty(obj.ParameterName), return; end
             v = obj.ParameterValues;
             d = obj.ParameterData;
@@ -159,9 +159,6 @@ classdef Phys < handle & matlab.mixin.Copyable
             d = obj.TRIALS.DATA;
         end
         
-        function s = get.Subject(obj)
-            s = obj.TRIALS.Subject;
-        end
         
         function i = get.Trial_Index(obj)
             i = obj.TRIALS.TrialIndex;
@@ -205,19 +202,75 @@ classdef Phys < handle & matlab.mixin.Copyable
     end
 
     methods (Static)
-        function z = zscore(a)
-            % bounds input to [0.01 0.99] to avoid inf values
-            a  = max(min(a,0.99),0.01);
-            z = sqrt(2)*erfinv(2*a-1);
-        end
         
-        
-        function dp = dprime(hr,far)
-            dp = phys.Phys.zscore(hr) - phys.Phys.zscore(far);
+        function dp = dprime(hr,far,N)
+            % Stanislaw & Todorov, 1999
+            if nargin == 3 && ~isempty(N) % Macmillan and Kaplan, 1985 bounds
+                n = 1./(2.*N);
+                hr(hr == 0)  = n;  hr(hr == 1)   = 1 - n;
+                far(far ==0) = n;  far(far == 1) = 1 - n;
+            else % artificial bounds
+                hr  = max(min(hr,0.99),0.01);
+                far = max(min(far,0.99),0.01);
+            end
+            dp = norminv(hr,0,1) - norminv(far,0,1);
         end
-        
-        function c = bias(hr,far)
-            c = -(phys.Phys.zscore(hr) + phys.Phys(far))./2;
+
+        function Ad = dprime_2afc(hr,far,N)
+            % dprime 2AFC (also yes/no) correction
+            % Stanislaw & Todorov, 1999
+            if nargin == 3 && ~isempty(N) % Macmillan and Kaplan, 1985 bounds
+                n = 1./(2.*N);
+                hr(hr == 0)  = n;  hr(hr == 1)   = 1 - n;
+                far(far ==0) = n;  far(far == 1) = 1 - n;
+            else % artificial bounds
+                hr  = max(min(hr,0.99),0.01);
+                far = max(min(far,0.99),0.01);
+            end
+            Ad = (norminv(hr,0,1) - norminv(far,0,1))./sqrt(2);
         end
+
+        function Ad = adprime(hr,far,N)
+            % area under ROC
+            % Stanislaw & Todorov, 1999
+            if nargin < 3, N = []; end
+            Ad = normcdf(phys.Phys.dprime_2afc(hr,far,N));
+        end
+
+        function Ap = aprime(hr,far)
+            % non-parametric d-prime
+            % Stanislaw & Todorov, 1999
+            d = hr-far;
+            Ap = .5 + sign(d) .* ((d.^2 + abs(d))./(4.*max(hr,far) - 4.*hr.*far));
+        end
+
+        function beta = bias_lnbeta(hr,far,N)
+            % Stanislaw & Todorov, 1999
+            % Note that beta returned from this function is the natural logarithm of beta
+            if nargin == 3 && ~isempty(N) % Macmillan and Kaplan, 1985 bounds
+                n = 1./(2.*N);
+                hr(hr == 0)  = n;  hr(hr == 1)   = 1 - n;
+                far(far ==0) = n;  far(far == 1) = 1 - n;
+            else % artificial bounds
+                hr  = max(min(hr,0.99),0.01);
+                far = max(min(far,0.99),0.01);
+            end
+            beta = exp((norminv(far).^2 - norminv(hr).^2)./2);
+        end
+
+        function c = bias_c(hr,far,N)
+            % Stanislaw & Todorov, 1999
+            if nargin == 3 && ~isempty(N) % Macmillan and Kaplan, 1985 bounds
+                n = 1./(2.*N);
+                hr(hr == 0)  = n;  hr(hr == 1)   = 1 - n;
+                far(far ==0) = n;  far(far == 1) = 1 - n;
+            else % artificial bounds
+                hr  = max(min(hr,0.99),0.01);
+                far = max(min(far,0.99),0.01);
+            end
+            c = -(norminv(hr) + norminv(far)) ./ 2;
+        end
+
+        
     end
 end
