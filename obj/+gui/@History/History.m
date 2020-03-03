@@ -1,5 +1,8 @@
 classdef History < gui.Helper
 
+                % TODO: Display only watchedParams
+                % TODO: Make context menu for user customization
+                % TODO: Colorize rows based on response
     properties
         physObj
         BoxID       (1,1)  uint8 {mustBeNonempty,mustBeNonNan} = 1;
@@ -32,6 +35,8 @@ classdef History < gui.Helper
             obj.BoxID = BoxID;
 
             if isequal(lower(watchedParams),'all')
+                
+                
                 
             end
 
