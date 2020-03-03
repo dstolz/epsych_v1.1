@@ -151,6 +151,8 @@ classdef PlotHelper < gui.Helper
             else
                 feval(obj.timer_StopFcn,varargin{:});
             end
+
+            try, delete(obj.Timer); end
         end
 
         function call_timer_ErrorFcn(obj,varargin)
@@ -159,6 +161,8 @@ classdef PlotHelper < gui.Helper
             else
                 feval(obj.timer_ErrorFcn,varargin{:});
             end
+
+            try, delete(obj.Timer); end
         end
 
 
