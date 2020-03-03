@@ -68,7 +68,11 @@ classdef OnlinePlot < gui.PlotHelper
     
     
     methods (Access = protected)
-        function update(obj,varargin)            
+        function update(obj,varargin)
+            persistent P_currentTrialIndex
+            if isempty(P_currentTrialIndex), P_currentTrialIndex = 0; end
+            
+            
             if ~isempty(obj.trialParam)
                 try
                     obj.trialBuffer(end+1) = obj.getParamVals(obj.TDTActiveX,obj.trialParam);
@@ -98,11 +102,13 @@ classdef OnlinePlot < gui.PlotHelper
             
             obj.plot_trial_onset;
             
-            title(obj.ax,sprintf('Trial #%d - Trial Type %d', ...
-                obj.currentTrialIndex,obj.currentTrialType));
+            if obj.currentTrialIndex > P_currentTrialIndex
+                obj.ax.Title.String = sprintf('Trial #%d - Trial Type %d', ...
+                    obj.currentTrialIndex,obj.currentTrialType);
+                P_currentTrialIndex = obj.currentTrialIndex;
+            end
             
             drawnow limitrate
-            
         end
         
         function setup(obj,varargin)

@@ -19,7 +19,7 @@ classdef SignalPlot < gui.PlotHelper
         function obj = SignalPlot(watchedParams,varargin)
             narginchk(1,2);
             
-            obj = obj@gui.PlotHelper('SignalPlot',varargin{:});
+            obj = obj@gui.PlotHelper(sprintf('SignalPlot_%s',watchedParams{1}),varargin{:});
             
             obj.watchedParams = watchedParams;
             

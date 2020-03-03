@@ -22,6 +22,9 @@ classdef PlotHelper < gui.Helper
         timer_StopFcn 
         timer_ErrorFcn
 
+
+        new_trial_Callback
+
     end
 
     properties (SetAccess = protected)
@@ -129,8 +132,6 @@ classdef PlotHelper < gui.Helper
             global RUNTIME
 
             obj.startTime = RUNTIME.StartTime;
-
-            obj.el_NewTrial = addlistener(RUNTIME.HELPER(obj.BoxID),'NewTrial',@obj.new_trial);
             
             feval(obj.timer_StartFcn,varargin{:});            
         end
@@ -287,6 +288,10 @@ classdef PlotHelper < gui.Helper
         function new_trial(obj,~,trialData)
             obj.currentTrialIndex = trialData.Data.TrialIndex;
             obj.currentTrialType  = trialData.Data.NextTrialID;
+
+            if ~isempty(obj.new_trial_Callback)
+                feval(obj.new_trial_Callback,obj);
+            end
         end
 
 
