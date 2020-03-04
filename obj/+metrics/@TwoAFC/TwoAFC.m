@@ -1,4 +1,4 @@
-classdef TwoAFC < phys.Phys
+classdef TwoAFC < metrics.Metrics
     properties
         ValidPlotTypes = {'d-prime','Hit Rate','Miss Rate','Bias c', ...
                         'Bias ln(beta)', 'Lapse Rate', 'Abort Rate'};
@@ -14,7 +14,7 @@ classdef TwoAFC < phys.Phys
             if nargin < 1, ax = []; end
             if nargin < 2 || isempty(BoxID), BoxID = 1; end
             
-            obj = obj@phys.Phys(BoxID);
+            obj = obj@metrics.Metrics(BoxID);
 
 
             obj.TrialTypes = [epsych.Bitmask.TrialType_0, ...

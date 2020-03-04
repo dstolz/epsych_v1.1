@@ -1,4 +1,4 @@
-classdef Phys < handle & matlab.mixin.Copyable
+classdef Metrics < handle & matlab.mixin.Copyable
 
     properties (SetAccess = protected) % Abstract
         TrialTypes % define which bit will be used to group data analysis.
@@ -67,7 +67,7 @@ classdef Phys < handle & matlab.mixin.Copyable
     end
 
     methods
-        function obj = Phys(BoxID)
+        function obj = Metrics(BoxID)
             global RUNTIME
 
             obj.isOnline = ~isempty(RUNTIME);
@@ -211,7 +211,7 @@ classdef Phys < handle & matlab.mixin.Copyable
             % area under ROC
             % Stanislaw & Todorov, 1999
             if nargin < 3, N = []; end
-            Ad = normcdf(phys.Phys.dprime_2afc(hr,far,N));
+            Ad = normcdf(metrics.Metrics.dprime_2afc(hr,far,N));
         end
 
         function Ap = aprime(hr,far)

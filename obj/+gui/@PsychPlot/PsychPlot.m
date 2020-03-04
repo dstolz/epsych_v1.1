@@ -5,7 +5,7 @@ classdef PsychPlot < gui.Helper
         
         ParameterName (1,:) char
         
-        physObj     (1,1) % phys.Phys object
+        physObj     (1,1) % metrics.Metrics object
         
         % must jive with obj.physObj.ValidPlotTypes
         PlotType    (1,:) char = 'Hit Rate';

@@ -1,7 +1,7 @@
-classdef Detection < phys.Phys
+classdef Detection < metrics.Metrics
         
 
-    properties (SetAccess = protected) % define abstract properties inherited from phys.Phys
+    properties (SetAccess = protected) % define abstract properties inherited from metrics.Metrics
         TrialTypes = [epsych.Bitmask.StimulusTrial, epsych.Bitmask.CatchTrial];
         BitsInUse  = [epsych.Bitmask.Hit, epsych.Bitmask.Miss, epsych.Bitmask.CorrectReject, epsych.Bitmask.FalseAlarm, epsych.Bitmask.Abort];
     end
@@ -42,7 +42,7 @@ classdef Detection < phys.Phys
         function obj = Detection(BoxID,parameterName)
             if nargin < 1 || isempty(BoxID), BoxID = 1; end
             if nargin < 2, parameterName = []; end
-            obj = obj@phys.Phys(BoxID,parameterName);
+            obj = obj@metrics.Metrics(BoxID,parameterName);
 
             obj.PerformanceColors = [.8 1 .8; 1 .7 .7; .7 .9 1; 1 .7 1; 1 1 .4]; % [Hit Miss CR FA Abort]
 
