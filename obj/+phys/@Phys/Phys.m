@@ -1,11 +1,16 @@
 classdef Phys < handle & matlab.mixin.Copyable
 
-    properties (Abstract, SetAccess = protected)
-        BitmaskGroups % define which bit will be used to group data analysis.
-                      % ex: BitmaskGroups = [epsych.Bitmask.StimulusTrial epsych.Bitmask.CatchTrial]
+    properties (SetAccess = protected) % Abstract
+        TrialTypes % define which bit will be used to group data analysis.
+                      % ex: TrialTypes = [epsych.Bitmask.StimulusTrial epsych.Bitmask.CatchTrial]
         
         BitmaskInUse  % defines which bits are in use 
                       % ex: BitmaskInUse = [epsych.Bitmask.Hit, epsych.Bitmask.Miss, epsych.Bitmask.CorrectReject, epsych.Bitmask.FalseAlarm, epsych.Bitmask.Abort];
+
+        BitmaskGroups % defines how bits should be grouped
+                      % ex: BitmaskGroups = [{epsych.Bitmask.Hit epsych.Bitmask.Miss};
+                                %  {epsych.Bitmask.Response_A epsych.Bitmask.Hit epsych.Bitmask.Miss};
+                                %  {epsych.Bitmask.Response_B epsych.Bitmask.Hit epsych.Bitmask.Miss}];
 
     end
 
@@ -13,7 +18,7 @@ classdef Phys < handle & matlab.mixin.Copyable
         ParameterName  % defines which parameter(s) to analyze
                        % ex: obj.ParameterName = "StimulusFrequency"
 
-        TrialTypeColors = lines;
+        PerformanceColors = lines;
     end
 
     properties (Dependent)
@@ -36,9 +41,9 @@ classdef Phys < handle & matlab.mixin.Copyable
         ParameterFieldName  (1,:)
         ParameterData       (1,:)
 
-        Count
-        Ind
-        Rate
+
+        ResponseCodeBits
+        
 
         ValidParameters
     end
@@ -48,7 +53,8 @@ classdef Phys < handle & matlab.mixin.Copyable
         DATA        % TRIALS.DATA
         Subject     % subject info structure
         
-        BitmaskGroupsChar
+        BitmaskInUseChar
+        TrialTypesChar
     end
 
     properties (Access = private)
@@ -63,6 +69,10 @@ classdef Phys < handle & matlab.mixin.Copyable
 
     events
         NewPhysData
+    end
+
+    methods (Abstract)
+        P = compute_performance(obj);
     end
 
     methods
@@ -90,16 +100,32 @@ classdef Phys < handle & matlab.mixin.Copyable
                 parameterName = p{m};
             end
 
+            if nargin >= 1 && isa(parameterName,'phys.Phys')
+                % OFFLINE MODE
+            end
+
             if nargin < 2 || isempty(BoxID), BoxID = 1; end
             
-            obj.BitmaskGroupsChar = arrayfun(@char,obj.BitmaskGroups,'uni',0);
-                
+            
+            
+
             obj.BoxID         = BoxID;
             obj.ParameterName = parameterName;
             obj.CreatedOn     = datestr(now);
 
+            % Note that BoxID shouldn't be changed for this object after creation (immutable)
             global RUNTIME
             obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
+        end
+
+        function set.BitmaskInUse(obj,biu)
+            obj.BitmaskInUse = biu;
+            obj.BitmaskInUseChar = arrayfun(@char,obj.BitmaskInUse,'uni',0);
+        end
+
+        function set.TrialTypes(obj,bg)
+            obj.TrialTypes = bg;
+            obj.TrialTypesChar = arrayfun(@char,obj.TrialTypes,'uni',0);
         end
 
         function n = get.NumTrials(obj)
@@ -144,7 +170,7 @@ classdef Phys < handle & matlab.mixin.Copyable
             if isempty(obj.ParameterName), return; end
             v = obj.ParameterValues;
             d = obj.ParameterData;
-            ind = obj.Ind;
+            ind = obj.ResponseCodeBits;
             fn = fieldnames(ind);
             for i = 1:length(v)
                 for j = 1:length(fn)
@@ -189,25 +215,26 @@ classdef Phys < handle & matlab.mixin.Copyable
             c = cellfun(@char,num2cell(obj.ResponsesBitmask),'uni',0);
         end
 
-        function r = get.Rate(obj)
-            
-        end
 
-        function c = get.Count(obj)
-            c = structfun(@sum,obj.Ind,'uni',0);
-        end
 
-        function s = get.Ind(obj)
-            % decode all 
-            RC = [obj.ResponseCode];
-            A = bitget(RC,1:16,'uint16');  % decode
-            B = bitget(RC,obj.BitmaskGroups,'uint16');
-            TT = obj.BitmaskGroupsChar;
-            for i = 1:length(TT)
-                s.(TT{i}) = bitand(A,B(i));
+
+        function s = get.ResponseCodeBits(obj)
+            RC = obj.ResponseCode;
+
+            c = obj.BitmaskInUseChar;
+            for i = 1:length(c)
+                s.(c{i}) = bitget(RC,obj.BitmaskInUse(i),'uint16');
+            end
+
+            c = obj.TrialTypesChar;
+            for i = 1:length(c)
+                s.(c{i}) = bitget(RC,obj.TrialTypes(i),'uint16');
             end
         end
         
+
+
+
     end
 
     
@@ -306,6 +333,9 @@ classdef Phys < handle & matlab.mixin.Copyable
         end
 
         
+
+
+
         
         
         function c = decode_ResponseCode(ResponseCode)

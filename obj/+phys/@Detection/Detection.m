@@ -2,7 +2,7 @@ classdef Detection < phys.Phys
         
 
     properties (SetAccess = protected) % define abstract properties inherited from phys.Phys
-        BitmaskGroups = [epsych.Bitmask.StimulusTrial, epsych.Bitmask.CatchTrial];
+        TrialTypes = [epsych.Bitmask.StimulusTrial, epsych.Bitmask.CatchTrial];
         BitmaskInUse  = [epsych.Bitmask.Hit, epsych.Bitmask.Miss, epsych.Bitmask.CorrectReject, epsych.Bitmask.FalseAlarm, epsych.Bitmask.Abort];
     end
 
@@ -44,14 +44,14 @@ classdef Detection < phys.Phys
             if nargin < 2, parameterName = []; end
             obj = obj@phys.Phys(BoxID,parameterName);
 
-            obj.TrialTypeColors = [.8 1 .8; 1 .7 .7; .7 .9 1; 1 .7 1; 1 1 .4]; % [Hit Miss CR FA Abort]
+            obj.PerformanceColors = [.8 1 .8; 1 .7 .7; .7 .9 1; 1 .7 1; 1 1 .4]; % [Hit Miss CR FA Abort]
 
         end
         
         
         
         
-        % Ind ------------------------------------------------------
+        % ResponseCodeBits ------------------------------------------------------
         function r = get.Hit_Ind(obj)
             r = bitget(obj.ResponseCodes,epsych.Bitmask.Hit);
             r = logical(r);
@@ -84,7 +84,7 @@ classdef Detection < phys.Phys
         function n = get.Go_Count(obj)
             v = obj.ParameterValues;
             d = obj.ParameterData;
-            ind = obj.Ind.Go;
+            ind = obj.ResponseCodeBits.Go;
             for i =1:length(v)
                 n(i) = sum(ind & d == v(i));
             end
@@ -93,7 +93,7 @@ classdef Detection < phys.Phys
         function n = get.NoGo_Count(obj)
             v = obj.ParameterValues;
             d = obj.ParameterData;
-            ind = obj.Ind.NoGo;
+            ind = obj.ResponseCodeBits.NoGo;
             for i =1:length(v)
                 n(i) = sum(ind & d == v(i));
             end

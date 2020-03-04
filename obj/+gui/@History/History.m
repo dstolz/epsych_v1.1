@@ -95,7 +95,7 @@ classdef History < gui.Helper
             for i = 1:length(obj.physObj.BitmaskInUse)
                 ind = R == obj.physObj.BitmaskInUse(i);
                 if ~any(ind), continue; end
-                C(ind,:) = repmat(obj.physObj.TrialTypeColors(i,:),sum(ind),1);
+                C(ind,:) = repmat(obj.physObj.PerformanceColors(i,:),sum(ind),1);
             end
             obj.TableH.BackgroundColor = flipud(C);
             obj.TableH.RowStriping = 'on';
