@@ -3,7 +3,7 @@ classdef History < gui.Helper
                 % TODO: Make context menu for user customization
                 % TODO: Colorize rows based on response
     properties
-        physObj
+        metricsObj
         BoxID       (1,1)  uint8 {mustBeNonempty,mustBeNonNan} = 1;
         
         watchedParams
@@ -29,16 +29,16 @@ classdef History < gui.Helper
     
     methods
 
-        function obj = History(physObj,container,watchedParams)
+        function obj = History(metricsObj,container,watchedParams)
             narginchk(1,4);
             
-            obj.physObj = physObj;
+            obj.metricsObj = metricsObj;
             
             if nargin < 2 || isempty(container), container = figure;        end
             if nargin < 3 || isempty(watchedParams), watchedParams = []; end
 
             obj.ContainerH = container;
-            obj.BoxID = physObj.BoxID;
+            obj.BoxID = metricsObj.BoxID;
             obj.watchedParams = watchedParams;
 
             obj.build;
@@ -70,10 +70,10 @@ classdef History < gui.Helper
             obj.update_row_colors;
         end
         
-        function set.physObj(obj,physObj)
-%             assert(epsych.Helper.valid_psych_obj(physObj),'gui.History:set.physObj', ...
-%                 'physObj must be from the toolbox "phys"');
-            obj.physObj = physObj;
+        function set.metricsObj(obj,metricsObj)
+%             assert(epsych.Helper.valid_psych_obj(metricsObj),'gui.History:set.metricsObj', ...
+%                 'metricsObj must be from the toolbox "phys"');
+            obj.metricsObj = metricsObj;
             obj.update;
         end
 
@@ -81,7 +81,7 @@ classdef History < gui.Helper
         function set.BoxID(obj,id)
             obj.BoxID = id;
             delete(obj.el_NewPhysData); % destroy old listener and create a new one for the new BoxID
-            obj.el_NewPhysData = addlistener(obj.physObj,'NewPhysData',@obj.update);
+            obj.el_NewPhysData = addlistener(obj.metricsObj,'NewPhysData',@obj.update);
         end
     end
 
@@ -101,7 +101,7 @@ classdef History < gui.Helper
         end
         
         function rearrange_data(obj)           
-            DataIn = obj.physObj.DATA;
+            DataIn = obj.metricsObj.DATA;
             
             if isempty(DataIn) || isempty(DataIn(1).TrialID)
                 obj.Data = [];
@@ -119,7 +119,7 @@ classdef History < gui.Helper
             obj.Info.RelativeTimestamp = tdStr(:);            
             
 
-            Response = obj.physObj.ResponsesChar;
+            Response = obj.metricsObj.ResponsesChar;
             
             
             % remove these fields
@@ -139,7 +139,7 @@ classdef History < gui.Helper
             end
             
             % prefix Timestamp, Response, and Result fields
-            RC = obj.physObj.ResponseCode;
+            RC = obj.metricsObj.ResponseCode;
             bits = arrayfun(@(a) epsych.Bitmask(find(bitget(a,[3:7 16],'uint16'))+2),RC);
             Result = arrayfun(@char,bits,'uni',0)';
             DataOut = [Result DataOut];

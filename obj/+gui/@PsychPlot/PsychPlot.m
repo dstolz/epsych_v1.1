@@ -5,9 +5,9 @@ classdef PsychPlot < gui.Helper
         
         ParameterName (1,:) char
         
-        physObj     (1,1) % metrics.Metrics object
+        metricsObj     (1,1) % metrics.Metrics object
         
-        % must jive with obj.physObj.ValidPlotTypes
+        % must jive with obj.metricsObj.ValidPlotTypes
         PlotType    (1,:) char = 'Hit Rate';
         
         LineColor   (:,:) double {mustBeNonnegative,mustBeLessThanOrEqual(LineColor,1)}   = [.2 .6 1; 1 .6 .2];
@@ -32,7 +32,7 @@ classdef PsychPlot < gui.Helper
             if nargin < 2 || isempty(ax), ax = gca; end
             if nargin < 3 || isempty(BoxID), BoxID = 1; end
 
-            obj.physObj = pObj;
+            obj.metricsObj = pObj;
 
             obj.ax = ax;
             
@@ -71,14 +71,14 @@ classdef PsychPlot < gui.Helper
         end
         
         function update(obj,src,event)
-            % although data is updated in src and event, just use the obj.physObj
+            % although data is updated in src and event, just use the obj.metricsObj
             lh = obj.LineH;
             sh = obj.ScatterH;
             
-            if isempty(obj.physObj.TRIALS), return; end
+            if isempty(obj.metricsObj.TRIALS), return; end
                        
-            X = 1:length(obj.physObj.TrialTypesChar);
-            P = obj.physObj.compute_performance;
+            X = 1:length(obj.metricsObj.TrialTypesChar);
+            P = obj.metricsObj.compute_performance;
             
             yLimits = [];
             switch obj.PlotType
@@ -147,9 +147,9 @@ classdef PsychPlot < gui.Helper
             
 
             tstr = sprintf('%s [%d] - Trial %d', ...
-                obj.physObj.Subject.Name, ...
-                obj.physObj.BoxID, ...
-                obj.physObj.TrialIndex);
+                obj.metricsObj.Subject.Name, ...
+                obj.metricsObj.BoxID, ...
+                obj.metricsObj.TrialIndex);
             
             title(obj.ax,tstr);
             
@@ -160,28 +160,28 @@ classdef PsychPlot < gui.Helper
             % TO DO: support multiple parameters at a time
             switch hObj.Tag
                 case 'abscissa'
-                    vp = obj.physObj.ValidParameters;
-                    i = find(ismember(vp,obj.physObj.ParameterName));
+                    vp = obj.metricsObj.ValidParameters;
+                    i = find(ismember(vp,obj.metricsObj.ParameterName));
                     [sel,ok] = listdlg('ListString',vp, ...
                         'SelectionMode','single', ...
                         'InitialValue',i,'Name','Plot', ...
                         'PromptString','Select Independent Variable:', ...
                         'ListSize',[180 150]);
                     if ~ok, return; end
-                    obj.physObj.ParameterName = vp{sel};
+                    obj.metricsObj.ParameterName = vp{sel};
                     try
                         delete(obj.TextH);
                     end
                     
                 case 'ordinate'
-                    i = find(ismember(obj.physObj.ValidPlotTypes,obj.PlotType));
-                    [sel,ok] = listdlg('ListString',obj.physObj.ValidPlotTypes, ...
+                    i = find(ismember(obj.metricsObj.ValidPlotTypes,obj.PlotType));
+                    [sel,ok] = listdlg('ListString',obj.metricsObj.ValidPlotTypes, ...
                         'SelectionMode','single', ...
                         'InitialValue',i,'Name','Plot', ...
                         'PromptString','Select Plot Type:', ...
                         'ListSize',[180 150]);
                     if ~ok, return; end
-                    obj.PlotType = obj.physObj.ValidPlotTypes{sel};
+                    obj.PlotType = obj.metricsObj.ValidPlotTypes{sel};
                     
             end
             obj.update;
@@ -189,7 +189,7 @@ classdef PsychPlot < gui.Helper
         
         
         function setup_xaxis_label(obj)
-            x = xlabel(obj.ax,obj.physObj.ParameterName, ...
+            x = xlabel(obj.ax,obj.metricsObj.ParameterName, ...
                 'Tag','abscissa','Interpreter','none');
             x.ButtonDownFcn = @obj.update_parameter;
         end
@@ -204,7 +204,7 @@ classdef PsychPlot < gui.Helper
         function set.BoxID(obj,id)
             obj.BoxID = id;
             delete(obj.el_NewPhysData); % destroy old listener and create a new one for the new BoxID
-            obj.el_NewPhysData = addlistener(obj.physObj,'NewPhysData',@obj.update);
+            obj.el_NewPhysData = addlistener(obj.metricsObj,'NewPhysData',@obj.update);
         end
     end
     
