@@ -128,7 +128,7 @@ classdef OnlinePlot < gui.PlotHelper
             obj.ax.YAxis.Limits = [.8 obj.yPositions(end)+.2];
             obj.ax.YAxis.TickValues = obj.yPositions;
             obj.ax.YAxis.TickLabelInterpreter = 'none';
-            obj.ax.XAxis.Label.String = 'time since start (mm:ss)';
+            obj.ax.XAxis.Label.String = 'session time (mm:ss)';
            
             obj.ax.YAxis.TickLabels = wp;
             

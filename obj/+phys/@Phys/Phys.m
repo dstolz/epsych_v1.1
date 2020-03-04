@@ -4,14 +4,15 @@ classdef Phys < handle & matlab.mixin.Copyable
         TrialTypes % define which bit will be used to group data analysis.
                       % ex: TrialTypes = [epsych.Bitmask.StimulusTrial epsych.Bitmask.CatchTrial]
         
-        BitmaskInUse  % defines which bits are in use 
-                      % ex: BitmaskInUse = [epsych.Bitmask.Hit, epsych.Bitmask.Miss, epsych.Bitmask.CorrectReject, epsych.Bitmask.FalseAlarm, epsych.Bitmask.Abort];
+        BitsInUse  % defines which bits are in use 
+                      % ex: BitsInUse = [epsych.Bitmask.Hit, epsych.Bitmask.Miss, epsych.Bitmask.CorrectReject, epsych.Bitmask.FalseAlarm, epsych.Bitmask.Abort];
 
         BitmaskGroups % defines how bits should be grouped
                       % ex: BitmaskGroups = [{epsych.Bitmask.Hit epsych.Bitmask.Miss};
                                 %  {epsych.Bitmask.Response_A epsych.Bitmask.Hit epsych.Bitmask.Miss};
                                 %  {epsych.Bitmask.Response_B epsych.Bitmask.Hit epsych.Bitmask.Miss}];
 
+        isOnline    (1,1) logical = false;
     end
 
     properties
@@ -22,25 +23,15 @@ classdef Phys < handle & matlab.mixin.Copyable
     end
 
     properties (Dependent)
-        NumTrials           (1,1) uint32
+        NumTrials           (1,1) uint16
         
         ResponsesBitmask    (1,:) epsych.Bitmask
         ResponsesChar       (1,:) cell
-        ResponseCodes       (1,:) uint32
+        ResponseCode        (1,:) uint16
 
         TrialIndex         (1,1) double
 
-        TrialTypeInd        (1,:)  % 1xN structure with fields organized by trial type
-        ResponseInd         (1,:)  % 1xN structure with fields organized by response code
-        
         TrialTypeCount
-
-        ParameterValues     (1,:)
-        ParameterCount      (1,1)
-        ParameterIndex      (1,1)
-        ParameterFieldName  (1,:)
-        ParameterData       (1,:)
-
 
         ResponseCodeBits
         
@@ -76,51 +67,29 @@ classdef Phys < handle & matlab.mixin.Copyable
     end
 
     methods
-        function obj = Phys(parameterName,BoxID)
+        function obj = Phys(BoxID)
+            global RUNTIME
+
+            obj.isOnline = ~isempty(RUNTIME);
+
             d = dbstack;
             obj.Paradigm = d(2).file(1:end-2);
-            
-            if nargin < 1 || isempty(parameterName)
-                % choose most variable parameter
-                p = obj.ValidParameters;
-                T = obj.TRIALS;
-                for i = 1:length(p)
-                    ind = ismember(T.Mwriteparams,p{i});
-                    if ~any(ind), continue; end
-                    a = T.trials(:,ind);
-                    if isnumeric(a{1})
-                        v(i) = length(unique([a{:}]));
-                    elseif ischar(a{1})
-                        v(i) = length(unique(a));
-                    elseif isstruct(a{1})
-                        v(i) = length(cellfun(@(x) x.file,a,'uni',0));
-                    end
-                end
-                [~,m] = max(v);
-                parameterName = p{m};
+            if nargin == 0 || isempty(BoxID), BoxID = 1; end
+                       
+            obj.BoxID     = BoxID;
+            % obj.ParameterName = parameterName;
+            obj.CreatedOn = datestr(now);
+
+            if obj.isOnline
+                % Note that BoxID shouldn't be changed for this object after creation (immutable)
+                obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
             end
-
-            if nargin >= 1 && isa(parameterName,'phys.Phys')
-                % OFFLINE MODE
-            end
-
-            if nargin < 2 || isempty(BoxID), BoxID = 1; end
             
-            
-            
-
-            obj.BoxID         = BoxID;
-            obj.ParameterName = parameterName;
-            obj.CreatedOn     = datestr(now);
-
-            % Note that BoxID shouldn't be changed for this object after creation (immutable)
-            global RUNTIME
-            obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
         end
 
-        function set.BitmaskInUse(obj,biu)
-            obj.BitmaskInUse = biu;
-            obj.BitmaskInUseChar = arrayfun(@char,obj.BitmaskInUse,'uni',0);
+        function set.BitsInUse(obj,biu)
+            obj.BitsInUse = biu;
+            obj.BitmaskInUseChar = arrayfun(@char,obj.BitsInUse,'uni',0);
         end
 
         function set.TrialTypes(obj,bg)
@@ -133,65 +102,16 @@ classdef Phys < handle & matlab.mixin.Copyable
         end
 
         
-        function rc = get.ResponseCodes(obj)
+        function rc = get.ResponseCode(obj)
             rc = [obj.DATA.ResponseCode];
         end
 
-        function ind = get.TrialTypeInd(obj)
-            
-        end
-
-        function c = get.TrialTypeCount(obj)
-
-        end
 
         
 
         % Parameter -------------------------------------------------
-        function v = get.ParameterValues(obj)
-            v = [];
-            if isempty(obj.ParameterName) || isempty(obj.TRIALS), return; end
-            a = obj.TRIALS.trials(:,obj.ParameterIndex);
-            if isnumeric(a{1})
-                v = unique([a{:}]);
-            elseif ischar(a{1})
-                v = unique(a);
-            elseif isstruct(a{1})
-                v = cellfun(@(x) x.file,a,'uni',0);
-            end
-        end
-
-        function d = get.ParameterData(obj)
-            d = [obj.DATA.(obj.ParameterFieldName)];
-        end
-
-        function count = get.ParameterCount(obj)
-            count = [];
-            if isempty(obj.ParameterName), return; end
-            v = obj.ParameterValues;
-            d = obj.ParameterData;
-            ind = obj.ResponseCodeBits;
-            fn = fieldnames(ind);
-            for i = 1:length(v)
-                for j = 1:length(fn)
-                    count.(fn{j})(i) = sum(ind.(fn{j}) & ismember(d,v{i}));
-                end
-            end
-        end
-
-        function i = get.ParameterIndex(obj)
-            i = [];
-            if isempty(obj.ParameterName), return; end
-            i = find(ismember(obj.TRIALS.Mwriteparams,obj.ParameterName));
-        end
-
-        function n = get.ParameterFieldName(obj)
-            n = [];
-            if isempty(obj.ParameterName), return; end
-            n = obj.TRIALS.Mwriteparams{obj.ParameterIndex};
-        end
-
         function p = get.ValidParameters(obj)
+            if isempty(obj.DATA), p = 'NEED DATA!'; return; end
             p = fieldnames(obj.DATA);
             p(~ismember(p,obj.TRIALS.Mwriteparams)) = [];
         end
@@ -202,9 +122,9 @@ classdef Phys < handle & matlab.mixin.Copyable
         end
 
         function r = get.ResponsesBitmask(obj)
-            RC = obj.ResponseCodes;
+            RC = obj.ResponseCode;
             r(length(RC),1) = epsych.Bitmask(0);
-            for i = obj.BitmaskInUse
+            for i = obj.BitsInUse
                 ind = logical(bitget(RC,i));
                 if ~any(ind), continue; end
                 r(ind) = i;
@@ -215,26 +135,22 @@ classdef Phys < handle & matlab.mixin.Copyable
             c = cellfun(@char,num2cell(obj.ResponsesBitmask),'uni',0);
         end
 
-
-
-
         function s = get.ResponseCodeBits(obj)
             RC = obj.ResponseCode;
 
             c = obj.BitmaskInUseChar;
             for i = 1:length(c)
-                s.(c{i}) = bitget(RC,obj.BitmaskInUse(i),'uint16');
+                s.(c{i}) = bitget(RC,obj.BitsInUse(i),'uint16');
             end
 
             c = obj.TrialTypesChar;
             for i = 1:length(c)
                 s.(c{i}) = bitget(RC,obj.TrialTypes(i),'uint16');
             end
+            
+            s = structfun(@logical,s,'uni',0);
         end
         
-
-
-
     end
 
     

@@ -3,7 +3,7 @@ classdef Detection < phys.Phys
 
     properties (SetAccess = protected) % define abstract properties inherited from phys.Phys
         TrialTypes = [epsych.Bitmask.StimulusTrial, epsych.Bitmask.CatchTrial];
-        BitmaskInUse  = [epsych.Bitmask.Hit, epsych.Bitmask.Miss, epsych.Bitmask.CorrectReject, epsych.Bitmask.FalseAlarm, epsych.Bitmask.Abort];
+        BitsInUse  = [epsych.Bitmask.Hit, epsych.Bitmask.Miss, epsych.Bitmask.CorrectReject, epsych.Bitmask.FalseAlarm, epsych.Bitmask.Abort];
     end
 
     

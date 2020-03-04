@@ -7,8 +7,8 @@ classdef PsychPlot < gui.Helper
         
         physObj     (1,1) % phys.Phys object
         
-        % must jive with obj.ValidPlotTypes
-        PlotType    (1,:) char {mustBeMember(PlotType,{'d-prime','Hit Rate','FA Rate','Bias c','Bias ln(beta)'})} = 'd-prime';
+        % must jive with obj.physObj.ValidPlotTypes
+        PlotType    (1,:) char = 'Hit Rate';
         
         LineColor   (:,:) double {mustBeNonnegative,mustBeLessThanOrEqual(LineColor,1)}   = [.2 .6 1; 1 .6 .2];
         MarkerColor (:,:) double {mustBeNonnegative,mustBeLessThanOrEqual(MarkerColor,1)} = [0 .4 .8; .8 .4 0];
@@ -22,16 +22,6 @@ classdef PsychPlot < gui.Helper
         TextH
         
         el_NewPhysData
-    end
-    
-
-    properties (Constant)
-        ValidPlotTypes = {'d-prime','Hit Rate','FA Rate','Bias c','Bias ln(beta)'};
-    end
-    
-    
-    events (ListenAccess = 'public', NotifyAccess = 'protected')
-        PsychPlot_ParameterUpdate
     end
     
     
@@ -72,6 +62,10 @@ classdef PsychPlot < gui.Helper
                 'AlignVertexCenters','on', ...
                 'LineWidth',2,'Color',obj.LineColor(1,:));
             grid(obj.ax,'on');
+            
+            obj.ax.TickLabelInterpreter = 'none';
+            obj.ax.XTickLabelRotation = 45;
+            
             obj.setup_xaxis_label;
             obj.setup_yaxis_label;
         end
@@ -82,62 +76,70 @@ classdef PsychPlot < gui.Helper
             sh = obj.ScatterH;
             
             if isempty(obj.physObj.TRIALS), return; end
+                       
+            X = 1:length(obj.physObj.TrialTypesChar);
+            P = obj.physObj.compute_performance;
             
-            X = obj.physObj.ParameterValues;
-            
-            HR  = obj.physObj.Rate.Hit;
-            if isequal(obj.physObj.Paradigm,'TwoAFC')
-                FAR = obj.physObj.Rate.Miss;
-            else
-                FAR = obj.physObj.Rate.FalseAlarm;
-            end
-            
+            yLimits = [];
             switch obj.PlotType
                 case 'd-prime'
-                    if isequal(obj.physObj.Paradigm,'TwoAFC')
-                        Y = phys.Phys.dprime_2afc(HR,FAR);
-                    else
-                        Y = phys.Phys.dprime(HR,FAR);
-                    end
+                    Y = [P.DPrime];
                     
                 case 'Hit Rate'
-                    Y = HR;
+                    Y = [P.HitRate];
+                    yLimits = [0 1];
                     
                 case 'FA Rate'
-                    Y = FAR;
+                    Y = [P.FalseAlarmRate];
+                    yLimits = [0 1];
+                    
+                case 'Miss Rate'
+                    Y = [P.MissRate];
+                    yLimits = [0 1];
                     
                 case 'Bias c'
-                    Y = phys.Phys.bias_c(HR,FAR);
+                    Y = [P.c];
                     
                 case 'Bias ln(beta)'
-                    Y = phys.Phys.bias_lnbeta(HR,FAR);
+                    Y = [P.beta];
+
+                case 'Lapse Rate'
+                    Y = [P.LapseRate];
+                    yLimits = [0 1];
+                    
+                case 'Abort Rate'
+                    Y = [P.AbortRate];
+                    yLimits = [0 1];
             end
-            
-            %C = obj.physObj.Trial_Count;
-            C = obj.physObj.TrialTypeCount;
-            % C = [obj.physObj.Go_Count' obj.physObj.NoGo_Count'];
             
             lh.XData = X;
             lh.YData = Y;
-            
-            
+                        
             sh.XData = X;
             sh.YData = Y;
-            s = repmat(120,size(X));
-            ind = sum(C,2) == 0;
-            s(ind) = 30;
-            sh.SizeData = s;
+
+            sh.SizeData = repmat(180,size(X));
+
             c = repmat(obj.MarkerColor(1,:),length(X),1);
             sh.CData = c;
             
             uistack(sh,'top');
             
+            if isempty(yLimits)
+                obj.ax.YLimMode = 'auto';
+            else
+                obj.ax.YLim = yLimits;
+            end
+            
+            obj.ax.XLim = [1 length(P)];
+            obj.ax.XTick = 1:length(P);
+            obj.ax.XTickLabel = {P.TrialType};
+            
             for i = 1:length(X)
-                if i > size(C,1), break; end
-                if nnz(C(i,:)) == 0, continue; end
-                obj.TextH(i) = text(obj.ax,X(i),Y(i),num2str(C(i,:),'%d/%d'), ...
+                try delete(obj.TextH(i)); end %#ok<TRYNC> % lazy
+                obj.TextH(i) = text(obj.ax,X(i),Y(i),num2str(P(i).N,'%d'), ...
                     'HorizontalAlignment','center','VerticalAlignment','middle', ...
-                    'Color',[0 0 0],'FontSize',9);
+                    'Color',[0 0 0],'FontSize',12,'FontWeight','bold','Color','w');
             end
             
             obj.setup_xaxis_label;
@@ -145,38 +147,41 @@ classdef PsychPlot < gui.Helper
             
 
             tstr = sprintf('%s [%d] - Trial %d', ...
-                obj.physObj.SUBJECT.Name, ...
+                obj.physObj.Subject.Name, ...
                 obj.physObj.BoxID, ...
                 obj.physObj.TrialIndex);
             
             title(obj.ax,tstr);
+            
+            
         end
         
         function update_parameter(obj,hObj,mouse)
             % TO DO: support multiple parameters at a time
             switch hObj.Tag
                 case 'abscissa'
-                    i = find(ismember(obj.physObj.ValidParameters,obj.physObj.ParameterName));
-                    [sel,ok] = listdlg('ListString',obj.physObj.ValidParameters, ...
+                    vp = obj.physObj.ValidParameters;
+                    i = find(ismember(vp,obj.physObj.ParameterName));
+                    [sel,ok] = listdlg('ListString',vp, ...
                         'SelectionMode','single', ...
                         'InitialValue',i,'Name','Plot', ...
                         'PromptString','Select Independent Variable:', ...
                         'ListSize',[180 150]);
                     if ~ok, return; end
-                    obj.physObj.ParameterName = obj.physObj.ValidParameters{sel};
+                    obj.physObj.ParameterName = vp{sel};
                     try
-                        delete(obj.TextH(length(obj.physObj.ParameterValues)+1:end));
+                        delete(obj.TextH);
                     end
                     
                 case 'ordinate'
-                    i = find(ismember(obj.ValidPlotTypes,obj.PlotType));
-                    [sel,ok] = listdlg('ListString',obj.ValidPlotTypes, ...
+                    i = find(ismember(obj.physObj.ValidPlotTypes,obj.PlotType));
+                    [sel,ok] = listdlg('ListString',obj.physObj.ValidPlotTypes, ...
                         'SelectionMode','single', ...
                         'InitialValue',i,'Name','Plot', ...
                         'PromptString','Select Plot Type:', ...
                         'ListSize',[180 150]);
                     if ~ok, return; end
-                    obj.PlotType = obj.ValidPlotTypes{sel};
+                    obj.PlotType = obj.physObj.ValidPlotTypes{sel};
                     
             end
             obj.update;
@@ -184,12 +189,14 @@ classdef PsychPlot < gui.Helper
         
         
         function setup_xaxis_label(obj)
-            x = xlabel(obj.ax,obj.physObj.ParameterName,'Tag','abscissa','Interpreter','none');
+            x = xlabel(obj.ax,obj.physObj.ParameterName, ...
+                'Tag','abscissa','Interpreter','none');
             x.ButtonDownFcn = @obj.update_parameter;
         end
         
         function setup_yaxis_label(obj)
-            y = ylabel(obj.ax,obj.PlotType,'Tag','ordinate','Interpreter','none');
+            y = ylabel(obj.ax,obj.PlotType, ...
+                'Tag','ordinate','Interpreter','none');
             y.ButtonDownFcn = @obj.update_parameter;
         end
         

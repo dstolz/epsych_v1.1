@@ -69,7 +69,7 @@ classdef SignalPlot < gui.PlotHelper
             
             grid(obj.ax,'on');
             obj.ax.Box = 'on';
-            obj.ax.XAxis.Label.String = 'time since start (mm:ss)';                     
+            obj.ax.XAxis.Label.String = 'session time (mm:ss)';                     
             
             xtickformat(obj.ax,'mm:ss.S');
         end

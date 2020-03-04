@@ -270,7 +270,7 @@ classdef PlotHelper < gui.Helper
         
         function to = latest_trial_onset(obj)
             B = obj.trialBuffer;
-            idx = find(B(2:end) > B(1:end-1),1,'last'); % find onsets
+            idx = find(B(2:end) > B(1:end-1),1,'last'); % find onsets of "InTrial" parameter
             if isempty(idx)
                 to = seconds(0);
             else

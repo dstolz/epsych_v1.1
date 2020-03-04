@@ -1,11 +1,19 @@
 classdef History < gui.Helper
 
-                % TODO: Display only watchedParams
                 % TODO: Make context menu for user customization
                 % TODO: Colorize rows based on response
     properties
         physObj
         BoxID       (1,1)  uint8 {mustBeNonempty,mustBeNonNan} = 1;
+        
+        watchedParams
+        
+        ResultRowColor = struct('Hit',          [0.7 1.0 .95], ...
+                                'Miss',         [1.0 .95 0.7], ...
+                                'CorrectReject',[0.7 .95 1.0], ...
+                                'FalseAlarm',   [1.0 0.7 0.7], ...
+                                'Abort',        [0.7 0.7 0.7], ...
+                                'NoResponse',   [0.8 0.8 0.8]);
     end
 
     properties (SetAccess = private)
@@ -21,33 +29,24 @@ classdef History < gui.Helper
     
     methods
 
-        function obj = History(pObj,container,watchedParams,BoxID)
+        function obj = History(physObj,container,watchedParams)
             narginchk(1,4);
             
-            
-            obj.physObj = pObj;
+            obj.physObj = physObj;
             
             if nargin < 2 || isempty(container), container = figure;        end
-            if nargin < 3 || isempty(watchedParams), watchedParams = 'all'; end
-            if nargin < 4 || isempty(BoxID), BoxID = 1;                     end
+            if nargin < 3 || isempty(watchedParams), watchedParams = []; end
 
             obj.ContainerH = container;
-            obj.BoxID = BoxID;
-
-            if isequal(lower(watchedParams),'all')
-                
-                
-                
-            end
+            obj.BoxID = physObj.BoxID;
+            obj.watchedParams = watchedParams;
 
             obj.build;
-            
-            
         end
 
         function build(obj)
             obj.TableH = uitable(obj.ContainerH,'Unit','Normalized', ...
-                'Position',[0 0 1 1],'RowStriping','off');
+                'Position',[0 0 1 1],'RowStriping','off','FontSize',12);
         end
         
         
@@ -71,10 +70,10 @@ classdef History < gui.Helper
             obj.update_row_colors;
         end
         
-        function set.physObj(obj,pobj)
-%             assert(epsych.Helper.valid_psych_obj(pobj),'gui.History:set.physObj', ...
+        function set.physObj(obj,physObj)
+%             assert(epsych.Helper.valid_psych_obj(physObj),'gui.History:set.physObj', ...
 %                 'physObj must be from the toolbox "phys"');
-            obj.physObj = pobj;
+            obj.physObj = physObj;
             obj.update;
         end
 
@@ -88,14 +87,14 @@ classdef History < gui.Helper
 
     methods (Access = private)
         function update_row_colors(obj)
-            if ~epsych.Helper.valid_psych_obj(obj.physObj), return; end
-            C(size(obj.Data,1),3) = 0;
-            R = cellfun(@epsych.Bitmask,obj.Data(:,2),'uni',0);
-            R = [R{:}];
-            for i = 1:length(obj.physObj.BitmaskInUse)
-                ind = R == obj.physObj.BitmaskInUse(i);
+            C = ones(size(obj.Data,1),3);
+            R = cellfun(@epsych.Bitmask,obj.Data(:,3));
+            fn = fieldnames(obj.ResultRowColor);
+            E = cellfun(@epsych.Bitmask,fn);
+            for i = 1:length(E)
+                ind = R == E(i);
                 if ~any(ind), continue; end
-                C(ind,:) = repmat(obj.physObj.PerformanceColors(i,:),sum(ind),1);
+                C(ind,:) = repmat(obj.ResultRowColor.(fn{i}),sum(ind),1);
             end
             obj.TableH.BackgroundColor = flipud(C);
             obj.TableH.RowStriping = 'on';
@@ -125,6 +124,12 @@ classdef History < gui.Helper
             
             % remove these fields
             DataIn = rmfield(DataIn,{'ResponseCode','TrialID','ComputerTimestamp'});
+
+            if ~isempty(obj.watchedParams)
+                fn = fieldnames(DataIn);
+                ind = ~ismember(fn,obj.watchedParams);
+                DataIn = rmfield(DataIn,fn(ind));
+            end
             
             % The remaining fields of the DATA structure contain parameters for each
             % trial.
@@ -132,14 +137,19 @@ classdef History < gui.Helper
             for i = 1:length(dataFields)
                 DataOut(:,i) = {DataIn.(dataFields{i})};
             end
-            % prefix Timestamp and Respnose fields
+            
+            % prefix Timestamp, Response, and Result fields
+            RC = obj.physObj.ResponseCode;
+            bits = arrayfun(@(a) epsych.Bitmask(find(bitget(a,[3:7 16],'uint16'))+2),RC);
+            Result = arrayfun(@char,bits,'uni',0)';
+            DataOut = [Result DataOut];
             DataOut = [Response DataOut];
-
             DataOut = [obj.Info.RelativeTimestamp DataOut];
             
-            obj.ColumnName = [{'Time'}; {'Response'}; dataFields];
+            obj.ColumnName = [{'Time'}; {'Response'}; {'Result'}; dataFields];
             
             obj.Data = DataOut;
+            
         end
     end
 end
