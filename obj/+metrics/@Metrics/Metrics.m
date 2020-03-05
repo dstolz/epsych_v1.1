@@ -1,17 +1,19 @@
 classdef Metrics < handle & matlab.mixin.Copyable
 
     properties (SetAccess = protected) % Abstract
-        TrialTypes % define which bit will be used to group data analysis.
-                      % ex: TrialTypes = [epsych.Bitmask.StimulusTrial epsych.Bitmask.CatchTrial]
-        
-        BitsInUse  % defines which bits are in use 
-                      % ex: BitsInUse = [epsych.Bitmask.Hit, epsych.Bitmask.Miss, epsych.Bitmask.CorrectReject, epsych.Bitmask.FalseAlarm, epsych.Bitmask.Abort];
 
-        BitmaskGroups % defines how bits should be grouped
-                      % ex: BitmaskGroups = [{epsych.Bitmask.Hit epsych.Bitmask.Miss};
-                                %  {epsych.Bitmask.Response_A epsych.Bitmask.Hit epsych.Bitmask.Miss};
-                                %  {epsych.Bitmask.Response_B epsych.Bitmask.Hit epsych.Bitmask.Miss}];
-
+        TrialTypes = [epsych.Bitmask.TrialType_0, ...
+                      epsych.Bitmask.TrialType_1, ...
+                      epsych.Bitmask.TrialType_2, ...
+                      epsych.Bitmask.TrialType_3];
+                    
+        BitsInUse  = [epsych.Bitmask.Hit, ...
+                      epsych.Bitmask.Miss, ...
+                      epsych.Bitmask.Response_A, ...
+                      epsych.Bitmask.Response_B, ...
+                      epsych.Bitmask.NoResponse, ...
+                      epsych.Bitmask.Abort];
+                
         isOnline    (1,1) logical = false;
     end
 

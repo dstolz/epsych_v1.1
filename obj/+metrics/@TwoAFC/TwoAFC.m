@@ -1,38 +1,16 @@
 classdef TwoAFC < metrics.Metrics
-    properties
+    
+properties
         ValidPlotTypes = {'d-prime','Hit Rate','Miss Rate','Bias c', ...
                         'Bias ln(beta)', 'Lapse Rate', 'Abort Rate'};
     end
 
-    properties (SetAccess = protected)
-        ax
-        hLine
-    end
-
     methods
-        function obj = TwoAFC(ax,BoxID)
-            if nargin < 1, ax = []; end
-            if nargin < 2 || isempty(BoxID), BoxID = 1; end
+        function obj = TwoAFC(BoxID)
+            if nargin == 0 || isempty(BoxID), BoxID = 1; end
             
             obj = obj@metrics.Metrics(BoxID);
 
-
-            obj.TrialTypes = [epsych.Bitmask.TrialType_0, ...
-                            epsych.Bitmask.TrialType_1, ...
-                            epsych.Bitmask.TrialType_2, ...
-                            epsych.Bitmask.TrialType_3];
-                        
-            obj.BitsInUse  = [epsych.Bitmask.Hit, ...
-                            epsych.Bitmask.Miss, ...
-                            epsych.Bitmask.Response_A, ...
-                            epsych.Bitmask.Response_B, ...
-                            epsych.Bitmask.NoResponse, ...
-                            epsych.Bitmask.Abort];
-            
-            if ~isempty(ax)
-                obj.ax = ax;
-                obj.setup_plot;
-            end
 
         end
 
@@ -70,11 +48,6 @@ classdef TwoAFC < metrics.Metrics
 
         end
 
-
-        function setup_plot(ax)
-            cla(ax);
-
-        end
 
 
     end
