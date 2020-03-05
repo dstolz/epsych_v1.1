@@ -4,7 +4,7 @@ classdef (ConstructOnLoad) ProgramState < event.EventData
    end
    
    methods
-      function data = ParameterData(State)
+      function data = ProgramState(State)
          data.State = State;
       end
    end
