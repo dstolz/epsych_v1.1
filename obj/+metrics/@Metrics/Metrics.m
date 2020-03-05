@@ -72,14 +72,15 @@ classdef Metrics < handle & matlab.mixin.Copyable
         function obj = Metrics(BoxID)
             global RUNTIME
 
-           
-
             d = dbstack;
             obj.Paradigm = d(2).file(1:end-2);
             if nargin == 0 || isempty(BoxID), BoxID = 1; end
-                       
+
+            % in the case defaults are used
+            obj.BitsInUse = obj.BitsInUse;
+            obj.TrialTypes = obj.TrialTypes;
+            
             obj.BoxID     = BoxID;
-            % obj.ParameterName = parameterName;
             obj.CreatedOn = datestr(now);
 
             obj.isOnline = ~isempty(RUNTIME);
