@@ -44,6 +44,7 @@ classdef ParameterTable < handle
         end
         
         function set.BoxID(obj,id)
+            global RUNTIME
             obj.BoxID = id;
             delete(obj.hl_NewTrial); % destroy old listener and create a new one for the new BoxID
             obj.hl_NewTrial = addlistener(RUNTIME.HELPER(obj.BoxID),'NewTrial',@obj.update);
