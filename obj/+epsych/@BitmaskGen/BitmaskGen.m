@@ -2,11 +2,12 @@ classdef BitmaskGen < handle
     
     properties
         filename (1,:) char
+        
+        VarTable
+        DataTable
     end
     
     properties (Access = protected)
-        VarTable
-        DataTable
         ExptTypeDropdown
         CopyButton
         DataTableTitle
@@ -40,7 +41,8 @@ classdef BitmaskGen < handle
                 obj.parent = uifigure( ...
                     'Name','Bitmask Generator', ...
                     'NumberTitle', 'off', ...
-                    'Position',[400 250 720 360]);
+                    'Position',[400 250 720 360], ...
+                    'Color',[0.9 0.9 0.9]);                
             end
             
             obj.create_gui;
@@ -100,6 +102,60 @@ classdef BitmaskGen < handle
                 m = obj.DataTable.Data{obj.bmIdx(1),obj.bmIdx(2)};
             end
         end
+
+
+
+        function show_summary(obj,~,~)
+            f = uifigure('Name','Bitmask Summary');
+            f.Position = [500 250 630 600];
+            f.Color = [0.9 0.9 0.9];
+
+            g = uigridlayout(f);
+            g.ColumnWidth = {'0.2x','1x','1x','1x','1x'};
+            g.RowHeight   = {'0.25x','1x','1x','1x','1x'};
+            
+            h = uilabel(g);
+            h.Layout.Column = [1 5];
+            h.Layout.Row    = 1;
+            h.HorizontalAlignment = 'center';
+            ind = ismember(obj.ExptTypeDropdown.ItemsData,obj.ExptTypeDropdown.Value);
+            h.Text = sprintf('Paradigm: %s',obj.ExptTypeDropdown.Items{ind});
+            h.FontSize = 16;
+            h.FontWeight = 'bold';
+            
+            D = obj.DataTable.Data;
+            for i = 1:5 % col
+                for j = 1:4 % row
+                    RC = D{j+4,i};
+                    DC = find(epsych.BitmaskGen.decode(RC));
+                    if isempty(DC), DC = 0; end
+                    BM = arrayfun(@(a) char(epsych.Bitmask(a)),DC,'uni',0);
+                    
+                    p = uipanel(g);
+                    p.Layout.Column = i;
+                    p.Layout.Row    = j+1;
+                    if i == 1
+                        p.Title = 'S0';
+                    else
+                        p.Title = sprintf('S%d | output-%d [%d]',i-1,j-1,RC);
+                    end
+                    
+                    gp = uigridlayout(p);
+                    gp.ColumnWidth = {'1x'};
+                    gp.RowHeight   = {'1x'};
+                    
+                    h = uilabel(gp);
+                    if i == 1 % S0
+                        h.Text = 'x';
+                        continue
+                    end
+                    h.Layout.Column = 1;
+                    h.Layout.Row    = 1;
+                    h.VerticalAlignment = 'top';
+                    h.Text = BM;
+                end
+            end
+        end
         
     end
     
@@ -107,7 +163,7 @@ classdef BitmaskGen < handle
         function create_gui(obj)
             
             g = uigridlayout(obj.parent);
-            g.ColumnWidth = {'0.5x','0.5x',50,'1.25x'};
+            g.ColumnWidth = {100,100,'1.5x','1x','1x'};
             g.RowHeight   = {25,25,'1x'};
             
             
@@ -142,6 +198,13 @@ classdef BitmaskGen < handle
             hS.Text          = 'Save';
             hS.ButtonPushedFcn = @obj.save;
             
+            % Show Summary button
+            hY = uibutton(g);
+            hY.Layout.Column = 4;
+            hY.Layout.Row    = 1;
+            hY.Text          = 'Summary';
+            hY.ButtonPushedFcn = @obj.show_summary;
+            
             % Copy button
             hC = uibutton(g);
             hC.Layout.Column = 5;
@@ -152,7 +215,7 @@ classdef BitmaskGen < handle
             
             % Expt Dropdown
             hE = uidropdown(g);
-            hE.Layout.Column = 4;
+            hE.Layout.Column = 3;
             hE.Layout.Row    = 1;
             hE.ValueChangedFcn = @obj.expt_changed;
             
@@ -344,6 +407,8 @@ classdef BitmaskGen < handle
                 ind = ind | bitget(a,1:16,'uint16');
             end
         end
+
+
     end
     
 end
