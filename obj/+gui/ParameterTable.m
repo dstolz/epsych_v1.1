@@ -2,7 +2,6 @@ classdef ParameterTable < handle
     
     properties
         table
-
         BoxID       (1,1)  uint8 {mustBeNonempty,mustBeNonNan} = 1;
     end
     
@@ -32,20 +31,23 @@ classdef ParameterTable < handle
         function obj = ParameterTable(parent,BoxID)
             global RUNTIME
             
-            if nargin == 2, obj.BoxID = BoxID; end
+            if nargin < 2 || isempty(BoxID), BoxID = 1; end
 
             obj.parent = parent;
-                        
-            obj.hl_NewTrial = addlistener(RUNTIME.HELPER(obj.BoxID),'NewTrial',@obj.update);
+            obj.BoxID  = BoxID;
 
             obj.create(RUNTIME)
-
         end
         
         function delete(obj)
             delete(obj.hl_NewTrial);
         end
         
+        function set.BoxID(obj,id)
+            obj.BoxID = id;
+            delete(obj.hl_NewTrial); % destroy old listener and create a new one for the new BoxID
+            obj.hl_NewTrial = addlistener(RUNTIME.HELPER(obj.BoxID),'NewTrial',@obj.update);
+        end
         
         function d = get.Data(obj)
             d = obj.table.Data;
