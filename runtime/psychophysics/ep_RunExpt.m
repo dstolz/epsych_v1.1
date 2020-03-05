@@ -251,10 +251,24 @@ switch COMMAND
         set(h.figure1,'pointer','arrow'); drawnow
 end
 
+% Notify anyone who's listening that there was a program state change
+for i = 1:length(RUNTIME.HELPER)
+    ev = epsych.ProgramState(COMMAND);
+    RUNTIME.HELPER(i).notify('StateUpdated',ev)
+end
 
 UpdateGUIstate(h);
 
 guidata(h.figure1,h)
+
+
+
+
+
+
+
+
+
 
 
 % Timer Functions

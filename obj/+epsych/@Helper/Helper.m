@@ -5,6 +5,7 @@ classdef Helper < handle
         NewData
         NewTrial
         SoftwareTrigger
+        StateUpdated
     end
 
     methods (Static)
