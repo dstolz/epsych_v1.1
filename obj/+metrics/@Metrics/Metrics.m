@@ -72,7 +72,7 @@ classdef Metrics < handle & matlab.mixin.Copyable
         function obj = Metrics(BoxID)
             global RUNTIME
 
-            obj.isOnline = ~isempty(RUNTIME);
+           
 
             d = dbstack;
             obj.Paradigm = d(2).file(1:end-2);
@@ -82,10 +82,7 @@ classdef Metrics < handle & matlab.mixin.Copyable
             % obj.ParameterName = parameterName;
             obj.CreatedOn = datestr(now);
 
-            if obj.isOnline
-                % Note that BoxID shouldn't be changed for this object after creation (immutable)
-                obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
-            end
+            obj.isOnline = ~isempty(RUNTIME);
             
         end
 
@@ -152,7 +149,17 @@ classdef Metrics < handle & matlab.mixin.Copyable
             
             s = structfun(@logical,s,'uni',0);
         end
-        
+       
+        function set.isOnline(obj,tf)
+            obj.isOnline = tf;
+            if obj.isOnline
+                global RUNTIME
+                % Note that BoxID shouldn't be changed for this object after creation (immutable)
+                obj.el_NewData = addlistener(RUNTIME.HELPER(obj.BoxID),'NewData',@obj.update);
+            else
+                delete(obj.el_NewData);
+            end
+        end
     end
 
     
