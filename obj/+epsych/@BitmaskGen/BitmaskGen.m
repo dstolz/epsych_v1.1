@@ -5,6 +5,8 @@ classdef BitmaskGen < handle
         
         VarTable
         DataTable
+        
+        currentSelection
     end
     
     properties (Access = protected)
@@ -12,7 +14,14 @@ classdef BitmaskGen < handle
         CopyButton
         DataTableTitle
         
+        figSummary
+        summary_hTitle
+        summary_hLabel
+        summary_hPanel
+        
         bmIdx
+
+        el_UpdatedBitmask
     end
     
     properties (Dependent)
@@ -23,6 +32,9 @@ classdef BitmaskGen < handle
         parent % uifigure
     end
     
+    events
+        UpdatedBitmask
+    end
     
     methods
         function obj = BitmaskGen(varargin)
@@ -71,6 +83,8 @@ classdef BitmaskGen < handle
             setpref('epsych_BitmaskGen','projectDir',pn);
             
             figure(obj.parent);
+            
+            notify(obj,'UpdatedBitmask');
         end
         
         function save(obj,~,~)
@@ -106,55 +120,83 @@ classdef BitmaskGen < handle
 
 
         function show_summary(obj,~,~)
-            f = uifigure('Name','Bitmask Summary');
-            f.Position = [500 250 630 600];
-            f.Color = [0.9 0.9 0.9];
+            if isempty(obj.el_UpdatedBitmask)
+                obj.el_UpdatedBitmask = addlistener(obj,'UpdatedBitmask',@obj.show_summary);
+            end
 
-            g = uigridlayout(f);
-            g.ColumnWidth = {'0.2x','1x','1x','1x','1x'};
-            g.RowHeight   = {'0.25x','1x','1x','1x','1x'};
+
+            if isempty(obj.figSummary) || ~isvalid(obj.figSummary)
+                obj.figSummary = uifigure('Name','Bitmask Summary');
+                obj.figSummary.Position = [500 250 630 600];
+                obj.figSummary.Color = [0.9 0.9 0.9];
             
-            h = uilabel(g);
-            h.Layout.Column = [1 5];
-            h.Layout.Row    = 1;
-            h.HorizontalAlignment = 'center';
+                g = uigridlayout(obj.figSummary);
+                g.ColumnWidth = {'0.2x','1x','1x','1x','1x'};
+                g.RowHeight   = {'0.25x','1x','1x','1x','1x'};
+                
+                h = uilabel(g);
+                h.Layout.Column = [1 5];
+                h.Layout.Row    = 1;
+                h.HorizontalAlignment = 'center';
+                h.FontSize = 16;
+                h.FontWeight = 'bold';
+
+                obj.summary_hTitle = h;
+
+                for i = 1:5 % col
+                    for j = 1:4 % row
+                        p = uipanel(g);
+                        p.Layout.Column = i;
+                        p.Layout.Row    = j+1;
+                        if i == 1
+                            p.Title='S0';
+                        end
+                        
+                        obj.summary_hPanel(j,i) = p;
+                        
+                        gp = uigridlayout(p);
+                        gp.ColumnWidth = {'1x'};
+                        gp.RowHeight   = {'1x'};
+                        
+                        h = uilabel(gp);
+                        if i == 1 % S0
+                            h.Text = 'x';
+                            continue
+                        end
+                        h.Layout.Column = 1;
+                        h.Layout.Row    = 1;
+                        h.VerticalAlignment = 'top';
+                    
+                        obj.summary_hLabel(j,i) = h;
+                    end
+                end
+            end
+            
+            figure(obj.figSummary);
+            
             ind = ismember(obj.ExptTypeDropdown.ItemsData,obj.ExptTypeDropdown.Value);
-            h.Text = sprintf('Paradigm: %s',obj.ExptTypeDropdown.Items{ind});
-            h.FontSize = 16;
-            h.FontWeight = 'bold';
-            
+            obj.summary_hTitle.Text = sprintf('Paradigm: %s',obj.ExptTypeDropdown.Items{ind});
+
             D = obj.DataTable.Data;
-            for i = 1:5 % col
+            for i = 2:5 % col
                 for j = 1:4 % row
                     RC = D{j+4,i};
+                    set(obj.summary_hPanel(j,i),'Title',sprintf('S%d | output-%d [%d]',i-1,j-1,RC));
+                                        
                     DC = find(epsych.BitmaskGen.decode(RC));
                     if isempty(DC), DC = 0; end
                     BM = arrayfun(@(a) char(epsych.Bitmask(a)),DC,'uni',0);
-                    
-                    p = uipanel(g);
-                    p.Layout.Column = i;
-                    p.Layout.Row    = j+1;
-                    if i == 1
-                        p.Title = 'S0';
-                    else
-                        p.Title = sprintf('S%d | output-%d [%d]',i-1,j-1,RC);
-                    end
-                    
-                    gp = uigridlayout(p);
-                    gp.ColumnWidth = {'1x'};
-                    gp.RowHeight   = {'1x'};
-                    
-                    h = uilabel(gp);
-                    if i == 1 % S0
-                        h.Text = 'x';
-                        continue
-                    end
-                    h.Layout.Column = 1;
-                    h.Layout.Row    = 1;
-                    h.VerticalAlignment = 'top';
-                    h.Text = BM;
+                    set(obj.summary_hLabel(j,i),'Text',BM);
                 end
             end
+            set(obj.summary_hPanel, ...
+                'BackgroundColor',obj.figSummary.Color, ...
+                'FontWeight','normal');
+            idx = obj.currentSelection;
+            if idx(1) < 5, return; end
+            set(obj.summary_hPanel(idx(:,1)-4,idx(:,2)), ...
+                'FontWeight','bold', ...
+                'BackgroundColor',[.7 1 1]);
         end
         
     end
@@ -281,6 +323,7 @@ classdef BitmaskGen < handle
             
             obj.DataTable.Data{obj.bmIdx(1),obj.bmIdx(2)} = epsych.BitmaskGen.encode(k);
             
+            notify(obj,'UpdatedBitmask');
         end
         
         function select_data(obj,src,event)
@@ -290,6 +333,10 @@ classdef BitmaskGen < handle
                 obj.bmIdx = event.Indices(end,:);
                 obj.update_variable_table;
             end
+            
+            obj.currentSelection = event.Indices;
+            
+            notify(obj,'UpdatedBitmask');
         end
         
         function edit_data(obj,src,event)
@@ -309,6 +356,8 @@ classdef BitmaskGen < handle
             else
                 obj.update_variable_table;
             end
+
+            notify(obj,'UpdatedBitmask');
         end
         
         function update_variable_table(obj)
@@ -328,6 +377,7 @@ classdef BitmaskGen < handle
             d(:,2)     = num2cell([ind; false]);
             obj.VarTable.Data = d;
             
+            notify(obj,'UpdatedBitmask');
         end
         
         function expt_changed(obj,src,event)
@@ -364,7 +414,6 @@ classdef BitmaskGen < handle
         end
         
         function copy_datatable(obj,~,~)
-            
             d = obj.DataTable.Data;
             d = reshape([d{:}],size(d));
             
