@@ -127,7 +127,7 @@ classdef BitmaskGen < handle
 
             if isempty(obj.figSummary) || ~isvalid(obj.figSummary)
                 obj.figSummary = uifigure('Name','Bitmask Summary');
-                obj.figSummary.Position = [500 250 630 600];
+                obj.figSummary.Position = [500 100 630 600];
                 obj.figSummary.Color = [0.9 0.9 0.9];
             
                 g = uigridlayout(obj.figSummary);
