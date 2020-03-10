@@ -6,7 +6,8 @@ classdef BitmaskGen < handle
         VarTable
         DataTable
         
-        currentSelection
+        currentTableSelection
+        
     end
     
     properties (Access = protected)
@@ -109,15 +110,19 @@ classdef BitmaskGen < handle
         end
         
         
-        function m = get.CurrentBitmask(obj)
+        function bm = get.CurrentBitmask(obj)
             if isempty(obj.bmIdx)
-                m = nan;
+                m = 0;
             else
                 m = obj.DataTable.Data{obj.bmIdx(1),obj.bmIdx(2)};
             end
+            bm = epsych.Bitmask(m);
         end
 
-
+        function close_summary_fig(obj,~,~)
+            delete(obj.el_UpdatedBitmask);
+            delete(obj.figSummary);
+        end
 
         function show_summary(obj,~,~)
             if isempty(obj.el_UpdatedBitmask)
@@ -127,8 +132,9 @@ classdef BitmaskGen < handle
 
             if isempty(obj.figSummary) || ~isvalid(obj.figSummary)
                 obj.figSummary = uifigure('Name','Bitmask Summary');
-                obj.figSummary.Position = [500 100 630 600];
+                obj.figSummary.Position = [500 150 630 600];
                 obj.figSummary.Color = [0.9 0.9 0.9];
+                obj.figSummary.CloseRequestFcn = @obj.close_summary_fig;
             
                 g = uigridlayout(obj.figSummary);
                 g.ColumnWidth = {'0.2x','1x','1x','1x','1x'};
@@ -182,18 +188,17 @@ classdef BitmaskGen < handle
                 for j = 1:4 % row
                     RC = D{j+4,i};
                     set(obj.summary_hPanel(j,i),'Title',sprintf('S%d | output-%d [%d]',i-1,j-1,RC));
-                                        
-                    DC = find(epsych.BitmaskGen.decode(RC));
-                    if isempty(DC), DC = 0; end
-                    BM = arrayfun(@(a) char(epsych.Bitmask(a)),DC,'uni',0);
-                    set(obj.summary_hLabel(j,i),'Text',BM);
+                    
+                    BM = epsych.Bitmask(RC);
+                    
+                    set(obj.summary_hLabel(j,i),'Text',BM.Labels);
                 end
             end
             set(obj.summary_hPanel, ...
                 'BackgroundColor',obj.figSummary.Color, ...
                 'FontWeight','normal');
-            idx = obj.currentSelection;
-            if idx(1) < 5, return; end
+            idx = obj.currentTableSelection;
+            if isempty(idx) || idx(1) < 5, return; end
             set(obj.summary_hPanel(idx(:,1)-4,idx(:,2)), ...
                 'FontWeight','bold', ...
                 'BackgroundColor',[.7 1 1]);
@@ -211,8 +216,9 @@ classdef BitmaskGen < handle
             
             
             % Variable Table
-            exptVars = arrayfun(@char,enumeration('epsych.Bitmask'),'uni',0);
-            exptVars = [{'< REMOVE >'}; exptVars];
+            exptVars = epsych.Bitmask.default_bits;
+            exptVars(ismember(exptVars,'Undefined')) = [];
+            exptVars = [{'< REMOVE >'}; exptVars(:)];
             hV = uitable(g);
             hV.Layout.Column  = [1 2];
             hV.Layout.Row     = [2 3];
@@ -244,7 +250,7 @@ classdef BitmaskGen < handle
             hY = uibutton(g);
             hY.Layout.Column = 4;
             hY.Layout.Row    = 1;
-            hY.Text          = 'Summary';
+            hY.Text          = 'Show Summary';
             hY.ButtonPushedFcn = @obj.show_summary;
             
             % Copy button
@@ -290,7 +296,7 @@ classdef BitmaskGen < handle
             obj.DataTable = hD;
             obj.DataTableTitle = hL;
             
-            obj.DataTable.Data = num2cell(zeros(8,5,'uint16'));
+            obj.DataTable.Data = num2cell(zeros(8,5,'uint32'));
             
             obj.load_expts;
         end
@@ -317,11 +323,10 @@ classdef BitmaskGen < handle
             
             d(cellfun(@isempty,d(:,1)),:) = [];
             n = [d{:,2}];
-            m = cellfun(@epsych.Bitmask,d(:,1));
-            m(~n) = [];
-            k(m) = true;
+            bm = obj.CurrentBitmask;
+            bm.Labels = d(n,1);
             
-            obj.DataTable.Data{obj.bmIdx(1),obj.bmIdx(2)} = epsych.BitmaskGen.encode(k);
+            obj.DataTable.Data{obj.bmIdx(1),obj.bmIdx(2)} = bm.Value;
             
             notify(obj,'UpdatedBitmask');
         end
@@ -334,7 +339,7 @@ classdef BitmaskGen < handle
                 obj.update_variable_table;
             end
             
-            obj.currentSelection = event.Indices;
+            obj.currentTableSelection = event.Indices;
             
             notify(obj,'UpdatedBitmask');
         end
@@ -361,23 +366,21 @@ classdef BitmaskGen < handle
         end
         
         function update_variable_table(obj)
-            a = obj.CurrentBitmask;
-            m = epsych.Bitmask(find(bitget(a,1:16,'uint16'))); %#ok<FNDSB>
+            bm = obj.CurrentBitmask;
+            lbls  = bm.Labels;
             d = obj.VarTable.Data;
             d(cellfun(@isempty,d),:) = [];
-            if ~isempty(m)
-                u = union(d(:,1),m);
+            if ~isempty(lbls)
+                u = union(d(:,1),bm.Labels);
                 d = [u num2cell(false(length(u),1))];
             end
             ind = false(size(d,1),1);
-            for i = 1:length(m)
-                ind = ind | ismember(d(:,1),char(m(i)));
+            for i = 1:length(lbls)
+                ind = ind | ismember(d(:,1),char(lbls(i)));
             end
             d(end+1,1) = {''};
             d(:,2)     = num2cell([ind; false]);
             obj.VarTable.Data = d;
-            
-            notify(obj,'UpdatedBitmask');
         end
         
         function expt_changed(obj,src,event)
@@ -444,20 +447,4 @@ classdef BitmaskGen < handle
             obj.expt_changed;
         end
     end
-    
-    methods (Static)
-        function m = encode(ind)
-            m = sum(2.^(find(ind)-1));
-        end
-        
-        function ind = decode(a)
-            ind = false(1,16);
-            for i = 1:length(a)
-                ind = ind | bitget(a,1:16,'uint16');
-            end
-        end
-
-
-    end
-    
 end

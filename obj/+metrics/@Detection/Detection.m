@@ -14,7 +14,7 @@ end
             
             obj = obj@metrics.Metrics(BoxID);
             
-            obj.TrialTypes = [epsych.Bitmask.StimulusTrial, epsych.Bitmask.CatchTrial];
+            obj.TrialTypes = [epsych.Bits.StimulusTrial, epsych.Bits.CatchTrial];
 
         end
         

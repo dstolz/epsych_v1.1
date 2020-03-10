@@ -19,7 +19,7 @@ classdef ResponseCode
         end
         
         function b = get.Translate(obj)
-            b = epsych.Bitmask(find(obj.Bits))'; %#ok<FNDSB>
+            b = epsych.Bits(find(obj.Bits))'; %#ok<FNDSB>
         end
         
         function obj = encode(obj,bits)
