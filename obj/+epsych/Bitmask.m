@@ -135,7 +135,11 @@ classdef (ConstructOnLoad) Bitmask < dynamicprops & matlab.mixin.Copyable
     methods (Static)
         
         function m = bitmask2bool(bm)
-            m = logical(bitget(bm,1:32,'uint32'));
+            if bm == 0
+                m = zeros(1,32,'uint32');
+            else
+                m = logical(bitget(bm,1:32,'uint32'));
+            end
         end
         
         function bm = boolean2bitmask(bool)
