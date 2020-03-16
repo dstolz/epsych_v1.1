@@ -23,7 +23,20 @@ classdef Triggers < gui.Helper
             obj.ContainerH = container;
             obj.TDTActiveX = AX;
 
-            obj.build(RUNTIME);
+            if isempty(RUNTIME.TDT.triggers{1})
+                uicontrol(obj.ContainerH, ...
+                    'style','text', ...
+                    'string','no triggers', ...
+                    'FontAngle','italic', ...
+                    'FontSize',14, ...
+                    'ForegroundColor',[0.3 0.3 0.3], ...
+                    'Units','Normalized', ...
+                    'Position',[0 0 1 1]);
+            else
+                obj.build(RUNTIME);
+            end
+
+            if nargout == 0, clear obj; end
         end
 
         function build(obj,RUNTIME)
@@ -35,6 +48,7 @@ classdef Triggers < gui.Helper
             state = [];
             T = {};
             tmIdx = [];
+            
             for i = 1:length(RUNTIME.TDT.triggers)
                 for j = 1:length(RUNTIME.TDT.triggers{i})
                     tmIdx(end+1) = RUNTIME.TDT.trigmods(i);
