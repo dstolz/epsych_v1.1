@@ -8,6 +8,7 @@ classdef BitmaskGen < handle
         
         currentTableSelection
         
+        Data
     end
     
     properties (Access = protected)
@@ -26,6 +27,7 @@ classdef BitmaskGen < handle
     end
     
     properties (Dependent)
+        
         CurrentBitmask
     end
     
@@ -63,6 +65,8 @@ classdef BitmaskGen < handle
             if ~isempty(obj.filename)
                 obj.load(obj.filename);
             end
+            
+            if nargout == 0, clear obj; end
         end
         
         function load(obj,src,~)
@@ -119,6 +123,26 @@ classdef BitmaskGen < handle
             bm = epsych.Bitmask(m);
         end
 
+        function set.Data(obj,d)
+            if ~iscell(d)
+                d = num2cell(d);
+            end
+            obj.DataTable.Data = d;
+        end
+        
+        function d = get.Data(obj)
+            d = cellfun(@uint32,obj.DataTable.Data);
+        end
+        
+        
+        function reset_data(obj,~,~)
+            d = obj.Data;
+            sz = size(d,2);
+            d(5:end,:) = zeros(4,sz);
+            obj.Data = d;
+        end
+        
+        
         function close_summary_fig(obj,~,~)
             delete(obj.el_UpdatedBitmask);
             delete(obj.figSummary);
@@ -210,7 +234,7 @@ classdef BitmaskGen < handle
         function create_gui(obj)
             
             g = uigridlayout(obj.parent);
-            g.ColumnWidth = {100,100,'1.5x','1x','1x'};
+            g.ColumnWidth = {100,100,'1.5x','1x','1x','1x'};
             g.RowHeight   = {25,25,'1x'};
             
             
@@ -246,16 +270,23 @@ classdef BitmaskGen < handle
             hS.Text          = 'Save';
             hS.ButtonPushedFcn = @obj.save;
             
+            % Reset Data table
+            hR = uibutton(g);
+            hR.Layout.Column = 4;
+            hR.Layout.Row    = 1;
+            hR.Text          = 'Reset';
+            hR.ButtonPushedFcn = @obj.reset_data;
+            
             % Show Summary button
             hY = uibutton(g);
-            hY.Layout.Column = 4;
+            hY.Layout.Column = 5;
             hY.Layout.Row    = 1;
             hY.Text          = 'Show Summary';
             hY.ButtonPushedFcn = @obj.show_summary;
             
             % Copy button
             hC = uibutton(g);
-            hC.Layout.Column = 5;
+            hC.Layout.Column = 6;
             hC.Layout.Row    = 1;
             hC.Text          = 'Copy Table';
             hC.ButtonPushedFcn = @obj.copy_datatable;
@@ -269,7 +300,7 @@ classdef BitmaskGen < handle
             
             % Data Table Label
             hL = uilabel(g);
-            hL.Layout.Column = [3 5];
+            hL.Layout.Column = [3 6];
             hL.Layout.Row    = 2;
             hL.Text          = 'RPvds State Machine Data Table';
             hL.HorizontalAlignment = 'center';
@@ -278,7 +309,7 @@ classdef BitmaskGen < handle
             
             % Data Table
             hD = uitable(g);
-            hD.Layout.Column  = [3 5];
+            hD.Layout.Column  = [3 6];
             hD.Layout.Row     = 3;
             hD.ColumnName     = {'S0','S1','S2','S3','S4'};
             hD.ColumnEditable = true;
