@@ -9,6 +9,7 @@ classdef SignalPlot < gui.PlotHelper
     properties (SetAccess = protected)
         menuYScalingAuto
         menuYScalingEqual
+        menuYScalingIndividual
     end
     
     properties (Constant)
@@ -45,6 +46,7 @@ classdef SignalPlot < gui.PlotHelper
             y = uimenu(h,'Label','Y-Axis Scaling');
             obj.menuYScalingAuto  = uimenu(y,'Label','Auto','Callback',@obj.yscaling);
             obj.menuYScalingEqual = uimenu(y,'Label','Equal','Callback',@obj.yscaling);
+            obj.menuYScalingIndividual = uimenu(y,'Label','Individual','Callback',@obj.yscaling);
             obj.yscaling(obj.(sprintf('menuYScaling%s',obj.yScaleMode)));
         end
     end
@@ -113,6 +115,12 @@ classdef SignalPlot < gui.PlotHelper
 
                 case 'Auto'
                     obj.ax.YLimMode = 'auto';
+
+                case 'Individual'
+                    obj.ax.YLimMode = 'auto';
+                    for i = 1:obj.N
+                        obj.lineH(i).YData = obj.Buffers(i,:) ./ max(abs(obj.Buffers(i,:)));
+                    end
             end
             
             obj.plot_trial_onset;
