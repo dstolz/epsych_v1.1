@@ -5,6 +5,11 @@ classdef Subject < handle & dynamicprops
         DOB     (1,1) datetime = datetime('today');
         ID      (1,1) double {mustBeFinite,mustBeNonempty,mustBeNonNan} = round(datenum(now)*1e12);
         BaselineWeightGrams (1,1) double {mustBePositive,mustBeFinite} = 1;
+        Note    (:,:) char
+    end
+
+    properties (Constant)
+        CreatedOn = now;
     end
 
     methods

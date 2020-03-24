@@ -33,7 +33,7 @@ obj.RunButton.FontSize = 16;
 obj.RunButton.FontWeight = 'bold';
 obj.RunButton.Enable = 'off';
 obj.RunButton.Text = 'Run';
-obj.RunButton.ButtonPushedFcn = @obj.run_button;
+obj.RunButton.ButtonPushedFcn = {@obj.update_state,'Run'};
 
 % Create PauseButton
 obj.PauseButton = uibutton(g, 'push');
@@ -42,7 +42,7 @@ obj.PauseButton.FontSize = 16;
 obj.PauseButton.FontWeight = 'bold';
 obj.PauseButton.Enable = 'off';
 obj.PauseButton.Text = 'Pause';
-obj.PauseButton.ButtonPushedFcn = @obj.pause_button;
+obj.PauseButton.ButtonPushedFcn = {@obj.update_state,'Pause'};
 
 
 if isvertical

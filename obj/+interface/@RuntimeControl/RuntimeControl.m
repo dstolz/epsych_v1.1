@@ -26,6 +26,13 @@ classdef RuntimeControl < handle
             if nargout == 0, clear obj; end
         end
         
+        function update_state(obj)
+            global RUNTIME
+
+            % TODO: Connector has not yet been developed.
+            RUNTIME = epsych.Runtime(Connector);
+            
+        end
         
     end
 end
