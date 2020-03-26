@@ -197,7 +197,7 @@ classdef ParameterTable < handle
             end
             
             d = [hObj.RowName(:), hObj.Data];
-            ev = epsych.ParameterData(obj.BoxID,d);
+            ev = epsych.evParameterData(obj.BoxID,d);
             notify(obj,'ParametersModified',ev);
             
         end

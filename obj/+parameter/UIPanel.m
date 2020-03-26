@@ -20,23 +20,23 @@ classdef UIPanel < handle & matlab.mixin.SetGet
     end
 
     properties (SetAccess = immutable)
-        ItemGroup    (1,1) parameter.ItemSet
+        Group    (1,1) parameter.ItemSet
         parent
     end
     
     methods
         % Constructor
-        function obj = UIPanel(ItemGroup,Styles,parent,varargin)
+        function obj = UIPanel(Group,Styles,parent,varargin)
             narginchk(1,3);
             
             if nargin < 3 || isempty(parent), parent = gcf; end
             if nargin < 2 || isempty(Styles), Styles = 'auto'; end
 
-            obj.ItemGroup = ItemGroup;
+            obj.Group = Group;
             obj.parent = parent;
 
             if ischar(Styles) && isequal(Styles,'auto')
-                obj.Styles = repmat({'auto'},1,ItemGroup.N);
+                obj.Styles = repmat({'auto'},1,Group.N);
             end
             
             obj.create;
@@ -71,9 +71,9 @@ classdef UIPanel < handle & matlab.mixin.SetGet
 
             position = [w/2-22 h w/2-22 a];
 
-            for i = 1:obj.ItemGroup.N
+            for i = 1:obj.Group.N
                 if isequal(obj.Styles{i},'auto')
-                    obj.Styles{i} = parameter.UIControl.guess_uistyle(obj.ItemGroup.Parameters(i));
+                    obj.Styles{i} = parameter.UIControl.guess_uistyle(obj.Group.Parameters(i));
                 end
                 
                 switch obj.Styles{i}
@@ -86,7 +86,7 @@ classdef UIPanel < handle & matlab.mixin.SetGet
                         position(4) = 22;
                 end
                 
-                h = gui.(['ui' obj.Styles{i}])(obj.ItemGroup.Parameters(i), ...
+                h = gui.(['ui' obj.Styles{i}])(obj.Group.Parameters(i), ...
                     obj.parent, ...
                     'Position',position);
 
@@ -158,7 +158,7 @@ classdef UIPanel < handle & matlab.mixin.SetGet
     methods (Access = private)
         function vertical_slider(obj,hObj,event)
             v = hObj.Max - hObj.Value;
-            for i = 1:obj.ItemGroup.N
+            for i = 1:obj.Group.N
                 obj.hItems{i}.PositionY = obj.OriginalPosition{i}(2) + v;
             end
         end

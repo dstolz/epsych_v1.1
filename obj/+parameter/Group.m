@@ -1,7 +1,7 @@
-classdef ItemGroup < handle
+classdef Group < handle
 
     properties
-        Items (1,:) parameter.Item
+        Items (1,:) parameter.Parameter
     end
 
     properties (Dependent)
@@ -15,7 +15,7 @@ classdef ItemGroup < handle
     end
     
     methods
-        function obj = ItemGroup(Items)
+        function obj = Group(Items)
             if nargin == 0, return; end
             
             obj.Items = Items;
@@ -46,7 +46,7 @@ classdef ItemGroup < handle
             upnames = unique(pnames);
             ok = arrayfun(@(a) test_pair_length(obj,a),upnames);
             if ~all(ok)
-                fprintf(2,'epsych.ItemGroup:get.Compiled:InvalidPairLength\n%s\n', ...
+                fprintf(2,'epsych.Group:get.Compiled:InvalidPairLength\n%s\n', ...
                     'Paired Items must evaluate to the same lengths')
                 return
             end
@@ -82,8 +82,8 @@ classdef ItemGroup < handle
     methods (Access = private)
         function test_unique_names(obj)
             tf = length(unique(obj.Names)) == obj.N;
-            assert(tf,'epsych.ItemGroup:test_unique_names:NonUniqueNames', ...
-                'All Parameter names in the ItemGroup must be unique');
+            assert(tf,'epsych.Group:test_unique_names:NonUniqueNames', ...
+                'All Parameter names in the Group must be unique');
         end
     end
 

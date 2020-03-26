@@ -1,11 +1,11 @@
-classdef (ConstructOnLoad) ParameterData < event.EventData
+classdef (ConstructOnLoad) evParameterData < event.EventData
    properties
         Data
         BoxID
    end
    
    methods
-      function data = ParameterData(BoxID,Data)
+      function data = evParameterData(BoxID,Data)
          data.Data  = Data;
          data.BoxID = BoxID;
       end

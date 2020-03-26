@@ -1,4 +1,9 @@
 classdef RuntimeControl < handle
+    
+    properties
+        
+    end
+
     properties (Access = protected)
         StateLabel   matlab.ui.control.Label
         StateLamp    matlab.ui.control.Lamp
@@ -26,11 +31,31 @@ classdef RuntimeControl < handle
             if nargout == 0, clear obj; end
         end
         
-        function update_state(obj)
+        function update_state(obj,btn)
             global RUNTIME
 
-            % TODO: Connector has not yet been developed.
-            RUNTIME = epsych.Runtime(Connector);
+            switch btn
+                case 'Run|Halt'
+                    switch RUNTIME.State
+                        case epsych.State.Prep
+                            RUNTIME.State = epsych.State.Run;
+
+                        case [epsych.State.Run, epsych.State.Preview]
+                            RUNTIME.State = epsych.State.Halt;
+
+                        case epsych.State.Halt
+                            RUNTIME.State = epsych.State.Run;
+                    end
+
+                case 'Pause'
+                    switch RUNTIME.State
+                        case epsych.State.Pause
+                            RUNTIME.State = epsych.State.Resume;
+
+                        case [epsych.State.Run, epsych.State.Preview]
+                            RUNTIME.State = epsych.State.Pause;
+                    end
+            end
             
         end
         

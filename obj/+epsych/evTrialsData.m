@@ -1,4 +1,4 @@
-classdef (ConstructOnLoad) TrialsData < event.EventData
+classdef (ConstructOnLoad) evTrialsData < event.EventData
    properties
       Data
       Subject
@@ -6,7 +6,7 @@ classdef (ConstructOnLoad) TrialsData < event.EventData
    end
    
    methods
-      function data = TrialsData(trials)
+      function data = evTrialsData(trials)
          data.Data    = trials;
          data.Subject = trials.Subject;
          data.BoxID   = trials.BoxID;

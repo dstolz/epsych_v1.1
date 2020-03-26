@@ -6,7 +6,7 @@ classdef UIControl < handle & matlab.mixin.SetGet
         LabelString     (1,:) char
         LabelPosition   (1,:) char {mustBeMember(LabelPosition,{'left','right','above','below','none'})} = 'left';
 
-        Parameter       (1,1) parameter.Item
+        Parameter       (1,1) parameter.Parameter
         
         Position        (1,4) double {mustBeFinite,mustBeNonNan}
         

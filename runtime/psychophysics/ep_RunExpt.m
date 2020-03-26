@@ -253,7 +253,7 @@ end
 
 % Notify anyone who's listening that there was a program state change
 for i = 1:length(RUNTIME.HELPER)
-    ev = epsych.ProgramState(COMMAND);
+    ev = epsych.evProgramState(COMMAND);
     RUNTIME.HELPER(i).notify('StateUpdated',ev)
 end
 

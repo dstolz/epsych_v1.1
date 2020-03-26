@@ -1,6 +1,11 @@
 classdef Info < handle
     % class contains general inormation for the EPsych software
     
+    properties
+        LogDirectory  (1,:) char
+        UserDirectory (1,:) char
+    end
+
     properties (SetAccess = private)
         iconPath
         chksum
@@ -9,25 +14,24 @@ classdef Info < handle
     end
     
     properties (Constant)
-        Version  = '1.1';
-        DataVersion = '1.1';        
-        Author = 'Daniel Stolzberg';
+        Version     = '2.0';
+        DataVersion = '1.0';        
+        Author      = 'Daniel Stolzberg';
         AuthorEmail = 'daniel.stolzberg@gmail.com';
-        License = 'GNU General Public License v3.0';
-        
+        License     = 'GNU General Public License v3.0';
     end
     
     methods
         % Constructor
-        function obj = EPsychInfo()
-            
+        function obj = Info()
+
         end
         
         
         function m = get.meta(obj)
             m.Author      = obj.Author;
             m.AuthorEmail = obj.AuthorEmail;
-            m.Copyright   = 'Copyright to Daniel Stolzberg, 2019';
+            m.Copyright   = 'Copyright to Daniel Stolzberg, 2020';
             m.License     = obj.License;
             m.Version     = obj.Version;
             m.DataVersion = obj.DataVersion;
@@ -43,15 +47,11 @@ classdef Info < handle
         
             
         function chksum = get.chksum(obj)
-                        
             chksum = nan;
-            
+
             fid = fopen(fullfile(obj.root,'.git','logs','HEAD'),'r');
-            
             if fid < 3, return; end
-            
             while ~feof(fid), g = fgetl(fid); end
-            
             fclose(fid);
             
             a = find(g==' ');
@@ -86,8 +86,23 @@ classdef Info < handle
             end
             img(img == 0) = nan;
         end
+
+        function d = get.LogDirectory(obj)
+            if isempty(obj.LogDirectory)
+                obj.LogDirectory = fullfile(obj.UserDirectory,'EPsych Logs');
+            end
+            d = obj.LogDirectory;
+        end
+
         
-    end
+        function d = get.UserDirectory(obj)
+            if isempty(obj.UserDirectory)
+                obj.UserDirectory = char(java.lang.System.getProperty('user.home'));
+            end
+            d = obj.UserDirectory;
+        end
+        
+    end % methods (public)
     
     methods (Static)
         function r = root
@@ -113,7 +128,6 @@ classdef Info < handle
             s = sprintf('File last modifed on %s at %s', ...
                 datestr(datens,'ddd, mmm dd, yyyy'),datestr(datens,'HH:MM PM'));
         end
-        
         
     end
     

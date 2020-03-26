@@ -41,7 +41,7 @@ for i = 1:RUNTIME.NSubjects
         
         
         % Broadcast event data has been updated
-        evtdata = epsych.TrialsData(RUNTIME.TRIALS(i));
+        evtdata = epsych.evTrialsData(RUNTIME.TRIALS(i));
         RUNTIME.HELPER(RUNTIME.TRIALS(i).BoxID).notify('NewData',evtdata);
         
         
@@ -144,7 +144,7 @@ for i = 1:RUNTIME.NSubjects
     
 
     % Broadcast event data has been updated
-    evtdata = epsych.TrialsData(RUNTIME.TRIALS(i));
+    evtdata = epsych.evTrialsData(RUNTIME.TRIALS(i));
     RUNTIME.HELPER(RUNTIME.TRIALS(i).BoxID).notify('NewTrial',evtdata);
     
 

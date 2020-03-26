@@ -1,12 +1,22 @@
 classdef Runtime < handle & dynamicprops
     
     properties
-        
+        Subject     (:,1) epsych.Subject
+        DataDir     (1,:) char
+    end
+
+    properties (Access = protected)
+        Log    (1,1) Log
+
+        % TODO: Default timer functions need to be revamped for new object format
+        StartFcn = @ep_TimerFcn_Start;
+        TimerFcn = @ep_TimerFcn_RunTime;
+        StopFcn  = @ep_TimerFcn_Stop;
+        ErrorFcn = @ep_TimerFcn_Error;
     end
     
-    
     properties (Dependent)
-        
+        nSubjects
     end
     
     properties (Transient)
@@ -15,38 +25,90 @@ classdef Runtime < handle & dynamicprops
     end
     
     properties (SetAccess = immutable)
-        Connector   % wrapper class for ex: TDT RPvds ActiveX control
+        Hardware   % wrapper class for ex: TDT RPvds ActiveX control
+        Info % epsych.Info
     end
     
     events
-        StateChange
+        PreStateChange
+        PostStateChange
     end
     
     methods
-        function obj = Runtime(Connector,varargin)
-            obj.Connector = Connector;
-           
+        function obj = Runtime(Hardware,varargin)
+            fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
+            obj.Log = log.Log(fullfile(obj.Info.LogDirectory,fn));
+
+            obj.Hardware = Hardware;
+            obj.Info = epsych.Info;
+
+
+            % elevate Matlab.exe process to a high priority in Windows
+            pid = feature('getpid');
+            [~,~] = dos(sprintf('wmic process where processid=%d CALL setpriority 128',pid));
         end
-        
+                
+        % Destructor
+        function delete(obj)
+            delete(obj.Log);
+            
+            try
+                stop(obj.Timer);
+                delete(obj.Timer);
+            end
+
+            % be nice and return Matlab.exe process to normal priority in Windows
+            pid = feature('getpid');
+            [~,~] = dos(sprintf('wmic process where processid=%d CALL setpriority 32',pid));
+        end
+
+
+
+
+
+
+
+
+        % TIMER FUNCTIONS -----------------------------------------------------------------
+        function call_StartFcn(obj,varargin)            
+            obj.Log.write(log.Verbosity.Debug,'Calling Runtime.StartFcn: "%s"',func2str(obj.StartFcn));
+
+            feval(obj.StartFcn,obj)
+        end
+
         function call_TimerFcn(obj,varargin)
-            
-        end
-        
-        function call_StartFcn(obj,varargin)
-            
+            obj.Log.write(log.Verbosity.Debug,'Calling Runtime.TimerFcn: "%s"',func2str(obj.TimerFcn));
+
+            feval(obj.TimerFcn,obj)
         end
         
         function call_StopFcn(obj,varargin)
-            
+            % timer is stopped on pause and started again on resume
+            if obj.State == epsych.State.Pause, return; end
+
+            obj.Log.write(log.Verbosity.Debug,'Calling Runtime.StopFcn: "%s"',func2str(obj.StopFcn));
+
+            feval(obj.StopFcn,obj)
         end
         
         function call_ErrorFcn(obj,varargin)
-            
+            obj.Log.write(log.Verbosity.Debug,'Calling Runtime.ErrorFcn: "%s"',func2str(obj.ErrorFcn));
+
+            feval(obj.ErrorFcn,obj)
         end
         
+
+
+
+
         
         function set.State(obj,newState)
             timestamp = now;
+
+            prevState = obj.State;
+
+            ev = epsych.evProgramState(newState,prevState,timestamp);
+            notify(obj,'PreStateChange',ev);
             
             switch newState
                 case epsych.State.Prep
@@ -54,36 +116,56 @@ classdef Runtime < handle & dynamicprops
                     
                     
                 case [epsych.State.Run, epsych.State.Preview]
-                    obj.Connector.initialize;
+                    obj.Log.write(log.Verbosity.Debug,'Initializing Hardware')
+                    obj.Hardware.initialize;
 
-                    obj.Connector.prepare;
+                    obj.Log.write(log.Verbosity.Debug,'Preparing Hardware')
+                    obj.Hardware.prepare;
 
+                    obj.Log.write(log.Verbosity.Debug,'Creating Runtime Timer')
                     obj.create_timer;
 
                     start(obj.Timer);
                     
-                    
+                
                 case epsych.State.Halt
                     stop(obj.Timer);
                     
                     
                 case epsych.State.Pause
-                    
+                    stop(obj.Timer);
+
+                case epsych.State.Resume
+                    start(obj.Timer);
                     
                 case epsych.State.Error
             end
             
-            prevState = obj.State;
             obj.State = newState;
             
-            ev = epsych.ProgramState(newState,prevState,timestamp);
-            notify(obj,'StateChange',ev);
-        end
+            ev = epsych.evProgramState(newState,prevState,timestamp);
+            notify(obj,'PostStateChange',ev);
+
+            obj.Log.write(log.Verbosity.Debug,'Runtime.State updated from "%s" to "%s"',prevState,newState);
+        end % set.State
         
         
-        
+        function d = get.DataDir(obj)
+            if isempty(obj.DataDir)
+                obj.DataDir = fullfile(fileparts(obj.Info.root),'DATA');
+            end
+            if ~isfolder(obj.DataDir), mkdir(RUNTIME.DataDir); end
+            d = obj.DataDir;
+        end % get.DataDir
                 
-    end
+        function n = get.nSubjects(obj)
+            n = length(obj.Subject);
+        end
+    end % methods (Access = public)
+
+
+
+
     
     methods (Access = protected)
         function create_timer(obj)
@@ -104,13 +186,13 @@ classdef Runtime < handle & dynamicprops
             
             obj.Timer = T;
         end
-    end
+    end % methods (Access = protected)
    
     methods (Static)
         function obj = loadobj(s)
             
         end
-    end
+    end % methods (Static)
     
 end
     

@@ -1,4 +1,4 @@
-function create(obj,parent)
+function create(obj,parent) % interface.SubjectSetup
 
 if isa(parent,'matlab.ui.Figure')
     % Create parent

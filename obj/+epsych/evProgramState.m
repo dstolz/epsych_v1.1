@@ -1,4 +1,4 @@
-classdef (ConstructOnLoad) ProgramState < event.EventData
+classdef (ConstructOnLoad) evProgramState < event.EventData
    properties
         State           (1,1) epsych.State
         previousState   (1,1) epsych.State
@@ -7,7 +7,7 @@ classdef (ConstructOnLoad) ProgramState < event.EventData
    end
    
    methods
-      function data = ProgramState(State,prevState,Timestamp,MException)
+      function data = evProgramState(State,prevState,Timestamp,MException)
          narginchk(1,3)
          data.State = State;
          

@@ -1,20 +1,33 @@
-classdef TDTActiveX < connector.Connector
+classdef TDTActiveX < hardware.Hardware
 
+    properties (Constant)
+        Name         = 'TDTActiveX';
+        Type         = 'COM.RPco_x';
+        Description  = 'Standalone TDT ActiveX controls';
+    end
+
+    
+    properties (SetAccess = private)
+        handle       % handle to ActiveX or SDK or whatever
+    end
+    
     properties
-        Name (1,:) char = 'TDTActiveX';
-        Type (1,:) char = 'COM.RPco_x';
-        Description (1,:) char = 'Standalone TDT ActiveX controls';
-        State (1,1) epsych.State = epsych.State.Prep;
+        State          (1,1) epsych.State = epsych.State.Prep;
+
+        Parameters
 
         ConnectionType (1,:) char {mustBeMember(ConnectionType,{'GB','USB'})} = 'GB';
-        Module         (:,1) cell {mustBeMember(Module,{'Undefined','RP2','RA16','RL2','RV8','RX5','RX6','RX7','RX8','RZ2','RZ5','RZ6','RM1','RM2'})} = 'Undefined';
-        ModuleID       (:,1) double {mustBePositive,mustBeInteger} = 1;
+        ModuleAlias    (1,:) char
+        Module         (1,:) char {mustBeMember(Module,{'Undefined','RP2','RA16','RL2','RV8','RX5','RX6','RX7','RX8','RZ2','RZ5','RZ6','RM1','RM2'})} = 'Undefined';
+        ModuleID       (1,1) double {mustBePositive,mustBeInteger} = 1;
         RPvdsFile      (1,:) char
-        Fs             (1,1) double {mustBeInteger} = -1; % -1 : not specified
+        Fs             (1,1) double {mustBePositive,mustBeFinite} = 24414.0625; % Hz
     end
+
 
     properties (Dependent)
         Status
+        FsInt
     end
 
     properties (Access = private)
@@ -22,9 +35,13 @@ classdef TDTActiveX < connector.Connector
     end
 
     methods
+        write(obj,parameter,value);
+        v = read(obj,parameter);
+        e = trigger(obj,parameter);
+
         function obj = TDTActiveX
             % call superclass constructor
-            obj = obj@connector.Connector;
+            obj = obj@hardware.Hardware;
         end
 
         function set.State(obj,newState)
@@ -33,10 +50,13 @@ classdef TDTActiveX < connector.Connector
                     obj.prepare;
 
                 case {'Run','Preview'}
-                    obj.
+                    obj.run;
+                    
                 case 'Pause'
-
+                    % nothing to do here
+                    
                 case 'Halt'
+                    obj.stop;
 
             end
             obj.State = newState;
@@ -76,7 +96,7 @@ classdef TDTActiveX < connector.Connector
                 return
             end
             
-            if obj.Status == connector.Status.Running
+            if obj.Status == hardware.Status.Running
                 fprintf('RPco.X already connected, loaded, and running.\n')
                 return
             end
@@ -139,6 +159,13 @@ classdef TDTActiveX < connector.Connector
             end
         end
         
+        function stop(obj)
+            for i = 1:length(obj.handle)
+                obj.handle(i).Halt;
+            end
+            obj.cleanup;
+        end
+        
         function cleanup(obj)
             delete(obj.handle);
             h = findobj('Name','RPfig');
@@ -147,19 +174,29 @@ classdef TDTActiveX < connector.Connector
 
         function status = get.Status(obj)
             if isa(obj.handle,obj.Type)
-                rpstatus = double(obj.handle.GetStatus);
-                if bitget(rpstatus,3)
-                    status = connector.Status.Running;
+                for i = 1:length(obj.handle)
+                    rpstatus = obj.handle(i).GetStatus;
+                    if rpstatus == 7
+                        status = hardware.Status.Running;
 
-                elseif isempty(obj.RPvdsFile)
-                    status = connector.Status.InPrep;
+                    elseif rpstatus == 3
+                        status = hardware.Status.Ready;
+                        return
 
-                else
-                    status = connector.Status.Ready;
+                    else
+                        status = hardware.Status.InPrep;
+                        return
+                    end
                 end
             else
-                status = connector.Status.Error;
+                status = hardware.Status.Error;
             end
+        end % get.Status
+
+        function i = get.FsInt(obj)
+            mfs = 390625;
+            fs = mfs ./ 2.^(0:6);
+            i = obj.Fs == fs;
         end
     end
 end

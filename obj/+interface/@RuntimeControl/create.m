@@ -33,7 +33,7 @@ obj.RunButton.FontSize = 16;
 obj.RunButton.FontWeight = 'bold';
 obj.RunButton.Enable = 'off';
 obj.RunButton.Text = 'Run';
-obj.RunButton.ButtonPushedFcn = {@obj.update_state,'Run'};
+obj.RunButton.ButtonPushedFcn = {@obj.update_state,'Run|Halt'};
 
 % Create PauseButton
 obj.PauseButton = uibutton(g, 'push');

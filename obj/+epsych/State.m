@@ -5,7 +5,8 @@ classdef State < int8
         Run     (1)
         Preview (2)
         Pause   (3)
-        Halt    (4)
+        Resume  (4)
+        Halt    (5)
     end
     
 end
