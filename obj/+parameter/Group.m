@@ -1,7 +1,7 @@
 classdef Group < handle
 
     properties
-        Items (1,:) parameter.Parameter
+        Parameters (1,:) parameter.Parameter
     end
 
     properties (Dependent)
@@ -15,25 +15,25 @@ classdef Group < handle
     end
     
     methods
-        function obj = Group(Items)
+        function obj = Group(Parameters)
             if nargin == 0, return; end
             
-            obj.Items = Items;
+            obj.Parameters = Parameters;
             
             obj.test_unique_names;
         end
         
         
         function n = get.N(obj)
-            n = length(obj.Items);
+            n = length(obj.Parameters);
         end
         
         function n = get.Names(obj)
-            n = {obj.Items.Name};
+            n = {obj.Parameters.Name};
         end
         
         function n = get.PairNames(obj)
-            n = {obj.Items.PairName};
+            n = {obj.Parameters.PairName};
         end
         
         function tf = get.isPaired(obj)
@@ -47,14 +47,14 @@ classdef Group < handle
             ok = arrayfun(@(a) test_pair_length(obj,a),upnames);
             if ~all(ok)
                 fprintf(2,'epsych.Group:get.Compiled:InvalidPairLength\n%s\n', ...
-                    'Paired Items must evaluate to the same lengths')
+                    'Paired Parameters must evaluate to the same lengths')
                 return
             end
             
             % how many permutations do we have?
-            x = [obj.Items(arrayfun(@(a) find(ismember(pnames,a),1),upnames)).N];
+            x = [obj.Parameters(arrayfun(@(a) find(ismember(pnames,a),1),upnames)).N];
             nP = prod(x);
-            nNP = prod([obj.Items(~obj.isPaired).N]);
+            nNP = prod([obj.Parameters(~obj.isPaired).N]);
             
             nT = nP*nNP;
             
@@ -68,14 +68,14 @@ classdef Group < handle
         
         function ok = test_pair_length(obj,idx)
             ind = ismember(obj.PairNames,idx);
-            n = [obj.Items(ind).N];
+            n = [obj.Parameters(ind).N];
             ok = all(n == n(1));
         end
         
         function p = getPair(obj,idx)
-            pn = {obj.Items.PairName};
+            pn = {obj.Parameters.PairName};
             ind = ismember(pn,idx);
-            p = obj.Items(ind);
+            p = obj.Parameters(ind);
         end
     end
     
