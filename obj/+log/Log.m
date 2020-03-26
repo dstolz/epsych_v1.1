@@ -44,7 +44,7 @@ classdef Log < handle
 
         % Destructor
         function delete(obj)
-            obj.write('Log Closed')
+            obj.write(true,'Log Closed')
             try
                 fclose(obj.fid);
             end

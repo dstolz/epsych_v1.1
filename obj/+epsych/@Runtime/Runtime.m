@@ -3,6 +3,8 @@ classdef Runtime < handle & dynamicprops
     properties
         Subject     (:,1) epsych.Subject
         DataDir     (1,:) char
+
+        ErrorMException (:,1) MException
     end
 
     properties (Access = protected)
@@ -106,42 +108,52 @@ classdef Runtime < handle & dynamicprops
             timestamp = now;
 
             prevState = obj.State;
+            obj.State = newState;
 
             ev = epsych.evProgramState(newState,prevState,timestamp);
             notify(obj,'PreStateChange',ev);
             
-            switch newState
-                case epsych.State.Prep
-                    
-                    
-                    
-                case [epsych.State.Run, epsych.State.Preview]
-                    obj.Log.write(log.Verbosity.Debug,'Initializing Hardware')
-                    obj.Hardware.initialize;
+            try
 
-                    obj.Log.write(log.Verbosity.Debug,'Preparing Hardware')
-                    obj.Hardware.prepare;
+                switch newState
+                    case epsych.State.Prep
+                        
+                        
+                        
+                    case [epsych.State.Run, epsych.State.Preview]
+                        obj.Log.write(log.Verbosity.Debug,'Initializing Hardware')
+                        obj.Hardware.initialize;
 
-                    obj.Log.write(log.Verbosity.Debug,'Creating Runtime Timer')
-                    obj.create_timer;
+                        obj.Log.write(log.Verbosity.Debug,'Preparing Hardware')
+                        obj.Hardware.prepare;
 
-                    start(obj.Timer);
-                    
-                
-                case epsych.State.Halt
-                    stop(obj.Timer);
-                    
-                    
-                case epsych.State.Pause
-                    stop(obj.Timer);
+                        obj.Log.write(log.Verbosity.Debug,'Creating Runtime Timer')
+                        obj.create_timer;
 
-                case epsych.State.Resume
-                    start(obj.Timer);
+                        start(obj.Timer);
+                        
                     
-                case epsych.State.Error
-            end
+                    case epsych.State.Halt
+                        stop(obj.Timer);
+                        
+                        
+                    case epsych.State.Pause
+                        stop(obj.Timer);
+
+                    case epsych.State.Resume
+                        start(obj.Timer);
+                        
+                    case epsych.State.Error
+                        stop(obj.Timer);
+                        rethrow(obj.ErrorMException);
+                end
             
-            obj.State = newState;
+            catch me
+                obj.Log.write(me);
+                obj.ErrorMException = me;
+                obj.State = epsych.State.Error;
+                return
+            end
             
             ev = epsych.evProgramState(newState,prevState,timestamp);
             notify(obj,'PostStateChange',ev);
