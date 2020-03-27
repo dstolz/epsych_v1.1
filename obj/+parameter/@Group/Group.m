@@ -12,6 +12,7 @@ classdef Group < handle
         PairNames
         
         isPaired
+        isRange
     end
     
     methods
@@ -37,33 +38,18 @@ classdef Group < handle
         end
         
         function tf = get.isPaired(obj)
-            tf = ~cellfun(@isempty,obj.PairNames);
+            tf = [obj.Parameters.isPaired];
         end
         
-        function c = get.Compiled(obj)
-            c = {};
-            pnames  = obj.PairNames;
-            upnames = unique(pnames);
-            ok = arrayfun(@(a) test_pair_length(obj,a),upnames);
-            if ~all(ok)
-                fprintf(2,'epsych.Group:get.Compiled:InvalidPairLength\n%s\n', ...
-                    'Paired Parameters must evaluate to the same lengths')
-                return
+        function tf = get.isRange(obj)
+            tf = [obj.Parameters.isRange];
+        end
+        
+        function s = get.Compiled(obj)
+            
+            for i = 1:obj.N
+                [s,f] = obj.add_trial(obj.Parameters(i));
             end
-            
-            % how many permutations do we have?
-            x = [obj.Parameters(arrayfun(@(a) find(ismember(pnames,a),1),upnames)).N];
-            nP = prod(x);
-            nNP = prod([obj.Parameters(~obj.isPaired).N]);
-            
-            nT = nP*nNP;
-            
-            for i = 1:length(upnames)
-                ind = ismember(pnames,upnames{i});
-                
-            end
-            
-            
         end
         
         function ok = test_pair_length(obj,idx)
@@ -77,7 +63,7 @@ classdef Group < handle
             ind = ismember(pn,idx);
             p = obj.Parameters(ind);
         end
-    end
+    end % methods
     
     methods (Access = private)
         function test_unique_names(obj)
@@ -85,6 +71,10 @@ classdef Group < handle
             assert(tf,'epsych.Group:test_unique_names:NonUniqueNames', ...
                 'All Parameter names in the Group must be unique');
         end
-    end
+    end % methods (Access = private)
+
+    methods (Static)
+        [schedule,fail] = add_trial(schedule,parameter,varargin);
+    end % methods (Static)
 
 end

@@ -25,6 +25,7 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     properties (Dependent)
         N
         ValuesStr
+        isPaired        (1,1) logical
     end
     
     methods
@@ -155,12 +156,10 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             obj.Select = 'custom';
         end
         
-        function tf = get.isBuffer(obj)
-            tf = numel(obj.Value) > 1;
+        
+        function p = get.isPaired(obj)
+            p = ~isempty(obj.PairName);
         end
-        
-        
-        
     end
 
     
