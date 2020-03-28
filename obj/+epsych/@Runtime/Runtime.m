@@ -1,7 +1,8 @@
 classdef Runtime < handle & dynamicprops
     
     properties
-        Subject     (:,1) epsych.Subject
+        Subject     (:,1) epsych.Subject % one for each concurrently running subject
+
         DataDir     (1,:) char
 
         ErrorMException (:,1) MException
@@ -17,6 +18,7 @@ classdef Runtime < handle & dynamicprops
         ErrorFcn = @ep_TimerFcn_Error;
     end
     
+
     properties (Dependent)
         nSubjects
     end
@@ -63,10 +65,6 @@ classdef Runtime < handle & dynamicprops
             pid = feature('getpid');
             [~,~] = dos(sprintf('wmic process where processid=%d CALL setpriority 32',pid));
         end
-
-
-
-
 
 
 

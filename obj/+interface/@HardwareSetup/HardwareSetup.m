@@ -1,6 +1,10 @@
 classdef HardwareSetup < handle
 
-    properties
+    properties (SetAccess = protected)
+        HWInterface
+    end
+
+    properties (Access = protected)
         ConnectorDropDown    matlab.ui.control.DropDown
         ConnectorLabel       matlab.ui.control.Label
         HWSpecificPanel      matlab.ui.container.Panel
@@ -28,13 +32,20 @@ classdef HardwareSetup < handle
             i = ismember(c,p);
             hObj.Items = c;
             hObj.Value = c{i};
+
+            obj.HWInterface = c{i};
         end
         
-        function value_changed(obj,hObj,ev)
-            v = hObj.Value;
-            setpref('interface_ConnectorSetup','dfltConnector',v);
-
-            % TODO: call connector to setup HWSpecificPanel
+        function set.HWInterface(obj,c)
+            try
+                delete(obj.HWInterface);
+            end
+            
+            % instantiate hardware object
+            obj.HWInterface = hardware.(c);
+            obj.HWInterface.setup(obj.HWSpecificPanel);
+            
+            setpref('interface_ConnectorSetup','dfltConnector',c);
         end
     end
 

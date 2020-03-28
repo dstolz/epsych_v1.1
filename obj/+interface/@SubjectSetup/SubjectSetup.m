@@ -1,5 +1,9 @@
 classdef SubjectSetup < handle
 
+    properties
+        SubjectObj 
+    end
+
     % Properties that correspond to obj components
     properties (Access = protected)
         SubjectTable          matlab.ui.control.Table
@@ -28,7 +32,6 @@ classdef SubjectSetup < handle
         end
 
         function delete(obj)
-
             delete(obj.parent)
         end
         

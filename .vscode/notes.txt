@@ -1,0 +1,9 @@
+Require definition
+hardware.Hardware
+    interface
+    prepare
+    run
+    stop
+    write
+    read
+    trigger

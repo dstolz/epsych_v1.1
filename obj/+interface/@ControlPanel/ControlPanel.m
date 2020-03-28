@@ -11,7 +11,7 @@ classdef ControlPanel < handle
         
         RuntimeControlObj       % interface.RuntimeControl
         SubjectSetupObj         % interface.SubjectSetup
-        ConnectorSetupObj       % interface.HardwareSetup
+        HardwareSetupObj        % interface.HardwareSetup
         CustomizationSetupObj   % interface.CustomizationSetup
     end
     
@@ -27,6 +27,19 @@ classdef ControlPanel < handle
                 figure(f);
             end
         end
+
+        
+
+
+        function collect_config(obj)
+            % collect Hardware config
+
+            % collect Customized functionality
+
+            % collect Subject data
+
+        end
+
     end
     
     methods (Access = private)
