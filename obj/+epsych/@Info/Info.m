@@ -91,6 +91,7 @@ classdef Info < handle
             if isempty(obj.LogDirectory)
                 obj.LogDirectory = fullfile(obj.UserDirectory,'EPsych Logs');
             end
+            if ~isfolder(obj.LogDirectory), mkdir(obj.LogDirectory); end
             d = obj.LogDirectory;
         end
 

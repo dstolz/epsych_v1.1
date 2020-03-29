@@ -1,8 +1,11 @@
 function create(obj,parent)
+global RUNTIME % for setting up the Log tab
+
 if nargin == 1 || isempty(parent)
     % Create UIFigure
     obj.parent = uifigure;
     obj.parent.Position = [100 100 700 350];
+    obj.parent.CloseRequestFcn = @obj.closereq;
     obj.parent.Name = 'EPsych Control Panel';
 end
 
@@ -31,10 +34,10 @@ obj.CustomizationTab.Title = 'Customization';
 obj.CustomizationTab.Scrollable = 'on';
 obj.CustomizationSetupObj = interface.CustomizationSetup(obj.CustomizationTab);
 
-
 % Create LogTab
 obj.LogTab = uitab(obj.TabGroup);
 obj.LogTab.Title = 'Log';
+RUNTIME.Log.create_gui(obj.LogTab);
 
 % Create RuntimePanel
 obj.RuntimePanel = uipanel(g);

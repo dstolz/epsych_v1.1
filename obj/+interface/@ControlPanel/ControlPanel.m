@@ -9,10 +9,6 @@ classdef ControlPanel < handle
         LogTab           matlab.ui.container.Tab
 
         RuntimePanel     matlab.ui.container.Panel
-
-        LogTextArea      matlab.ui.control.TextArea
-        LogFilenameLabel matlab.ui.control.Label
-        LogVerbosityDropDown matlab.ui.control.DropDown
         
         RuntimeControlObj       % interface.RuntimeControl
         SubjectSetupObj         % interface.SubjectSetup
@@ -26,21 +22,20 @@ classdef ControlPanel < handle
             global RUNTIME
             
             if nargin == 0, parent = []; end
+                
+            % INITIALIZE RUNTIME OBJECT
+            if isempty(RUNTIME) || ~isvalid(RUNTIME)
+                RUNTIME = epsych.Runtime;
+            end
 
-            % permit one instance
-            f = findall(0,'Tag','EPsychControlPanel');
+            % permit only one instance at a time
+            f = epsych.Tool.find_epsych_controlpanel;
             if isempty(f)
                 obj.create(parent);
-                obj.parent.Tag = 'EPsychControlPanel';
-                
-                % INITIALIZE RUNTIME OBJECT
-                RUNTIME = epsych.Runtime;
-                
-                RUNTIME.Log.create_gui();
+                set(ancestor(obj.parent,'figure'),'Tag','EPsychControlPanel'); % required         
             else
                 figure(f);
             end
-
             
         end
 
@@ -48,14 +43,25 @@ classdef ControlPanel < handle
         function delete(obj)
             global RUNTIME
 
+            RUNTIME.Log.write(log.Verbosity.Important,'ControlPanel closing.')
+            drawnow
+            delete(RUNTIME.Log);
+        end
+
+        function closereq(obj,hObj,event)
+            global RUNTIME
+
+            RUNTIME.Log.write(log.Verbosity.Important,'ControlPanel close requested.')
+
             if ~any(RUNTIME.State == [epsych.State.Halt, epsych.State.Prep])
                 uialert(ancestor(obj.parent,'figure'),'Close', ...
                     'Please Halt the experiment before closing the Control Panel.');
                 return
             end
 
+            delete(obj.parent);
+            delete(obj);
         end
-
         
 
 

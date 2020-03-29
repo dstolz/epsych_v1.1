@@ -174,6 +174,7 @@ classdef Runtime < handle & dynamicprops
         function n = get.nSubjects(obj)
             n = length(obj.Subject);
         end
+        
     end % methods (Access = public)
 
 

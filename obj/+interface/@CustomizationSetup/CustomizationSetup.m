@@ -1,6 +1,7 @@
 classdef CustomizationSetup < handle
 
     properties
+        LogDirectory    (1,:) char = '< default >';
         UserInterface   (1,:) char = 'ep_GenericGUI';
         StartFcn        (1,:) char = 'ep_TimerFcn_Stop';
         TimerFcn        (1,:) char = 'ep_TimerFcn_RunTime';
@@ -27,6 +28,35 @@ classdef CustomizationSetup < handle
         function update_field(obj,hObj,event)
             obj.(hObj.Tag) = obj.check_function(event);
             hObj.Value = obj.(hObj.Tag);
+        end
+
+        function create_log_field(obj,hObj,event)
+            global RUNTIME
+            hObj.Value = RUNTIME.Info.LogDirectory;
+        end
+
+        function update_log_directory(obj,hObj,event)
+            if ~isfolder(event.Value)
+                uialert(ancestor(obj.parent,'figure'), ...
+                    sprintf('Directory does not exist: "%s"',event.Value), ...
+                    'Invalid Directory', ...
+                    'Icon','Warning');
+                hObj.Value = event.PreviousValue;
+            end
+            obj.LogDirectory = event.Value;
+        end
+
+        function locate_log_directory(obj,hObj,event)
+            global RUNTIME
+            d = uigetdir(RUNTIME.Info.LogDirectory,'Choose Log Directory');
+            if isequal(d,0), return; end
+            obj.LogDirectory = d;
+            epsych.Tool.restart_required(obj.parent);
+        end
+
+        function set.LogDirectory(obj,d)
+            global RUNTIME
+            RUNTIME.Info.LogDirectory = d;
         end
 
         function set.UserInterface(obj,s)

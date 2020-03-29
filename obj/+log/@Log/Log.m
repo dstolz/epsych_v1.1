@@ -1,19 +1,19 @@
 classdef Log < handle
-% L = log.Log([logFilename]);
-%
-% Verbosity controlled message logging.
-%
-% L.write('message'); % always print to screen and log
-% L.write(Verbosity,'message'); % print to screen and log if Verbosity is >= current obj.Verbosity (log.Verbosity)
-% L.write([Verbosity],'message %d of %d',1,10); % sprintf syntax
-% L.write([alwaysLog],[Verbosity],'message',....)
-% L.write([alwaysLog],[Verbosity],Structure) % limited, does not print name of structure variable
-% L.write(MException)
-% L = obj.write([alwaysLog],[Verbosity],msg,...); return message
-%
-% Use log.Verbosity enumeration class to control message priority
-%
-% DJS 2020
+    % L = log.Log([logFilename]);
+    %
+    % Verbosity controlled message logging.
+    %
+    % L.write('message'); % always print to screen and log
+    % L.write(Verbosity,'message'); % print to screen and log if Verbosity is >= current obj.Verbosity (log.Verbosity)
+    % L.write([Verbosity],'message %d of %d',1,10); % sprintf syntax
+    % L.write([alwaysLog],[Verbosity],'message',....)
+    % L.write([alwaysLog],[Verbosity],Structure) % limited, does not print name of structure variable
+    % L.write(MException)
+    % L = obj.write([alwaysLog],[Verbosity],msg,...); return message
+    %
+    % Use log.Verbosity enumeration class to control message priority
+    %
+    % DJS 2020
     
     properties
         Verbosity       (1,1) log.Verbosity = log.Verbosity.Important;
@@ -24,26 +24,30 @@ classdef Log < handle
         
         LogFilename     (1,:) char
     end
-
+    
     properties (Hidden,Transient)
         fid
     end
-
+    
     
     methods
         create_gui(obj,parent);
-
+        
         % Constructor
-        function obj = Log(LogFilename)
+        function obj = Log(LogFilename,parent)
             if nargin == 0 || isempty(LogFilename)
                 LogFilename = obj.generate_LogFilename;
             end
-           
+            
             obj.LogFilename = LogFilename;
-
+            
+            if nargin == 2
+                obj.create_gui(parent);
+            end
+            
             obj.write(true,log.Verbosity.Important,'Log Initialized: %s',obj.LogFilename);
         end
-
+        
         % Destructor
         function delete(obj)
             obj.write(true,'Log Closed')
@@ -51,7 +55,7 @@ classdef Log < handle
                 fclose(obj.fid);
             end
         end
-
+        
         function set.Verbosity(obj,v)
             if ischar(v)
                 v = log.Verbosity.(v);
@@ -59,9 +63,14 @@ classdef Log < handle
                 v = log.Verbosity(int8(v));
             end
             obj.Verbosity = v;
+            
+            if ~isempty(obj.LogVerbosityDropDown) && isvalid(obj.LogVerbosityDropDown)
+                obj.LogVerbosityDropDown.Value = v;
+            end
+            
             obj.write(true,log.Verbosity.Important,'Verbosity level set to: %s (%d)',v.char,int8(v));
         end
-
+        
         function set.LogFilename(obj,ffn)
             obj.LogFilename = ffn;
             obj.fid = fopen(obj.LogFilename,'wt');
@@ -74,7 +83,7 @@ classdef Log < handle
                 obj.LogFilenameLabel.Text = obj.LogFilename;
             end
         end
-
+        
         function msg = write(obj,varargin)
             % obj.write('message'); % always print to screen and log
             % obj.write(Verbosity,'message'); % print to screen and log if Verbosity is >= current obj.Verbosity (log.Verbosity)
@@ -86,21 +95,21 @@ classdef Log < handle
             
             
             tstr = datestr(now,'HH:MM:SS.FFF');
-
+            
             msg = '';
             v = [];
             alwaysLog = false;
-
+            
             for i = 1:length(varargin)
                 if islogical(varargin{i}) % alwaysLog as logical
                     alwaysLog = varargin{i};
-
+                    
                 elseif ischar(varargin{i}) && isequal(lower(varargin{i}),'alwayslog') % alwaysLog as char
                     alwaysLog = true;
-
+                    
                 elseif isnumeric(varargin{i}) % verbosity as number or log.Verbosity enum
                     v = varargin{i};
-
+                    
                 elseif ischar(varargin{i}) % message first
                     msg = varargin{i};
                     break
@@ -109,7 +118,7 @@ classdef Log < handle
                     smsg = evalc('disp(varargin{i})');
                     msg = sprintf('Structure Fields: \n%s',smsg);
                     break
-
+                    
                 elseif isa(varargin{i},'MException') % error object - always printed and logged
                     alwaysLog = true;
                     v = log.Verbosity.Error;
@@ -140,17 +149,17 @@ classdef Log < handle
                 if nargout == 0, clear msg; end
                 return
             end
-
+            
             if isempty(v),   v = log.Verbosity.Verbose; end
             if isnumeric(v), v = log.Verbosity(v);  end
             if ischar(v),    v = log.Verbosity.(v); end
-
+            
             msg = strrep(msg,'\','\\');
-
+            
             msgTs = sprintf('%s: %s\n',tstr,msg);
-
+            
             msgLog = sprintf('%s %2d %-10s %s: %s\n',tstr,int8(v),v.char,obj.get_stack_string,msg);
-
+            
             
             noFile = obj.fid == -1;
             if ~noFile
@@ -159,23 +168,22 @@ classdef Log < handle
                     obj.fid = fopen(obj.LogFilename,'a+');
                 end
             end
-
-            if isempty(msg), v = log.Verbosity.PrintOnly; end % prints a blank line w/ timestamp, function, and line number
-
-            noEchoTextArea = isempty(obj.hEchoTextArea) || ~isa(obj.hEchoTextArea,'matlab.ui.control.TextArea') || ~isvalid(obj.hEchoTextArea);
             
+            if isempty(msg), v = log.Verbosity.PrintOnly; end % prints a blank line w/ timestamp, function, and line number
+            
+            noEchoTextArea = isempty(obj.hEchoTextArea) || ~isvalid(obj.hEchoTextArea);
             
             switch v
                 case log.Verbosity.PrintOnly
                     if ~noFile, fprintf(obj.fid,msgLog); end
-
+                    
                 case log.Verbosity.ScreenOnly
                     if noEchoTextArea
                         fprintf(msgTs)
                     else
                         obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
                     end
-
+                    
                 case log.Verbosity.Error
                     if ~noFile, fprintf(obj.fid,msgLog); end
                     if noEchoTextArea
@@ -199,7 +207,7 @@ classdef Log < handle
             end
             
             
-
+            
             if nargout == 1
                 msg = strrep(msg,'\\','\');
             else
@@ -210,7 +218,7 @@ classdef Log < handle
         
         function open(obj)
             h = actxserver('WScript.Shell');
-
+            
             try
                 try
                     h.Run(sprintf('start "%s"',obj.LogFilename));
@@ -225,41 +233,40 @@ classdef Log < handle
             clear h
         end
         
-
+        
         
         function init_log_verbosity(obj,hObj,event)
-            v = getpref('interface_ControlPanel','logVerbosity',log.Verbosity.Important);
+            v = getpref('log_Log','logVerbosity',log.Verbosity.Important);
             hObj.Items = string(log.Verbosity(1:5));
             hObj.ItemsData = log.Verbosity(1:5);
-            hObj.Value     = v;
-
+            hObj.Value    = v;
             obj.Verbosity = v;
-            
         end
-
+        
         function update_log_verbosity(obj,hObj,event)
             obj.Verbosity = event.Value;
+            setpref('log_Log','logVerbosity',event.Value);
         end
     end
     
-
-    methods (Static)       
+    
+    methods (Static)
         function fn = generate_LogFilename
             if exist('vlog','dir') ~= 7
                 mkdir('vlog');
             end
-
+            
             fn = sprintf('vlog_%s.txt',datestr(now,30));
             fn = fullfile('vlog',fn);
         end
-
+        
         function s = get_stack_string
             s = '';
             st = dbstack(2);
             if isempty(st), return; end
             s = sprintf('%s,%d',st(1).name,st(1).line);
         end
-
+        
     end
-
+    
 end

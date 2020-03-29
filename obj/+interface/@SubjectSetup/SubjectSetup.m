@@ -39,27 +39,29 @@ classdef SubjectSetup < handle
     
     methods (Access = protected)
         
-        function subject_table_edit(obj,varargin)
+        function subject_table_edit(obj,hObj,event)
             
         end
         
-        function subject_table_select(obj,varargin)
+        function subject_table_select(obj,hObj,event)
             
         end
         
-        function add_subject(obj,varargin)
+        function add_subject(obj,hObj,event)
+            global RUNTIME
+
+            RUNTIME.Log.write(log.Verbosity.Verbose,'Subject added');
+        end
+        
+        function remove_subject(obj,hObj,event)
             
         end
         
-        function remove_subject(obj,varargin)
+        function view_trials(obj,hObj,event)
             
         end
         
-        function view_trials(obj,varargin)
-            
-        end
-        
-        function edit_protocol(obj,varargin)
+        function edit_protocol(obj,hObj,event)
         end
     end
 end
