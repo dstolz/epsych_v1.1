@@ -5,10 +5,10 @@ classdef HardwareSetup < handle
     end
 
     properties (Access = protected)
-        ConnectorDropDown    matlab.ui.control.DropDown
-        ConnectorLabel       matlab.ui.control.Label
-        HardwarePanel      matlab.ui.container.Panel
-        HWDescriptionTextArea matlab.ui.control.TextArea
+        ConnectorDropDown       matlab.ui.control.DropDown
+        ConnectorLabel          matlab.ui.control.Label
+        HardwarePanel           matlab.ui.container.Panel
+        HWDescriptionTextArea   matlab.ui.control.TextArea
     end
 
     

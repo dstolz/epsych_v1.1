@@ -20,6 +20,8 @@ classdef RuntimeControl < handle
         create(obj,parent);
         
         function obj = RuntimeControl(parent,Orientation)
+            global RUNTIME
+
             narginchk(0,2)
             
             if nargin == 2, obj.Orientation = Orientation; end
@@ -27,6 +29,10 @@ classdef RuntimeControl < handle
             create(obj,parent)
             
             obj.parent = parent;
+
+            if isempty(RUNTIME)
+                RUNTIME = epsych.Runtime;
+            end
             
             if nargout == 0, clear obj; end
         end

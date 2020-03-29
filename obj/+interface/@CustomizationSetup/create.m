@@ -1,52 +1,83 @@
 function create(obj,parent) % interface.CustomizationSetup
 
-    if isa(parent,'matlab.ui.Figure')
-        % Create parent
-        parent = uipanel(parent);
-        parent.Title = 'Customization Setup';
-        parent.FontWeight = 'bold';
-        parent.FontSize = 16;
-        parent.Position = [5 4 560 225];
-    end
-    
-    g = uigridlayout(parent);
-    g.RowHeight   = {30,10,30,30,30,30};
-    g.ColumnWidth = {10,'0.3x','0.7x',10};
+if isa(parent,'matlab.ui.Figure')
+    % Create parent
+    parent = uipanel(parent);
+    parent.Title = 'Customization Setup';
+    parent.FontWeight = 'bold';
+    parent.FontSize = 16;
+    parent.Position = [5 4 560 225];
+end
 
-    i = 1;
-    lbl(i) = uilabel(g);
-    lbl(i).Layout.Row = i;
-    lbl(i).Layout.Column = 2;
-    lbl(i).Text = 'Behavior GUI';
+g  = uigridlayout(parent);
+g.ColumnWidth = {'.9x','.1x'};
+g.RowHeight = {'.9x','.1x'};
 
-    lbld = uilabel(g);
-    lbld.Layout.Row = 2;
-    lbld.Layout.Column = [2 3];
-    lbld.HorizontalAlignment = 'center';
-    lbld.Text = repmat('~',1,100);
+tg = uitabgroup(g);
+tg.TabLocation = 'left';
+tg.Layout.Column = 1;
+tg.Layout.Row = 1;
 
-    i = i+1;
-    lbl(i) = uilabel(g);
-    lbl(i).Layout.Row = i+1;
-    lbl(i).Layout.Column = 2;
-    lbl(i).Text = 'Timer: StartFcn';
+t1 = uitab(tg,'title','GUI');
+t2 = uitab(tg,'title','Timer');
 
-    i = i+1;
-    lbl(i) = uilabel(g);
-    lbl(i).Layout.Row = i+1;
-    lbl(i).Layout.Column = 2;
-    lbl(i).Text = 'Timer: TimerFcn';
+t1g = uigridlayout(t1);
+t1g.ColumnWidth = {'1x','1x'};
+t1g.RowHeight = {25};
 
-    i = i+1;
-    lbl(i) = uilabel(g);
-    lbl(i).Layout.Row = i+1;
-    lbl(i).Layout.Column = 2;
-    lbl(i).Text = 'Timer: StopFcn';
+t2g = uigridlayout(t2);
+t2g.ColumnWidth = {'1x','1x'};
+t2g.RowHeight = {25,25,25,25};
 
-    i = i+1;
-    lbl(i) = uilabel(g);
-    lbl(i).Layout.Row = i+1;
-    lbl(i).Layout.Column = 2;
-    lbl(i).Text = 'Timer: ErrorFcn';
+h = uilabel(t1g);
+h.Layout.Row = 1;
+h.Layout.Column = 1;
+h.Text = 'Behavior GUI';
 
-    set(lbl,'FontSize',14,'HorizontalAlignment','right');
+h = uieditfield(t1g,'Tag','UserInterface','CreateFcn',@obj.create_field);
+h.Layout.Row = 1;
+h.Layout.Column = 2;
+h.ValueChangedFcn = @obj.update_field;
+
+h = uilabel(t2g);
+h.Layout.Row = 1;
+h.Layout.Column = 1;
+h.Text = 'Start';
+
+h = uieditfield(t2g,'Tag','StartFcn','CreateFcn',@obj.create_field);
+h.Layout.Row = 1;
+h.Layout.Column = 2;
+h.ValueChangedFcn = @obj.update_field;
+
+h = uilabel(t2g);
+h.Layout.Row = 2;
+h.Layout.Column = 1;
+h.Text = 'Timer';
+
+h = uieditfield(t2g,'Tag','TimerFcn','CreateFcn',@obj.create_field);
+h.Layout.Row = 2;
+h.Layout.Column = 2;
+h.ValueChangedFcn = @obj.update_field;
+
+h = uilabel(t2g);
+h.Layout.Row = 3;
+h.Layout.Column = 1;
+h.Text = 'Stop';
+
+h = uieditfield(t2g,'Tag','StopFcn','CreateFcn',@obj.create_field);
+h.Layout.Row = 3;
+h.Layout.Column = 2;
+h.ValueChangedFcn = @obj.update_field;
+
+h = uilabel(t2g);
+h.Layout.Row = 4;
+h.Layout.Column = 1;
+h.Text = 'Error';
+
+h = uieditfield(t2g,'Tag','ErrorFcn','CreateFcn',@obj.create_field);
+h.Layout.Row = 4;
+h.Layout.Column = 2;
+h.ValueChangedFcn = @obj.update_field;
+
+h = findobj(parent,'Type','uilabel');
+set(h,'FontSize',14,'HorizontalAlignment','right');

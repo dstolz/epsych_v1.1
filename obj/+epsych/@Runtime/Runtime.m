@@ -1,15 +1,17 @@
 classdef Runtime < handle & dynamicprops
     
     properties
-        Subject     (:,1) epsych.Subject % one for each concurrently running subject
+        Subject         (:,1) epsych.Subject % one for each concurrently running subject
 
-        DataDir     (1,:) char
+        DataDir         (1,:) char
 
         ErrorMException (:,1) MException
+
+        Log
     end
 
     properties (Access = protected)
-        Log    (1,1) Log
+        
 
         % TODO: Default timer functions need to be revamped for new object format
         StartFcn = @ep_TimerFcn_Start;
@@ -30,7 +32,7 @@ classdef Runtime < handle & dynamicprops
     
     properties (SetAccess = immutable)
         Hardware   % wrapper class for ex: TDT RPvds ActiveX control
-        Info % epsych.Info
+        Info       % epsych.Info
     end
     
     events
@@ -39,12 +41,13 @@ classdef Runtime < handle & dynamicprops
     end
     
     methods
-        function obj = Runtime(Hardware,varargin)
-            fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
-            obj.Log = log.Log(fullfile(obj.Info.LogDirectory,fn));
-
-            obj.Hardware = Hardware;
+        function obj = Runtime
             obj.Info = epsych.Info;
+
+                        
+            fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
+            if ~isfolder(obj.Info.LogDirectory), mkdir(obj.Info.LogDirectory); end
+            obj.Log = log.Log(fullfile(obj.Info.LogDirectory,fn));
 
 
             % elevate Matlab.exe process to a high priority in Windows

@@ -6,8 +6,13 @@ classdef ControlPanel < handle
         SubjectTab       matlab.ui.container.Tab
         HardwareTab      matlab.ui.container.Tab
         CustomizationTab matlab.ui.container.Tab
+        LogTab           matlab.ui.container.Tab
 
         RuntimePanel     matlab.ui.container.Panel
+
+        LogTextArea      matlab.ui.control.TextArea
+        LogFilenameLabel matlab.ui.control.Label
+        LogVerbosityDropDown matlab.ui.control.DropDown
         
         RuntimeControlObj       % interface.RuntimeControl
         SubjectSetupObj         % interface.SubjectSetup
@@ -16,16 +21,40 @@ classdef ControlPanel < handle
     end
     
     methods
+        % Constructor
         function obj = ControlPanel(parent)
+            global RUNTIME
+            
             if nargin == 0, parent = []; end
 
-            f = findobj('Tag','EPsychControlPanel');
+            % permit one instance
+            f = findall(0,'Tag','EPsychControlPanel');
             if isempty(f)
                 obj.create(parent);
                 obj.parent.Tag = 'EPsychControlPanel';
+                
+                % INITIALIZE RUNTIME OBJECT
+                RUNTIME = epsych.Runtime;
+                
+                RUNTIME.Log.hEchoTextArea = obj.LogTextArea;
+                obj.LogFilenameLabel.Text = RUNTIME.Log.LogFilename;
             else
                 figure(f);
             end
+
+            
+        end
+
+        % Destructor
+        function delete(obj)
+            global RUNTIME
+
+            if ~any(RUNTIME.State == [epsych.State.Halt, epsych.State.Prep])
+                uialert(ancestor(obj.parent,'figure'),'Close', ...
+                    'Please Halt the experiment before closing the Control Panel.');
+                return
+            end
+
         end
 
         
@@ -40,6 +69,25 @@ classdef ControlPanel < handle
 
         end
 
+
+
+
+        function init_log_verbosity(obj,hObj,event)
+            global RUNTIME
+
+            v = getpref('interface_ControlPanel','logVerbosity',log.Verbosity.Important);
+            hObj.Items = string(log.Verbosity(1:5));
+            hObj.ItemsData = log.Verbosity(1:5);
+            hObj.Value     = v;
+            
+            RUNTIME.Log.Verbosity = v;
+        end
+
+        function update_log_verbosity(obj,hObj,event)
+            global RUNTIME
+
+            RUNTIME.Log.Verbosity = event.Value;
+        end
     end
     
     methods (Access = private)

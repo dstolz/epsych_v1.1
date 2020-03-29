@@ -16,29 +16,39 @@ classdef Log < handle
 % DJS 2020
     
     properties
-        Verbosity = log.Verbosity.Important;
+        Verbosity       (1,1) log.Verbosity = log.Verbosity.Important;
+        
+        hEchoTextArea   (1,1) matlab.ui.control.TextArea
     end
 
     properties (SetAccess = immutable)
-        LogFilename
+        LogFilename     (1,:) char
     end
 
-    properties (Hidden)
+    properties (Hidden,Transient)
         fid
     end
 
     
     methods
         % Constructor
-        function obj = Log(LogFilename)
+        function obj = Log(LogFilename,hEchoTextArea)
             if nargin == 0 || isempty(LogFilename)
                 LogFilename = obj.generate_LogFilename;
+            end
+            
+            if nargin == 2 && ~isempty(hEchoTextArea)
+                obj.hEchoTextArea = hEchoTextArea;
             end
            
             obj.LogFilename = LogFilename;
 
             obj.fid = fopen(obj.LogFilename,'wt');
-
+            if obj.fid == -1
+                fprintf(2,'Unable to create log file: "%s"\n',obj.LogFilename)
+                return
+            end
+            
             obj.write(true,log.Verbosity.Important,'Log Initialized: %s',obj.LogFilename);
         end
 
@@ -126,6 +136,7 @@ classdef Log < handle
                 return
             end
 
+            if isempty(v),   v = log.Verbosity.Verbose; end
             if isnumeric(v), v = log.Verbosity(v);  end
             if ischar(v),    v = log.Verbosity.(v); end
 
@@ -136,35 +147,54 @@ classdef Log < handle
             msgLog = sprintf('%s %2d %-10s %s: %s\n',tstr,int8(v),v.char,obj.get_stack_string,msg);
 
             
-            
-            x = fopen(obj.fid);
-            if isempty(x)
-                obj.fid = fopen(obj.LogFilename,'a+');
+            noFile = obj.fid == -1;
+            if ~noFile
+                x = fopen(obj.fid);
+                if isempty(x)
+                    obj.fid = fopen(obj.LogFilename,'a+');
+                end
             end
-            
 
             if isempty(msg), v = log.Verbosity.PrintOnly; end % prints a blank line w/ timestamp, function, and line number
 
+            noEchoTextArea = ~isa(obj.hEchoTextArea,'matlab.ui.control.TextArea') || ~isvalid(obj.hEchoTextArea);
+            
+            
             switch v
                 case log.Verbosity.PrintOnly
-                    fprintf(obj.fid,msgLog);
+                    if ~noFile, fprintf(obj.fid,msgLog); end
 
                 case log.Verbosity.ScreenOnly
-                    fprintf(msgTs)
+                    if noEchoTextArea
+                        fprintf(msgTs)
+                    else
+                        obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
+                    end
 
                 case log.Verbosity.Error
-                    fprintf(obj.fid,msgLog);
-                    fprintf(2,msgTs); % red text
-
+                    if ~noFile, fprintf(obj.fid,msgLog); end
+                    if noEchoTextArea
+                        fprintf(2,msgTs); % red text
+                    else
+                        obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
+                    end
+                    
                 otherwise
                     if v <= obj.Verbosity
-                        fprintf(obj.fid,msgLog);
-                        fprintf(msgTs)
+                        if ~noFile, fprintf(obj.fid,msgLog); end
+                        if noEchoTextArea
+                            fprintf(msgTs)
+                        else
+                            obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
+                        end
+                        
                     elseif alwaysLog
-                        fprintf(obj.fid,msgLog);
+                        if ~noFile, fprintf(obj.fid,msgLog); end
                     end
             end
             
+            
+
             if nargout == 1
                 msg = strrep(msg,'\\','\');
             else
