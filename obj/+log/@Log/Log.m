@@ -18,10 +18,10 @@ classdef Log < handle
     properties
         Verbosity       (1,1) log.Verbosity = log.Verbosity.Important;
         
-        hEchoTextArea   (1,1) matlab.ui.control.TextArea
-    end
-
-    properties (SetAccess = immutable)
+        hEchoTextArea           matlab.ui.control.TextArea
+        LogFilenameLabel        matlab.ui.control.Label
+        LogVerbosityDropDown    matlab.ui.control.DropDown
+        
         LogFilename     (1,:) char
     end
 
@@ -31,24 +31,16 @@ classdef Log < handle
 
     
     methods
+        create_gui(obj,parent);
+
         % Constructor
-        function obj = Log(LogFilename,hEchoTextArea)
+        function obj = Log(LogFilename)
             if nargin == 0 || isempty(LogFilename)
                 LogFilename = obj.generate_LogFilename;
-            end
-            
-            if nargin == 2 && ~isempty(hEchoTextArea)
-                obj.hEchoTextArea = hEchoTextArea;
             end
            
             obj.LogFilename = LogFilename;
 
-            obj.fid = fopen(obj.LogFilename,'wt');
-            if obj.fid == -1
-                fprintf(2,'Unable to create log file: "%s"\n',obj.LogFilename)
-                return
-            end
-            
             obj.write(true,log.Verbosity.Important,'Log Initialized: %s',obj.LogFilename);
         end
 
@@ -68,6 +60,19 @@ classdef Log < handle
             end
             obj.Verbosity = v;
             obj.write(true,log.Verbosity.Important,'Verbosity level set to: %s (%d)',v.char,int8(v));
+        end
+
+        function set.LogFilename(obj,ffn)
+            obj.LogFilename = ffn;
+            obj.fid = fopen(obj.LogFilename,'wt');
+            if obj.fid == -1
+                fprintf(2,'Unable to create log file: "%s"\n',obj.LogFilename)
+                return
+            end
+            
+            if ~isempty(obj.LogFilenameLabel) && isvalid(obj.LogFilenameLabel)
+                obj.LogFilenameLabel.Text = obj.LogFilename;
+            end
         end
 
         function msg = write(obj,varargin)
@@ -157,7 +162,7 @@ classdef Log < handle
 
             if isempty(msg), v = log.Verbosity.PrintOnly; end % prints a blank line w/ timestamp, function, and line number
 
-            noEchoTextArea = ~isa(obj.hEchoTextArea,'matlab.ui.control.TextArea') || ~isvalid(obj.hEchoTextArea);
+            noEchoTextArea = isempty(obj.hEchoTextArea) || ~isa(obj.hEchoTextArea,'matlab.ui.control.TextArea') || ~isvalid(obj.hEchoTextArea);
             
             
             switch v
@@ -220,24 +225,23 @@ classdef Log < handle
             clear h
         end
         
-        function h = verbosity_popupmenu(obj,parent)
-            narginchk(2,2);
 
-            vstr = arrayfun(@(a) sprintf('%d. %s',a,log.Verbosity(a).char),1:5,'uni',0);
+        
+        function init_log_verbosity(obj,hObj,event)
+            v = getpref('interface_ControlPanel','logVerbosity',log.Verbosity.Important);
+            hObj.Items = string(log.Verbosity(1:5));
+            hObj.ItemsData = log.Verbosity(1:5);
+            hObj.Value     = v;
 
-            h = uicontrol(parent, ...
-                'Style','popupmenu', ...
-                'String',vstr, ...
-                'Callback',@obj.update_verbosity);
+            obj.Verbosity = v;
+            
         end
 
+        function update_log_verbosity(obj,hObj,event)
+            obj.Verbosity = event.Value;
+        end
     end
     
-    methods (Access = protected)
-        function update_verbosity(obj,hObj,~)
-            obj.Verbosity = get(hObj,'Value');
-        end
-    end
 
     methods (Static)       
         function fn = generate_LogFilename

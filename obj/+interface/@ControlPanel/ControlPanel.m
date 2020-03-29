@@ -36,8 +36,7 @@ classdef ControlPanel < handle
                 % INITIALIZE RUNTIME OBJECT
                 RUNTIME = epsych.Runtime;
                 
-                RUNTIME.Log.hEchoTextArea = obj.LogTextArea;
-                obj.LogFilenameLabel.Text = RUNTIME.Log.LogFilename;
+                RUNTIME.Log.create_gui();
             else
                 figure(f);
             end
@@ -72,22 +71,6 @@ classdef ControlPanel < handle
 
 
 
-        function init_log_verbosity(obj,hObj,event)
-            global RUNTIME
-
-            v = getpref('interface_ControlPanel','logVerbosity',log.Verbosity.Important);
-            hObj.Items = string(log.Verbosity(1:5));
-            hObj.ItemsData = log.Verbosity(1:5);
-            hObj.Value     = v;
-            
-            RUNTIME.Log.Verbosity = v;
-        end
-
-        function update_log_verbosity(obj,hObj,event)
-            global RUNTIME
-
-            RUNTIME.Log.Verbosity = event.Value;
-        end
     end
     
     methods (Access = private)

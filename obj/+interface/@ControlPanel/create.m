@@ -36,25 +36,6 @@ obj.CustomizationSetupObj = interface.CustomizationSetup(obj.CustomizationTab);
 obj.LogTab = uitab(obj.TabGroup);
 obj.LogTab.Title = 'Log';
 
-gt = uigridlayout(obj.LogTab);
-gt.ColumnWidth = {'1x',75};
-gt.RowHeight   = {'1x',25};
-
-obj.LogTextArea = uitextarea(gt);
-obj.LogTextArea.Layout.Column = [1 2];
-obj.LogTextArea.Layout.Row    = 1;
-obj.LogTextArea.Editable = 'off';
-obj.LogTextArea.FontName = 'Consolas';
-
-obj.LogFilenameLabel = uilabel(gt);
-obj.LogFilenameLabel.Layout.Column = 1;
-obj.LogFilenameLabel.Layout.Row    = 2;
-
-obj.LogVerbosityDropDown = uidropdown(gt,'CreateFcn',@obj.init_log_verbosity);
-obj.LogVerbosityDropDown.Layout.Column = 2;
-obj.LogVerbosityDropDown.Layout.Row    = 2;
-obj.LogVerbosityDropDown.ValueChangedFcn = @obj.update_log_verbosity;
-
 % Create RuntimePanel
 obj.RuntimePanel = uipanel(g);
 obj.RuntimePanel.Layout.Row = 1;
