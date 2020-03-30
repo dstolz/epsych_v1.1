@@ -31,7 +31,7 @@ t2g.ColumnWidth = {'1x','1x'};
 t2g.RowHeight = {25,25,25,25};
 
 t3g = uigridlayout(t3);
-t3g.ColumnWidth = {'.2x','.7x','.1x'};
+t3g.ColumnWidth = {'.3x','.7x',50};
 t3g.RowHeight = {25,25,25,25};
 
 h = uilabel(t1g);

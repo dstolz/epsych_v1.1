@@ -1,5 +1,7 @@
 function create_gui(obj,parent) % log.Log
 
+drawnow
+
 if nargin == 1 || isempty(parent)
     parent = uifigure;
 end

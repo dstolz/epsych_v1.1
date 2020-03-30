@@ -23,14 +23,13 @@ classdef ControlPanel < handle
             
             if nargin == 0, parent = []; end
                 
-            % INITIALIZE RUNTIME OBJECT
-            if isempty(RUNTIME) || ~isvalid(RUNTIME)
-                RUNTIME = epsych.Runtime;
-            end
 
             % permit only one instance at a time
             f = epsych.Tool.find_epsych_controlpanel;
-            if isempty(f)
+            if isempty(f)                
+                % INITIALIZE RUNTIME OBJECT
+                RUNTIME = epsych.Runtime;
+                
                 obj.create(parent);
                 set(ancestor(obj.parent,'figure'),'Tag','EPsychControlPanel'); % required         
             else
@@ -46,6 +45,7 @@ classdef ControlPanel < handle
             RUNTIME.Log.write(log.Verbosity.Important,'ControlPanel closing.')
             drawnow
             delete(RUNTIME.Log);
+            delete(RUNTIME);
         end
 
         function closereq(obj,hObj,event)
