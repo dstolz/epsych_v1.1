@@ -3,6 +3,7 @@ classdef CustomizationSetup < handle
     properties
         LogDirectory    (1,:) char = '< default >';
         UserInterface   (1,:) char = 'ep_GenericGUI';
+        SaveFcn         (1,:) char = 'ep_SaveDataFcn';
         StartFcn        (1,:) char = 'ep_TimerFcn_Stop';
         TimerFcn        (1,:) char = 'ep_TimerFcn_RunTime';
         StopFcn         (1,:) char = 'ep_TimerFcn_Stop';

@@ -13,88 +13,101 @@ g  = uigridlayout(parent);
 g.ColumnWidth = {'.9x','.1x'};
 g.RowHeight = {'.9x','.1x'};
 
+% TODO: This probably should all be setup from reading a JSON file
+
 tg = uitabgroup(g);
 tg.TabLocation = 'left';
 tg.Layout.Column = 1;
 tg.Layout.Row = 1;
 
-t1 = uitab(tg,'title','GUI');
-t2 = uitab(tg,'title','Timer');
-t3 = uitab(tg,'title','Log');
+tUserInterface = uitab(tg,'title','Behavior');
+tTimer         = uitab(tg,'title','Timer');
+tLog           = uitab(tg,'title','Log');
 
-t1g = uigridlayout(t1);
-t1g.ColumnWidth = {'1x','1x'};
-t1g.RowHeight = {25,25,25,25};
+gUserInterface = uigridlayout(tUserInterface);
+gUserInterface.ColumnWidth = {'1x','1x'};
+gUserInterface.RowHeight = {25,25,25,25};
 
-t2g = uigridlayout(t2);
-t2g.ColumnWidth = {'1x','1x'};
-t2g.RowHeight = {25,25,25,25};
-
-t3g = uigridlayout(t3);
-t3g.ColumnWidth = {'.3x','.7x',50};
-t3g.RowHeight = {25,25,25,25};
-
-h = uilabel(t1g);
+h = uilabel(gUserInterface);
 h.Layout.Row = 1;
 h.Layout.Column = 1;
 h.Text = 'Behavior GUI';
 
-h = uieditfield(t1g,'Tag','UserInterface','CreateFcn',@obj.create_field);
+h = uieditfield(gUserInterface,'Tag','UserInterface','CreateFcn',@obj.create_field);
 h.Layout.Row = 1;
 h.Layout.Column = 2;
 h.ValueChangedFcn = @obj.update_field;
 
-h = uilabel(t2g);
+h = uilabel(gUserInterface);
+h.Layout.Row = 2;
+h.Layout.Column = 1;
+h.Text = 'Data Save';
+
+h = uieditfield(gUserInterface,'Tag','SaveFcn','CreateFcn',@obj.create_field);
+h.Layout.Row = 2;
+h.Layout.Column = 2;
+h.ValueChangedFcn = @obj.update_field;
+
+gTimer = uigridlayout(tTimer);
+gTimer.ColumnWidth = {'1x','1x'};
+gTimer.RowHeight = {25,25,25,25};
+
+h = uilabel(gTimer);
 h.Layout.Row = 1;
 h.Layout.Column = 1;
 h.Text = 'Start';
 
-h = uieditfield(t2g,'Tag','StartFcn','CreateFcn',@obj.create_field);
+h = uieditfield(gTimer,'Tag','StartFcn','CreateFcn',@obj.create_field);
 h.Layout.Row = 1;
 h.Layout.Column = 2;
 h.ValueChangedFcn = @obj.update_field;
 
-h = uilabel(t2g);
+h = uilabel(gTimer);
 h.Layout.Row = 2;
 h.Layout.Column = 1;
 h.Text = 'Timer';
 
-h = uieditfield(t2g,'Tag','TimerFcn','CreateFcn',@obj.create_field);
+h = uieditfield(gTimer,'Tag','TimerFcn','CreateFcn',@obj.create_field);
 h.Layout.Row = 2;
 h.Layout.Column = 2;
 h.ValueChangedFcn = @obj.update_field;
 
-h = uilabel(t2g);
+h = uilabel(gTimer);
 h.Layout.Row = 3;
 h.Layout.Column = 1;
 h.Text = 'Stop';
 
-h = uieditfield(t2g,'Tag','StopFcn','CreateFcn',@obj.create_field);
+h = uieditfield(gTimer,'Tag','StopFcn','CreateFcn',@obj.create_field);
 h.Layout.Row = 3;
 h.Layout.Column = 2;
 h.ValueChangedFcn = @obj.update_field;
 
-h = uilabel(t2g);
+h = uilabel(gTimer);
 h.Layout.Row = 4;
 h.Layout.Column = 1;
 h.Text = 'Error';
 
-h = uieditfield(t2g,'Tag','ErrorFcn','CreateFcn',@obj.create_field);
+h = uieditfield(gTimer,'Tag','ErrorFcn','CreateFcn',@obj.create_field);
 h.Layout.Row = 4;
 h.Layout.Column = 2;
 h.ValueChangedFcn = @obj.update_field;
 
-h = uilabel(t3g);
+
+gLog = uigridlayout(tLog);
+gLog.ColumnWidth = {'.3x','.7x',50};
+gLog.RowHeight = {25,25,25,25};
+
+h = uilabel(gLog);
 h.Layout.Row = 1;
 h.Layout.Column = 1;
 h.Text = 'Log Directory';
 
-h = uieditfield(t3g,'Tag','LogDirectory','CreateFcn',@obj.create_log_field);
+h = uieditfield(gLog,'Tag','LogDirectory','CreateFcn',@obj.create_log_field);
 h.Layout.Row = 1;
 h.Layout.Column = 2;
 h.ValueChangedFcn = @obj.update_log_directory;
 
-h = uibutton(t3g);
+h = uibutton(gLog);
 h.Layout.Row = 1;
 h.Layout.Column = 3;
 h.Text = 'locate';
