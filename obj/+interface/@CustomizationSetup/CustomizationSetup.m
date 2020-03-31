@@ -1,15 +1,6 @@
 classdef CustomizationSetup < handle
-
-    properties
-        LogDirectory    (1,:) char = '< default >';
-        UserInterface   (1,:) char = 'ep_GenericGUI';
-        SaveFcn         (1,:) char = 'ep_SaveDataFcn';
-        StartFcn        (1,:) char = 'ep_TimerFcn_Stop';
-        TimerFcn        (1,:) char = 'ep_TimerFcn_RunTime';
-        StopFcn         (1,:) char = 'ep_TimerFcn_Stop';
-        ErrorFcn        (1,:) char = 'ep_TimerFcn_Error';
-    end
-
+    % User-settable functions, directories, and options
+    
     properties (SetAccess = immutable)
         parent
     end
@@ -23,73 +14,62 @@ classdef CustomizationSetup < handle
         end
 
         function create_field(obj,hObj,event)
-            hObj.Value = obj.(hObj.Tag);
-        end
-        
-        function update_field(obj,hObj,event)
-            obj.(hObj.Tag) = obj.check_function(event);
-            hObj.Value = obj.(hObj.Tag);
-        end
-
-        function create_log_field(obj,hObj,event)
             global RUNTIME
-            hObj.Value = RUNTIME.Info.LogDirectory;
-        end
-
-        function update_log_directory(obj,hObj,event)
-            if ~isfolder(event.Value)
-                uialert(ancestor(obj.parent,'figure'), ...
-                    sprintf('Directory does not exist: "%s"',event.Value), ...
-                    'Invalid Directory', ...
-                    'Icon','Warning');
-                hObj.Value = event.PreviousValue;
+            v = RUNTIME.Config.(hObj.Tag);
+            if isa(v,'function_handle')
+                hObj.Value = func2str(v);
+            else
+                hObj.Value = v;
             end
-            obj.LogDirectory = event.Value;
+            
+        end
+        
+        function update_function(obj,hObj,event)
+            global RUNTIME
+            hObj.Value = obj.check_function(event);
+            RUNTIME.Config.(hObj.Tag) = str2func(hObj.Value);
+            RUNTIME.Log.write(log.Verbosity.Verbose,'Updated value of "%s" to %s',hObj.Tag,hObj.Value)
         end
 
-        function locate_log_directory(obj,hObj,event)
+        function update_directory(obj,hObj,event)
             global RUNTIME
-            d = uigetdir(RUNTIME.Info.LogDirectory,'Choose Log Directory');
+            if ~isfolder(event.Value)
+                sel = uiconfirm(ancestor(obj.parent,'figure'), ...
+                    sprintf('Directory does not exist: "%s"\n\nWould you like to create it?',event.Value), ...
+                    'Invalid Directory', ...
+                    'Options',{'Create','Cancel'}, ...
+                    'DefaultOption','Create','CancelOption','Cancel');
+                if isequal(sel,'Cancel')
+                    hObj.Value = event.PreviousValue;
+                    return; 
+                end
+                mkdir(event.Value);
+                
+            end
+            RUNTIME.Config.(hObj.Tag) = event.Value;
+            RUNTIME.Log.write(log.Verbosity.Verbose,'Updated value of "%s" to %s',hObj.Tag,event.Value)
+        end
+
+        function update_checkbox(obj,hObj,event)
+            global RUNTIME
+            RUNTIME.Config.(hObj.Tag) = event.Value;
+            RUNTIME.Log.write(log.Verbosity.Verbose,'Updated value of "%s" to %d',hObj.Tag,event.Value)
+        end
+
+        function locate_directory(obj,hObj,event)
+            global RUNTIME
+
+            d = uigetdir(RUNTIME.Config.(hObj.Tag),'Choose a Directory');
             if isequal(d,0), return; end
-            obj.LogDirectory = d;
-            epsych.Tool.restart_required(obj.parent);
-        end
+            RUNTIME.Config.(hObj.Tag) = d;
+            h = findall(0,'Tag',hObj.Tag,'-and','Type','uieditfield');
+            h.Value = d;
 
-        function set.LogDirectory(obj,d)
-            global RUNTIME
-            RUNTIME.Info.LogDirectory = d;
+            if isequal(hObj.Tag,'LogDirectory')
+                epsych.Tool.restart_required(obj.parent);
+            end
         end
-
-        function set.UserInterface(obj,s)
-            h = findobj(obj.parent,'Tag','UserInterface');
-            h.Value = s;
-            obj.UserInterface = s;
-        end
-        
-        function set.StartFcn(obj,s)
-            h = findobj(obj.parent,'Tag','StartFcn');
-            h.Value = s;
-            obj.StartFcn = s;
-        end
-        
-        function set.TimerFcn(obj,s)
-            h = findobj(obj.parent,'Tag','TimerFcn');
-            h.Value = s;
-            obj.TimerFcn = s;
-        end
-        
-        function set.StopFcn(obj,s)
-            h = findobj(obj.parent,'Tag','StopFcn');
-            h.Value = s;
-            obj.StopFcn = s;
-        end
-        
-        function set.ErrorFcn(obj,s)
-            h = findobj(obj.parent,'Tag','ErrorFcn');
-            h.Value = s;
-            obj.ErrorFcn = s;
-        end
-    end
+    end % methods
 
     methods (Static)
         function r = check_function(e)
@@ -104,5 +84,5 @@ classdef CustomizationSetup < handle
                 uialert(ancestor(e.Source,'figure'),msg,'Invalid Entry','icon','warning');
             end
         end
-    end
+    end % methods (Static)
 end

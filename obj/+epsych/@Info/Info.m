@@ -1,11 +1,6 @@
 classdef Info < handle
     % class contains general inormation for the EPsych software
     
-    properties
-        LogDirectory  (1,:) char
-        UserDirectory (1,:) char
-    end
-
     properties (SetAccess = private)
         iconPath
         chksum
@@ -87,21 +82,6 @@ classdef Info < handle
             img(img == 0) = nan;
         end
 
-        function d = get.LogDirectory(obj)
-            if isempty(obj.LogDirectory)
-                obj.LogDirectory = fullfile(obj.UserDirectory,'EPsych Logs');
-            end
-            if ~isfolder(obj.LogDirectory), mkdir(obj.LogDirectory); end
-            d = obj.LogDirectory;
-        end
-
-        
-        function d = get.UserDirectory(obj)
-            if isempty(obj.UserDirectory)
-                obj.UserDirectory = char(java.lang.System.getProperty('user.home'));
-            end
-            d = obj.UserDirectory;
-        end
         
     end % methods (public)
     

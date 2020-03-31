@@ -3,21 +3,11 @@ classdef Runtime < handle & dynamicprops
     properties
         Subject         (:,1) epsych.Subject % one for each concurrently running subject
 
-        DataDir         (1,:) char
-
         ErrorMException (:,1) MException
 
-        Log
-    end
+        Log             (1,1) log.Log
 
-    properties (Access = protected)
-        
-
-        % TODO: Default timer functions need to be revamped for new object format
-        StartFcn = @ep_TimerFcn_Start;
-        TimerFcn = @ep_TimerFcn_RunTime;
-        StopFcn  = @ep_TimerFcn_Stop;
-        ErrorFcn = @ep_TimerFcn_Error;
+        Config          (1,1) epsych.RuntimeConfig
     end
     
 
@@ -43,12 +33,9 @@ classdef Runtime < handle & dynamicprops
     methods
         function obj = Runtime
             obj.Info = epsych.Info;
-
                         
             fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
-            if ~isfolder(obj.Info.LogDirectory), mkdir(obj.Info.LogDirectory); end
-            obj.Log = log.Log(fullfile(obj.Info.LogDirectory,fn));
-
+            obj.Log = log.Log(fullfile(obj.Config.LogDirectory,fn));
 
             % elevate Matlab.exe process to a high priority in Windows
             pid = feature('getpid');
@@ -57,13 +44,17 @@ classdef Runtime < handle & dynamicprops
                 
         % Destructor
         function delete(obj)
-            delete(obj.Log);
+            
             
             try
                 stop(obj.Timer);
                 delete(obj.Timer);
             end
 
+            
+            delete(obj.Log);
+            
+            
             % be nice and return Matlab.exe process to normal priority in Windows
             pid = feature('getpid');
             [~,~] = dos(sprintf('wmic process where processid=%d CALL setpriority 32',pid));
@@ -163,14 +154,6 @@ classdef Runtime < handle & dynamicprops
         end % set.State
         
         
-        function d = get.DataDir(obj)
-            if isempty(obj.DataDir)
-                obj.DataDir = fullfile(fileparts(obj.Info.root),'DATA');
-            end
-            if ~isfolder(obj.DataDir), mkdir(RUNTIME.DataDir); end
-            d = obj.DataDir;
-        end % get.DataDir
-                
         function n = get.nSubjects(obj)
             n = length(obj.Subject);
         end

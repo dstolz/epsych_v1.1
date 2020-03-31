@@ -36,7 +36,7 @@ classdef Log < handle
         % Constructor
         function obj = Log(LogFilename,parent)
             if nargin == 0 || isempty(LogFilename)
-                LogFilename = obj.generate_LogFilename;
+                return
             end
             
             obj.LogFilename = LogFilename;
@@ -45,7 +45,6 @@ classdef Log < handle
                 obj.create_gui(parent);
             end
             
-            obj.write(true,log.Verbosity.Important,'Log Initialized: %s',obj.LogFilename);
         end
         
         % Destructor
@@ -82,6 +81,8 @@ classdef Log < handle
             if ~isempty(obj.LogFilenameLabel) && isvalid(obj.LogFilenameLabel)
                 obj.LogFilenameLabel.Text = obj.LogFilename;
             end
+            
+            obj.write(true,log.Verbosity.Important,'Log Initialized: %s',obj.LogFilename);
         end
         
         function msg = write(obj,varargin)
