@@ -34,8 +34,7 @@ classdef SubjectSetup < handle
         function delete(obj)
             delete(obj.parent)
         end
-        
-    end
+    end % methods (Access = public)
     
     methods (Access = protected)
         
@@ -50,6 +49,8 @@ classdef SubjectSetup < handle
         function add_subject(obj,hObj,event)
             global RUNTIME
 
+
+
             RUNTIME.Log.write(epsych.log.Verbosity.Verbose,'Subject added');
         end
         
@@ -63,5 +64,7 @@ classdef SubjectSetup < handle
         
         function edit_protocol(obj,hObj,event)
         end
-    end
+    end % methods (Access = protected)
+
+
 end

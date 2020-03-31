@@ -1,15 +1,16 @@
 classdef Subject < handle & dynamicprops
 
     properties
-        Name    (1,:) char {mustBeNonempty} = 'NONAME';
-        DOB     (1,1) datetime = datetime('today');
-        ID      (1,1) double {mustBeFinite,mustBeNonempty,mustBeNonNan} = round(datenum(now)*1e12);
-        BaselineWeightGrams (1,1) double {mustBePositive,mustBeFinite} = 1;
-        Note    (:,:) char
+        Name            (1,:) char {mustBeNonempty} = 'NO NAME';
+        DOB             (1,1) datetime = datetime('today');
+        ID              (1,:) char
+        Sex             (1,:) char {mustBeMember(Sex,{'male','female','unknown'})} = 'unknown';
+        BaselineWeight  (1,1) double {mustBePositive,mustBeFinite} = 1;
+        Note            (1,1) string
     end
 
     properties (Constant)
-        CreatedOn = now;
+        CreatedOn = datetime('now');
     end
 
     methods
