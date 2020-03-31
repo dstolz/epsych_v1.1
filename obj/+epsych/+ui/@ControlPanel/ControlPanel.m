@@ -131,7 +131,6 @@ classdef ControlPanel < handle
             
             RUNTIME.Config = Config;
             
-            obj.create(obj.parent,true);
         end
         
         
