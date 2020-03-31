@@ -3,16 +3,18 @@ classdef ControlPanel < handle
     properties (Access = protected)
         parent           % any matlab.ui.container
         TabGroup         matlab.ui.container.TabGroup
+        OverviewTab      matlab.ui.container.Tab
         SubjectTab       matlab.ui.container.Tab
         HardwareTab      matlab.ui.container.Tab
         CustomizationTab matlab.ui.container.Tab
         LogTab           matlab.ui.container.Tab
         
         RuntimePanel     matlab.ui.container.Panel
-        ToolbarPanel      matlab.ui.container.Panel
+        ToolbarPanel     matlab.ui.container.Panel
         
-        AlwaysOnTopCheckbox     
+        AlwaysOnTopCheckbox     % epsych.ui.FigOnTop
 
+        OverviewObj             % epsych.ui.OverviewSetup
         RuntimeControlObj       % epsych.ui.RuntimeControl
         SubjectSetupObj         % epsych.ui.SubjectSetup
         HardwareSetupObj        % epsych.ui.HardwareSetup

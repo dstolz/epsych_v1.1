@@ -8,7 +8,7 @@ classdef FigOnTop < handle
         prefVar     (1,:) char = 'AlwaysOnTop';
     end
 
-    properties (SetAccess = immutable)
+    properties (SetAccess = private)
         parent  % matlab.ui.container....
         handle  % matlab.ui.control.Checkbox
     end
@@ -16,12 +16,13 @@ classdef FigOnTop < handle
     methods
         % Constructor
         function obj = FigOnTop(parent,state,prefGroup,prefVar)
-            narginchk(1,3)
+            narginchk(0,4)
 
-            obj.parent = parent;
-            obj.handle = obj.create;
+            if nargin == 0, return; end
 
-            if nargin < 2, state = 0; end
+            obj.create(parent);
+
+            if nargin == 2 || isempty(state), state = 0; end
             
             if nargin == 4 && ~isempty(prefVar)
                 obj.prefVar = prefVar;
@@ -37,11 +38,14 @@ classdef FigOnTop < handle
             obj.State = state;
         end
 
-        function h = create(obj)
-            h = uicheckbox(obj.parent);
+        function create(obj,parent)
+            h = uicheckbox(parent);
             h.Text = 'Always on Top';
             h.Tag = 'AlwaysOnTopObj';
             h.ValueChangedFcn = @obj.update;
+
+            obj.handle = h;
+            obj.parent = parent;
         end
 
         function set.State(obj,state)

@@ -30,6 +30,12 @@ obj.TabGroup = uitabgroup(g);
 obj.TabGroup.Layout.Row    = [2 3];
 obj.TabGroup.Layout.Column = 1;
 
+
+% Create OverviewTab
+obj.OverviewTab = uitab(obj.TabGroup);
+obj.OverviewTab.Title = 'Overview';
+obj.OverviewObj = epsych.ui.OverviewSetup(obj.OverviewTab);
+
 % Create SubjectTab
 obj.SubjectTab = uitab(obj.TabGroup);
 obj.SubjectTab.Title = 'Subject';
