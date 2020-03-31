@@ -31,6 +31,7 @@ classdef FigOnTop < handle
                 obj.prefGroup = prefGroup;
                 obj.usePref = true;
                 state = getpref(obj.prefGroup,obj.prefVar,state);
+                obj.handle.Value = state;
             end
             
             obj.State = state;
@@ -79,21 +80,34 @@ classdef FigOnTop < handle
 
             try %#ok<TRYNC>
                 warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
-                J = get(figh,'JavaFrame');
-                if verLessThan('matlab','8.1')
+                
+                if isa(figh,'matlab.ui.Figure')
+                    warning('off','MATLAB:structOnObject');
+                    f = struct(figh);
+                    c = struct(f.Controller);
+                    p = struct(c.PlatformHost);
+                    prevState = p.CEF.isAlwaysOnTop;
+                    if isempty(prevState), prevState = false; end
+                    if ~isempty(state)
+                        p.CEF.setAlwaysOnTop(state);
+                    end
+                    warning('on','MATLAB:structOnObject');
+
+                elseif verLessThan('matlab','8.1')
+                    J = get(figh,'JavaFrame');
                     prevState = J.fHG1Client.getWindow.isAlwaysOnTop;
                     if ~isempty(state)
                         J.fHG1Client.getWindow.setAlwaysOnTop(state);
                     end
                 else
+                    J = get(figh,'JavaFrame');
                     prevState = J.fHG2Client.getWindow.isAlwaysOnTop;
                     if ~isempty(state)
                         J.fHG2Client.getWindow.setAlwaysOnTop(state);
                     end
                 end
                 warning('on','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
-            catch me
-                rethrow(me)
+            
             end
 
         end
