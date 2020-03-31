@@ -1,7 +1,7 @@
 function e = DAUpdateParams(DA,C)
 % DAUpdateParams(DA,C)
 % 
-% Updates parameters on modules.  Use ProtocolDesign GUI.
+% Updates parameters on modules.  Use ProtocolDesign epsych.ui.comp.
 %
 % DA is handle to OpenDeveloper ActiveX control
 % C is the protocol.COMPILED structure

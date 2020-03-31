@@ -113,15 +113,15 @@ stay_on_top(h.stayOnTop);
 
 
 % Setup h.tbl_Triggers
-h.objTriggers = gui.Triggers(h.panel_Triggers);
+h.objTriggers = epsych.ui.comp.Triggers(h.panel_Triggers);
 
 % Setup session info
-h.objTrialCount = gui.TrialCount(h.panel_SessionInfo);
+h.objTrialCount = epsych.ui.comp.TrialCount(h.panel_SessionInfo);
 
 
 
 % Setup h.tbl_TrialParameters
-h.objParameterTable = gui.ParameterTable(h.panel_TrialParameters);
+h.objParameterTable = epsych.ui.comp.ParameterTable(h.panel_TrialParameters);
 
 addlistener(h.objParameterTable,'ParametersModified',@parameters_modified);
 

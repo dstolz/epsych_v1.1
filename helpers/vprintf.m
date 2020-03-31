@@ -44,7 +44,7 @@ function vprintf(verbose_level,varargin)
 %       end
 %
 % The msg input can also be an MException object and the entire error
-% message and stack will be printed to the log.
+% message and stack will be printed to the epsych.log.
 %
 % Daniel.Stolzberg@gmail.com 2015
 

@@ -4,11 +4,11 @@
 % panels, or axes - in an arrangement that you find useful.  EPsych GUI
 % objects can be created in these containers by using the object creation
 % syntax below. Example objects include: 
-%   gui.OnlinePlot  ... Plotting parameters running in the RPvds circuit
-%   gui.PsychPlot   ... Basic psychophysics plot for hit rate, false-alarm
+%   epsych.ui.comp.OnlinePlot  ... Plotting parameters running in the RPvds circuit
+%   epsych.ui.comp.PsychPlot   ... Basic psychophysics plot for hit rate, false-alarm
 %                       rate, or d-prime
-%   gui.History     ... Table displaying trial history
-%   gui.Triggers    ... Allows user to update logical components running on
+%   epsych.ui.comp.History     ... Table displaying trial history
+%   epsych.ui.comp.Triggers    ... Allows user to update logical components running on
 %                       the RPvds circuit
 % 
 % You can create a GUI using the GUIDE utility (see: help guide) or
@@ -42,16 +42,16 @@ D = psychophysics.Detection;
 % Create the OnlinePlot object and assign it to the axOnlinePlot container
 watchedParameters = {'!TrialDelivery','~InTrial_TTL','~DelayPeriod', ...
     '~RespWindow','~Spout_TTL','~ShockOn','~GO_Stim','~NOGO_Stim'};
-gui.OnlinePlot(watchedParameters,axOnlinePlot,BoxID);
+epsych.ui.comp.OnlinePlot(watchedParameters,axOnlinePlot,BoxID);
 
 % Create the PsychPlot object and assign it to the axPsychPlot container
-gui.PsychPlot(D,axPsychPlot);
+epsych.ui.comp.PsychPlot(D,axPsychPlot);
 
 % Create the trial History object and assign it to the pHistory container
-gui.History(D,pHistory);
+epsych.ui.comp.History(D,pHistory);
 
 % Create the Triggers table
-gui.Triggers(pTriggers,BoxID);
+epsych.ui.comp.Triggers(pTriggers,BoxID);
 
 % launch the other GUIs custom to your setup
 % MR_BehaviorGUI_Startup;

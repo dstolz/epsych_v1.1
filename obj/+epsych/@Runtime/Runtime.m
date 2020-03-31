@@ -5,7 +5,7 @@ classdef Runtime < handle & dynamicprops
 
         ErrorMException (:,1) MException
 
-        Log             (1,1) log.Log
+        Log             (1,1) epsych.log.Log
 
         Config          (1,1) epsych.RuntimeConfig
     end
@@ -35,7 +35,7 @@ classdef Runtime < handle & dynamicprops
             obj.Info = epsych.Info;
                         
             fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
-            obj.Log = log.Log(fullfile(obj.Config.LogDirectory,fn));
+            obj.Log = epsych.log.Log(fullfile(obj.Config.LogDirectory,fn));
 
             % elevate Matlab.exe process to a high priority in Windows
             pid = feature('getpid');
@@ -65,13 +65,13 @@ classdef Runtime < handle & dynamicprops
 
         % TIMER FUNCTIONS -----------------------------------------------------------------
         function call_StartFcn(obj,varargin)            
-            obj.Log.write(log.Verbosity.Debug,'Calling Runtime.StartFcn: "%s"',func2str(obj.StartFcn));
+            obj.epsych.log.write(epsych.log.Verbosity.Debug,'Calling Runtime.StartFcn: "%s"',func2str(obj.StartFcn));
 
             feval(obj.StartFcn,obj)
         end
 
         function call_TimerFcn(obj,varargin)
-            obj.Log.write(log.Verbosity.Debug,'Calling Runtime.TimerFcn: "%s"',func2str(obj.TimerFcn));
+            obj.epsych.log.write(epsych.log.Verbosity.Debug,'Calling Runtime.TimerFcn: "%s"',func2str(obj.TimerFcn));
 
             feval(obj.TimerFcn,obj)
         end
@@ -80,13 +80,13 @@ classdef Runtime < handle & dynamicprops
             % timer is stopped on pause and started again on resume
             if obj.State == epsych.State.Pause, return; end
 
-            obj.Log.write(log.Verbosity.Debug,'Calling Runtime.StopFcn: "%s"',func2str(obj.StopFcn));
+            obj.epsych.log.write(epsych.log.Verbosity.Debug,'Calling Runtime.StopFcn: "%s"',func2str(obj.StopFcn));
 
             feval(obj.StopFcn,obj)
         end
         
         function call_ErrorFcn(obj,varargin)
-            obj.Log.write(log.Verbosity.Debug,'Calling Runtime.ErrorFcn: "%s"',func2str(obj.ErrorFcn));
+            obj.epsych.log.write(epsych.log.Verbosity.Debug,'Calling Runtime.ErrorFcn: "%s"',func2str(obj.ErrorFcn));
 
             feval(obj.ErrorFcn,obj)
         end
@@ -113,13 +113,13 @@ classdef Runtime < handle & dynamicprops
                         
                         
                     case [epsych.State.Run, epsych.State.Preview]
-                        obj.Log.write(log.Verbosity.Debug,'Initializing Hardware')
-                        obj.Hardware.initialize;
+                        obj.epsych.log.write(epsych.log.Verbosity.Debug,'Initializing Hardware')
+                        obj.epsych.hw.initialize;
 
-                        obj.Log.write(log.Verbosity.Debug,'Preparing Hardware')
-                        obj.Hardware.prepare;
+                        obj.epsych.log.write(epsych.log.Verbosity.Debug,'Preparing Hardware')
+                        obj.epsych.hw.prepare;
 
-                        obj.Log.write(log.Verbosity.Debug,'Creating Runtime Timer')
+                        obj.epsych.log.write(epsych.log.Verbosity.Debug,'Creating Runtime Timer')
                         obj.create_timer;
 
                         start(obj.Timer);
@@ -141,7 +141,7 @@ classdef Runtime < handle & dynamicprops
                 end
             
             catch me
-                obj.Log.write(me);
+                obj.epsych.log.write(me);
                 obj.ErrorMException = me;
                 obj.State = epsych.State.Error;
                 return
@@ -150,7 +150,7 @@ classdef Runtime < handle & dynamicprops
             ev = epsych.evProgramState(newState,prevState,timestamp);
             notify(obj,'PostStateChange',ev);
 
-            obj.Log.write(log.Verbosity.Debug,'Runtime.State updated from "%s" to "%s"',prevState,newState);
+            obj.epsych.log.write(epsych.log.Verbosity.Debug,'Runtime.State updated from "%s" to "%s"',prevState,newState);
         end % set.State
         
         

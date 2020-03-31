@@ -416,9 +416,9 @@ if ~isfield(G_COMPILED.OPTIONS,'optcontrol'), G_COMPILED.OPTIONS.optcontrol = fa
 % Find modules with required parameters
 dinfo = TDT_GetDeviceInfo(G_DA);
 if isempty(dinfo)
-    vprintf(0,1,'ep_EPhys|dinfo is empty. Cannot read device info. You may need to restart Matlab and TDT software & hardware.')
+    vprintf(0,1,'ep_EPhys|dinfo is empty. Cannot read device info. You may need to restart Matlab and TDT software & epsych.hw.')
     G_DA.SetSysMode(0); pause(0.5); % Idle
-    error('ep_EPhys|dinfo is empty. Cannot read device info. You may need to restart Matlab and TDT software & hardware.')
+    error('ep_EPhys|dinfo is empty. Cannot read device info. You may need to restart Matlab and TDT software & epsych.hw.')
 end    
 G_FLAGS = struct('TrigState',[],'OpTrigState',[],'ResetOpTrig',[],'ZBUSB_ON',[],'ZBUSB_OFF',[],'useHAT',true);
 F = fieldnames(G_FLAGS)';

@@ -1,5 +1,5 @@
 Require definition
-hardware.Hardware
+epsych.hw.Hardware
     interface
     prepare
     run
