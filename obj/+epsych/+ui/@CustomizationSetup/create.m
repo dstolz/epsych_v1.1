@@ -133,8 +133,15 @@ h.ButtonPushedFcn = @obj.locate_directory;
 h = uicheckbox(gMiscellaneous,'Tag','AutoSaveRuntimeConfig','CreateFcn',@obj.create_field);
 h.Layout.Row = 2;
 h.Layout.Column = [2 3];
-h.Text = 'Autosave Runtime Config';
+h.Text = 'Auto Save Runtime Config';
 h.ValueChangedFcn = @obj.update_checkbox;
+
+h = uicheckbox(gMiscellaneous,'Tag','AutoLoadRuntimeConfig','CreateFcn',@obj.create_field);
+h.Layout.Row = 3;
+h.Layout.Column = [2 3];
+h.Text = 'Auto Load Runtime Config';
+h.ValueChangedFcn = @obj.update_checkbox;
+
 
 h = findobj(parent,'Type','uilabel');
 set(h,'FontSize',14,'HorizontalAlignment','right');

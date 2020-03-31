@@ -54,6 +54,11 @@ classdef CustomizationSetup < handle
             global RUNTIME
             RUNTIME.Config.(hObj.Tag) = event.Value;
             RUNTIME.Log.write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %d',hObj.Tag,event.Value)
+
+            % one-off
+            if isequal(hObj.Tag,'AutoLoadRuntimeConfig')
+                setpref('epsych_Config','AutoLoadRuntimeConfig',event.Value)
+            end
         end
 
         function locate_directory(obj,hObj,event)

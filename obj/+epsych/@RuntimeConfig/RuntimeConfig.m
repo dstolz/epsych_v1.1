@@ -1,7 +1,6 @@
 classdef (ConstructOnLoad) RuntimeConfig < handle & dynamicprops
 
     properties
-        
         LogDirectory  (1,:) char
         UserDirectory (1,:) char
         DataDirectory (1,:) char
@@ -16,6 +15,7 @@ classdef (ConstructOnLoad) RuntimeConfig < handle & dynamicprops
         ErrorFcn    (1,1) = @ep_TimerFcn_Error;
 
         AutoSaveRuntimeConfig (1,1) logical = true;
+        AutoLoadRuntimeConfig (1,1) logical = true;
     
         SubjectConfig
         BitmaskConfig

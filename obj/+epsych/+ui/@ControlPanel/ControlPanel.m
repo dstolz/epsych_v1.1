@@ -9,7 +9,7 @@ classdef ControlPanel < handle
         LogTab           matlab.ui.container.Tab
         
         RuntimePanel     matlab.ui.container.Panel
-        ConfigPanel      matlab.ui.container.Panel
+        ToolbarPanel      matlab.ui.container.Panel
         
         AlwaysOnTopCheckbox     
 
@@ -32,6 +32,11 @@ classdef ControlPanel < handle
             if isempty(f)
                 % INITIALIZE RUNTIME OBJECT
                 RUNTIME = epsych.Runtime;
+
+                tf = getpref('epsych_Config','AutoLoadRuntimeConfig',true);
+                if tf
+                    obj.load_config;
+                end
                 
                 obj.create(parent);
                 set(ancestor(obj.parent,'figure'),'Tag','EPsychControlPanel'); % required
@@ -102,11 +107,10 @@ classdef ControlPanel < handle
         function load_config(obj,ffn,~,~)
             global RUNTIME
             
-            if nargin == 1
+            if nargin == 1 || isequal(ffn,'default')
                 ffn = fullfile(RUNTIME.Config.UserDirectory,'EPsychRuntimeConfig.mat');
-                if ~isfile(ffn)
-                    ffn = [];
-                end
+                if ~isfile(ffn), ffn = []; end
+
             elseif ishandle(ffn) % coming from callback
                 ffn = [];
             end
