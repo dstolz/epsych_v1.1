@@ -49,14 +49,14 @@ classdef FigOnTop < handle
         end
 
         function set.State(obj,state)
-            obj.fig_on_top(obj.parent,state);
+            obj.figure_state(obj.parent,state);
             if obj.usePref
                 setpref(obj.prefGroup,obj.prefVar,state);
             end
         end
 
         function s = get.State(obj)
-            s = obj.fig_on_top(obj.parent);
+            s = obj.figure_state(obj.parent);
         end
 
         function set.usePref(obj,tf)
@@ -73,7 +73,7 @@ classdef FigOnTop < handle
     end
 
     methods (Static)
-        function prevState = fig_on_top(h,state)
+        function prevState = figure_state(h,state)
             narginchk(1,2);
 
             drawnow expose
