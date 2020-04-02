@@ -111,10 +111,15 @@ classdef Log < handle
                 elseif isnumeric(varargin{i}) % verbosity as number or epsych.log.Verbosity enum
                     v = varargin{i};
                     
-                elseif ischar(varargin{i}) % message first
-                    msg = varargin{i};
-                    break
+                elseif ischar(varargin{i}) % char version of epsych.log.Verbosity
+                    try % best to avoid this syntax when worried about timing
+                        v = epsych.log.Verbosity.(varargin{i});
+                    catch % message first
+                        msg = varargin{i};
+                        break
+                    end
                     
+
                 elseif isstruct(varargin{i}) % display fields of the structure (only first level)
                     smsg = evalc('disp(varargin{i})');
                     msg = sprintf('Structure Fields: \n%s',smsg);
