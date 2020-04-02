@@ -106,18 +106,17 @@ classdef Tool < handle
         end
         
         function str = truncate_str(str,maxn,side)
+            if nargin < 2 || isempty(maxn), maxn = 25; end
             if nargin < 3 || isempty(side), side = 'left'; end
             mustBeMember(side,{'left' 'right'});
-            str = cellstr(str);
-            for i = 1:numel(str)
-                if length(str{i}) < maxn
-                    str{i} = str{i};
-                elseif isequal(lower(side),'right')
-                    str{i} = [str{i}(1:end-maxn) '...'];
-                else
-                    str{i} = ['...' str{i}(end-maxn+1:end)];
-                end
+            if length(str) < maxn
+                return
+            elseif isequal(lower(side),'right')
+                str = [str(1:end-maxn) '...'];
+            else
+                str = ['...' str(end-maxn+1:end)];
             end
+        
         end
 
     end
