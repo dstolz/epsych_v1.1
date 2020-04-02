@@ -89,6 +89,10 @@ classdef Info < handle
         function r = root
             r = fileparts(which('epsych_startup'));
         end
+
+        function d = user_directory
+            d = char(java.lang.System.getProperty('user.home'));
+        end
         
         function s = last_modified_str(datens)
             % s = last_modified_str(datens)
