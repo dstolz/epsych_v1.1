@@ -416,7 +416,7 @@ classdef BitmaskGen < handle
         
         function expt_changed(obj,src,event)
             et = obj.ExptTypeDropdown.Value;
-            pn  = fileparts(which('epsych.BitmaskGen'));
+            pn  = fileparts(which('epsych.ui.BitmaskGen'));
             switch et
                 case 'Save'
                     name = inputdlg('Enter a name for the experiment type:','BitmaskGen',1);
@@ -463,7 +463,7 @@ classdef BitmaskGen < handle
         end
         
         function load_expts(obj)
-            pn = fileparts(which('epsych.BitmaskGen'));
+            pn = fileparts(which('epsych.ui.BitmaskGen'));
             d = dir(fullfile(pn,'*.ebmx'));
             fn = {d.name};
             names = fn;
