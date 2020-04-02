@@ -1,18 +1,31 @@
 classdef SubjectDialog < handle
+    % h = epsych.ui.SubjectDialog([Subject],[parent]);
+    %
+    % Use the following to block execution:
+    %   waitfor(h.parent);
+    %   disp(h.UserResponse)   % can equal 'OK' or 'Cancel'
+    %
+    % Subject data is in h.Subject
+
     properties
         Subject    (1,1) epsych.Subject = epsych.Subject;
+    end
 
-
-        NameEditField   (1,1) matlab.ui.control.EditField
-        IDEditField     (1,1) matlab.ui.control.EditField
-        DOBDatePicker   (1,1) matlab.ui.control.DatePicker
-        SexDropDown     (1,1) matlab.ui.control.DropDown
-        BaselineWeightEditField     (1,1) matlab.ui.control.NumericEditField
-        NoteTextArea    (1,1) matlab.ui.control.TextArea
-        
+    properties (Access = protected)
+        NameEditField           (1,1) matlab.ui.control.EditField
+        IDEditField             (1,1) matlab.ui.control.EditField
+        DOBDatePicker           (1,1) matlab.ui.control.DatePicker
+        SexDropDown             (1,1) matlab.ui.control.DropDown
+        BaselineWeightEditField (1,1) matlab.ui.control.NumericEditField
+        ProtocolFileEditField   (1,1) matlab.ui.control.EditField
+        LocateProtocolButton    (1,1) matlab.ui.control.Button
+        NoteTextArea            (1,1) matlab.ui.control.TextArea
+        OKButton                (1,1) matlab.ui.control.Button
+        CancelButton            (1,1) matlab.ui.control.Button
     end
 
     properties (SetAccess = private)
+        UserResponse    (1,:) char = 'Cancel'; % default if closed manually
         parent
     end
 
@@ -25,6 +38,8 @@ classdef SubjectDialog < handle
 
             obj.create(parent);
 
+            
+            epsych.ui.FigOnTop.figure_state(obj.parent,true);
         end
 
         function create_field(obj,hObj,event)
@@ -44,12 +59,24 @@ classdef SubjectDialog < handle
             end
         end
 
-        function save_subject(obj,hObj,event)
+        function response_button(obj,hObj,event)
+            obj.UserResponse = hObj.Tag;
+            close(obj.parent);
+        end
+
+    end % methods (Access = public)
+
+    methods (Access = private)
+        function locate_file(obj,hObj,event)
+            pn = getpref('epsych',[hObj.Tag 'Path'],epsych.Info.user_directory);
+
+            [fn,pn] = uigetfile(hObj.UserData{:},pn);
+
+            if isequal(fn,0), return; end
+
+            setpref('epsych',[hObj.Tag 'Path'],pn);
             
+            obj.Subject.(hObj.Tag) = fullfile(pn,fn);
         end
-
-        function load_subject(obj,hObj,event)
-
-        end
-    end
+    end % methods (Access = private)
 end
