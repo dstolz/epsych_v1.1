@@ -11,14 +11,15 @@ end
 
 g = uigridlayout(parent);
 g.RowHeight   = {35,'1x'};
-g.ColumnWidth = {85,85,'1x',110,130};
+g.ColumnWidth = {85,85,85,'1x',110,130};
 
 % Create SubjectTable
 obj.SubjectTable = uitable(g);
-obj.SubjectTable.ColumnName = {'V'; 'Box ID'; 'Subject'; 'Protocol'};
-obj.SubjectTable.ColumnWidth = {20, 80, 150, 300};
-obj.SubjectTable.RowName = {};
-obj.SubjectTable.ColumnEditable = [true true true true];
+obj.SubjectTable.ColumnName = {'Active', 'Name', 'ID', 'Protocol'};
+obj.SubjectTable.ColumnWidth = {50, 100, 100, 180};
+obj.SubjectTable.ColumnFormat = {'logical','char','char','char'};
+obj.SubjectTable.ColumnEditable = [true false false false];
+obj.SubjectTable.RowName = 'numbered'; % = boxid
 obj.SubjectTable.FontSize = 14;
 obj.SubjectTable.CellEditCallback = @obj.subject_table_edit;
 obj.SubjectTable.CellSelectionCallback = @obj.subject_table_select;
@@ -34,13 +35,23 @@ obj.AddButton.ButtonPushedFcn = @obj.add_subject;
 obj.AddButton.Layout.Column = 1;
 obj.AddButton.Layout.Row = 1;
 
+% Create ModifyButton
+obj.ModifyButton = uibutton(g, 'push');
+obj.ModifyButton.FontSize = 18;
+obj.ModifyButton.FontWeight = 'bold';
+obj.ModifyButton.Text = 'Modify';
+obj.ModifyButton.ButtonPushedFcn = @obj.modify_subject;
+obj.ModifyButton.Layout.Column = 2;
+obj.ModifyButton.Layout.Row = 1;
+
+
 % Create RemoveButton
 obj.RemoveButton = uibutton(g, 'push');
 obj.RemoveButton.FontSize = 18;
 obj.RemoveButton.FontWeight = 'bold';
 obj.RemoveButton.Text = 'Remove';
 obj.RemoveButton.ButtonPushedFcn = @obj.remove_subject;
-obj.RemoveButton.Layout.Column = 2;
+obj.RemoveButton.Layout.Column = 3;
 obj.RemoveButton.Layout.Row = 1;
 
 % Create ViewTrialsButton
@@ -49,7 +60,7 @@ obj.ViewTrialsButton.FontSize = 18;
 obj.ViewTrialsButton.FontWeight = 'bold';
 obj.ViewTrialsButton.Text = 'View Trials';
 obj.ViewTrialsButton.ButtonPushedFcn = @obj.view_trials;
-obj.ViewTrialsButton.Layout.Column = 4;
+obj.ViewTrialsButton.Layout.Column = 5;
 obj.ViewTrialsButton.Layout.Row = 1;
 
 % Create EditProtocolButton
@@ -58,6 +69,6 @@ obj.EditProtocolButton.FontSize = 18;
 obj.EditProtocolButton.FontWeight = 'bold';
 obj.EditProtocolButton.Text = 'Edit Protocol';
 obj.EditProtocolButton.ButtonPushedFcn = @obj.edit_protocol;
-obj.EditProtocolButton.Layout.Column = 5;
+obj.EditProtocolButton.Layout.Column = 6;
 obj.EditProtocolButton.Layout.Row = 1;
 

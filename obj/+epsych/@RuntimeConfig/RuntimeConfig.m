@@ -77,8 +77,7 @@ classdef (ConstructOnLoad) RuntimeConfig < handle & dynamicprops
 
         function d = get.UserDirectory(obj)
             if isempty(obj.UserDirectory)
-                ud = char(java.lang.System.getProperty('user.home'));
-                obj.UserDirectory = fullfile(ud,'EPsych');
+                obj.UserDirectory = fullfile(epsych.Info.user_directory,'EPsych');
                 if ~isfolder(obj.UserDirectory), mkdir(obj.UserDirectory); end
             end
             d = obj.UserDirectory;

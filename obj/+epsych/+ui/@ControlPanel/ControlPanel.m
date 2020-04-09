@@ -46,6 +46,7 @@ classdef ControlPanel < handle
                 figure(f);
             end
             
+            if nargout == 0, clear obj; end
         end
         
         % Destructor

@@ -5,8 +5,8 @@ classdef HardwareSetup < handle
     end
 
     properties (Access = protected)
-        ConnectorDropDown       matlab.ui.control.DropDown
-        ConnectorLabel          matlab.ui.control.Label
+        HardwareDropDown       matlab.ui.control.DropDown
+        HardwareLabel          matlab.ui.control.Label
         HardwarePanel           matlab.ui.container.Panel
         HWDescriptionTextArea   matlab.ui.control.TextArea
     end
@@ -27,7 +27,7 @@ classdef HardwareSetup < handle
 
         
         function create_dropdown(obj,hObj,~)
-            p = getpref('interface_ConnectorSetup','dfltConnector',[]);
+            p = getpref('interface_HardwareSetup','dfltHardware',[]);
             c = epsych.hw.Hardware.available;
             if isempty(p), p = c{1}; end
             i = ismember(c,p);
@@ -51,7 +51,7 @@ classdef HardwareSetup < handle
             v = sprintf('Type: %s\n%s',obj.HWInterface.Type,obj.HWInterface.Description);
             obj.HWDescriptionTextArea.Value = v;
             
-            setpref('interface_ConnectorSetup','dfltConnector',c);
+            setpref('interface_HardwareSetup','dfltHardware',c);
         end
     end
 

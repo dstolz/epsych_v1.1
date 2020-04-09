@@ -25,17 +25,17 @@ obj.HWDescriptionTextArea.Layout.Row = [1 2];
 obj.HWDescriptionTextArea.Layout.Column = 2;
 obj.HWDescriptionTextArea.Editable = 'off';
 
-obj.ConnectorLabel = uilabel(g);
-obj.ConnectorLabel.Layout.Row = 1;
-obj.ConnectorLabel.Layout.Column = 1;
-obj.ConnectorLabel.Text = 'Select Hardware';
-obj.ConnectorLabel.FontSize = 14;
-obj.ConnectorLabel.FontWeight = 'bold';
+obj.HardwareLabel = uilabel(g);
+obj.HardwareLabel.Layout.Row = 1;
+obj.HardwareLabel.Layout.Column = 1;
+obj.HardwareLabel.Text = 'Select Hardware';
+obj.HardwareLabel.FontSize = 14;
+obj.HardwareLabel.FontWeight = 'bold';
 
-% initialize ConnectorDropDown last
-obj.ConnectorDropDown = uidropdown(g,'CreateFcn',@obj.create_dropdown);
-obj.ConnectorDropDown.Layout.Row = 2;
-obj.ConnectorDropDown.Layout.Column = 1;
-obj.ConnectorDropDown.FontSize = 14;
-obj.ConnectorDropDown.FontWeight = 'bold';
-obj.ConnectorDropDown.ValueChangedFcn = @obj.value_changed;
+% initialize HardwareDropDown last
+obj.HardwareDropDown = uidropdown(g,'CreateFcn',@obj.create_dropdown);
+obj.HardwareDropDown.Layout.Row = 2;
+obj.HardwareDropDown.Layout.Column = 1;
+obj.HardwareDropDown.FontSize = 14;
+obj.HardwareDropDown.FontWeight = 'bold';
+obj.HardwareDropDown.ValueChangedFcn = @obj.value_changed;
