@@ -1,37 +1,45 @@
-classdef Runtime < handle & dynamicprops
+classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     
     properties
-        Subject         (:,1) epsych.Subject % one for each concurrently running subject
-
         ErrorMException (:,1) MException
-
-        Log             (1,1) epsych.log.Log
-
-        Config          (1,1) epsych.RuntimeConfig
     end
     
+    properties (SetObservable,AbortSet)
+        Config          (1,1) epsych.RuntimeConfig
+        Hardware        (1,:) % epsych.hw....
+        Subject         (1,:) % epsych.Subject
+    end
+
+    properties (SetAccess = private)
+        ConfigIsSaved     (1,1) logical = true;
+    end
 
     properties (Dependent)
         nSubjects
     end
     
     properties (Transient)
+        Log     (1,1) epsych.log.Log
         Timer
         State   (1,1) epsych.State = epsych.State.Prep;
     end
     
     properties (SetAccess = immutable)
-        Hardware   % wrapper class for ex: TDT RPvds ActiveX control
         Info       % epsych.Info
     end
     
     events
+        ConfigChange
         PreStateChange
         PostStateChange
     end
     
     methods
         function obj = Runtime
+            addlistener(obj,'Config','PostSet',@obj.some_var_was_updated);
+            addlistener(obj,'Subject','PostSet',@obj.some_var_was_updated);
+            addlistener(obj,'Hardware','PostSet',@obj.some_var_was_updated);
+
             obj.Info = epsych.Info;
                         
             fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
@@ -43,17 +51,12 @@ classdef Runtime < handle & dynamicprops
         end
                 
         % Destructor
-        function delete(obj)
-            
-            
+        function delete(obj)            
             try
                 stop(obj.Timer);
                 delete(obj.Timer);
-            end
-
-            
+            end            
             delete(obj.Log);
-            
             
             % be nice and return Matlab.exe process to normal priority in Windows
             pid = feature('getpid');
@@ -114,10 +117,10 @@ classdef Runtime < handle & dynamicprops
                         
                     case [epsych.State.Run, epsych.State.Preview]
                         obj.epsych.log.write(epsych.log.Verbosity.Debug,'Initializing Hardware')
-                        obj.epsych.hw.initialize;
+                        obj.Hardware.initialize;
 
                         obj.epsych.log.write(epsych.log.Verbosity.Debug,'Preparing Hardware')
-                        obj.epsych.hw.prepare;
+                        obj.Hardware.prepare;
 
                         obj.epsych.log.write(epsych.log.Verbosity.Debug,'Creating Runtime Timer')
                         obj.create_timer;
@@ -155,9 +158,15 @@ classdef Runtime < handle & dynamicprops
         
         
         function n = get.nSubjects(obj)
-            n = length(obj.Subject);
+            n = length(obj.Config.Subject);
         end
         
+        function sobj = saveobj(obj)
+            obj.ConfigIsSaved = true;
+            sobj = obj;
+            notify(obj,'ConfigChange');
+        end
+
     end % methods (Access = public)
 
 
@@ -184,10 +193,22 @@ classdef Runtime < handle & dynamicprops
             obj.Timer = T;
         end
     end % methods (Access = protected)
+
+    methods (Access = private)
+        function some_var_was_updated(obj,hObj,event)
+            obj.ConfigIsSaved = false;
+
+            notify(obj,'ConfigChange',event);
+
+            obj.Log.write(epsych.log.Verbosity.Verbose, ...
+                'Runtime Object Updated "%s"',hObj.Name);
+        end
+    end % methods (Access = private)
    
     methods (Static)
         function obj = loadobj(s)
-            
+            obj = s;
+            notify(obj,'ConfigChange');
         end
     end % methods (Static)
     

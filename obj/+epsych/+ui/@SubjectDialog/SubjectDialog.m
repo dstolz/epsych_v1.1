@@ -19,6 +19,8 @@ classdef SubjectDialog < handle
         BaselineWeightEditField (1,1) matlab.ui.control.NumericEditField
         ProtocolFileEditField   (1,1) matlab.ui.control.EditField
         LocateProtocolButton    (1,1) matlab.ui.control.Button
+        BitmaskFileEditField    (1,1) matlab.ui.control.EditField
+        LocateBitmaskButton     (1,1) matlab.ui.control.Button
         NoteTextArea            (1,1) matlab.ui.control.TextArea
         OKButton                (1,1) matlab.ui.control.Button
         CancelButton            (1,1) matlab.ui.control.Button
@@ -40,7 +42,7 @@ classdef SubjectDialog < handle
             obj.create(parent);
 
             
-            epsych.ui.FigOnTop.figure_state(obj.parent,true);
+            epsych.Tool.figure_state(obj.parent,true);
         end
 
         function create_field(obj,hObj,event)

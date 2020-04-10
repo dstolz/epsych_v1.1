@@ -42,6 +42,7 @@ obj.RemoveModuleButton= h;
 
 % Create TDTModulesTable
 fs = arrayfun(@(a) sprintf('%.1f',a),epsych.hw.TDTModules.sampling_rates/1000,'uni',0);
+fs = [{'Dflt'},fs];
 h = uitable(g);
 h.Layout.Column = [1 5];
 h.Layout.Row    = 2;

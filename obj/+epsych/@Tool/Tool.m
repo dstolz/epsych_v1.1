@@ -119,6 +119,51 @@ classdef Tool < handle
         
         end
 
+        function prevState = figure_state(h,state)
+            % figure_state(h);  % toggle state of figure handle h
+            % figure_state(h,state) % set state of figure handle h
+            % prevState = figure_state(h,...) % return current or previous state of figure handle h
+            % 
+            % DJS 2020
+            
+            narginchk(1,2);
+
+            drawnow expose
+
+            figh = ancestor(h,'figure');
+
+            if nargin < 2, state = []; end % toggle state
+
+            try %#ok<TRYNC>
+                warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
+                
+                if isa(figh,'matlab.ui.Figure')
+                    warning('off','MATLAB:structOnObject');
+                    f = struct(figh);
+                    c = struct(f.Controller);
+                    p = struct(c.PlatformHost);
+                    prevState = p.CEF.isAlwaysOnTop;
+                    if isempty(prevState), prevState = false; end
+                    if isempty(state), state = ~prevState; end
+                    p.CEF.setAlwaysOnTop(state);
+                    warning('on','MATLAB:structOnObject');
+
+                elseif verLessThan('matlab','8.1')
+                    J = get(figh,'JavaFrame');
+                    prevState = J.fHG1Client.getWindow.isAlwaysOnTop;
+                    if isempty(state), state = ~prevState; end
+                    J.fHG1Client.getWindow.setAlwaysOnTop(state);
+                else
+                    J = get(figh,'JavaFrame');
+                    prevState = J.fHG2Client.getWindow.isAlwaysOnTop;
+                    if isempty(state), state = ~prevState; end
+                    J.fHG2Client.getWindow.setAlwaysOnTop(state);
+                end
+                warning('on','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
+            
+            end
+
+        end
     end
 
 end

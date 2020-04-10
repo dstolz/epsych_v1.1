@@ -1,4 +1,4 @@
-classdef Subject < handle & dynamicprops
+classdef Subject < handle & dynamicprops & matlab.mixin.Copyable
 
     properties
         Name            (1,:) char {mustBeNonempty} = 'NO NAME';
@@ -6,7 +6,8 @@ classdef Subject < handle & dynamicprops
         ID              (1,:) char
         Sex             (1,:) char {mustBeMember(Sex,{'male','female','unknown'})} = 'unknown';
         BaselineWeight  (1,1) double {mustBePositive,mustBeFinite} = 1;
-        ProtocolFile    (1,:) char        
+        ProtocolFile    (1,:) char
+        BitmaskFile     (1,:) char    
         Note            (1,1) string
 
         Active          (1,1) logical = true;

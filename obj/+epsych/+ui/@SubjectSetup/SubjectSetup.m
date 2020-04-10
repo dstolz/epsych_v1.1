@@ -28,6 +28,8 @@ classdef SubjectSetup < handle
         % Constructor
         function obj = SubjectSetup(parent)
             narginchk(0,1)
+
+            if nargin == 0, parent = []; end
             
             create(obj,parent);
             
@@ -57,14 +59,25 @@ classdef SubjectSetup < handle
             nm = {obj.Subject.Name};
             id = {obj.Subject.ID};
             fn = cellfun(@epsych.Tool.truncate_str,{obj.Subject.ProtocolFile},'uni',0);
+            bm = cellfun(@epsych.Tool.truncate_str,{obj.Subject.BitmaskFile},'uni',0);
             
-            obj.SubjectTable.Data = [ac(:), nm(:), id(:), fn(:)];
+            obj.SubjectTable.Data = [ac(:), nm(:), id(:), fn(:), bm(:)];
+
+            RUNTIME.Subject = copy(obj.Subject);
 
             RUNTIME.Log.write('Verbose','Updated Subjects Table');
+
         end
 
         function modify_subject(obj,hObj,event)
-            if isempty(obj.selIdx), return; end
+            if size(obj.SubjectTable.Data,1) == 1
+                obj.selIdx = [1 1];
+            end
+
+            if isempty(obj.selIdx) || obj.selIdx(1) == 0
+                uialert(obj.parent,'Please first select a subject to modify','Subject Setup','Icon','info');
+                return
+            end
 
             h = epsych.ui.SubjectDialog(obj.Subject(obj.selIdx(1)));
             waitfor(h.parent);

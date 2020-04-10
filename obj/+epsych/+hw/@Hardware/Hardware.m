@@ -1,4 +1,4 @@
-classdef Hardware < handle & dynamicprops
+classdef Hardware < handle & dynamicprops & matlab.mixin.Copyable
     % Abstract properties and methods must be defined in subclass
     %
     % h = interface(obj,parent);  % minimal gui to set custom parameters

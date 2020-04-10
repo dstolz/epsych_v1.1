@@ -1,4 +1,4 @@
-classdef (ConstructOnLoad) RuntimeConfig < handle & dynamicprops
+classdef (ConstructOnLoad) RuntimeConfig < handle & dynamicprops & matlab.mixin.Copyable
 
     properties
         LogDirectory  (1,:) char
@@ -16,9 +16,6 @@ classdef (ConstructOnLoad) RuntimeConfig < handle & dynamicprops
 
         AutoSaveRuntimeConfig (1,1) logical = true;
         AutoLoadRuntimeConfig (1,1) logical = true;
-    
-        SubjectConfig
-        BitmaskConfig
     end
 
     properties (Dependent)

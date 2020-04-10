@@ -30,13 +30,13 @@ classdef TDTActiveX < epsych.hw.Hardware
     properties
         Parameters
 
-        ConnectionType (1,:) char {mustBeMember(ConnectionType,{'GB','USB'})} = 'GB';
+        ConnectionType  (1,:) char {mustBeMember(ConnectionType,{'GB','USB'})} = 'GB';
 
-        ModuleAlias    (1,:) cell
-        Module         (1,:) epsych.hw.TDTModules
-        ModuleID       (1,:) double {mustBePositive,mustBeInteger}
-        ModuleRPvdsFile      (1,:) cell
-        ModuleFs       (1,:) double {mustBePositive,mustBeFinite} = 24414.0625; % Hz
+        ModuleAlias     (1,:) cell
+        Module          (1,:) epsych.hw.TDTModules
+        ModuleID        (1,:) double {mustBePositive,mustBeInteger}
+        ModuleRPvdsFile (1,:) cell
+        ModuleFs        (1,:) double {mustBePositive,mustBeFinite} = 24414.0625; % Hz
     end
 
 
@@ -140,6 +140,7 @@ classdef TDTActiveX < epsych.hw.Hardware
         end
 
 
+        % UI -----------------------------------------------------
         function add_module(obj,hObj,event)
             % add module to the table
             obj.Module(end+1) = epsych.hw.TDTModules.RZ6;
@@ -158,10 +159,10 @@ classdef TDTActiveX < epsych.hw.Hardware
 
             obj.TDTModulesTable.Data(idx,:) = [];
             
-            obj.Module(idx) = [];
-            obj.ModuleID(idx) = [];
-            obj.ModuleFs(idx) = [];
-            obj.ModuleAlias(idx) = [];
+            obj.Module(idx)          = [];
+            obj.ModuleID(idx)        = [];
+            obj.ModuleFs(idx)        = [];
+            obj.ModuleAlias(idx)     = [];
             obj.ModuleRPvdsFile(idx) = [];
         end
 

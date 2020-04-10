@@ -5,7 +5,7 @@ if isempty(parent)
     % Create parent
     parent = uifigure(parent);
     parent.Name = 'Subject Info';
-    parent.Position([3 4]) = [350 350];
+    parent.Position = [100 100 350 400];
     parent.Scrollable = 'on';
 end
 
@@ -13,7 +13,7 @@ obj.parent = parent;
 
 g = uigridlayout(parent);
 g.ColumnWidth = {100,'1x',25};
-g.RowHeight   = {25,25,25,25,25,25,70,'1x',30};
+g.RowHeight   = {25,25,25,25,25,25,25,70,'1x',30};
 
 R = 1;
 
@@ -100,9 +100,30 @@ obj.LocateProtocolButton.Layout.Row = R;
 obj.LocateProtocolButton.Layout.Column = 3;
 obj.LocateProtocolButton.Text = '...';
 obj.LocateProtocolButton.ButtonPushedFcn = @obj.locate_file;
-obj.LocateProtocolButton.UserData = {{'*.epprot','EPsych Protocol'},'EPsych Protocol File'}; % uigetfile parameters
+obj.LocateProtocolButton.UserData = {{'*.eprot','EPsych Protocol'},'EPsych Protocol File'}; % uigetfile parameters
 
 
+
+
+
+R = R + 1;
+
+h = uilabel(g,'Text','Bitmask File:');
+h.Layout.Row = R;
+h.Layout.Column = 1;
+
+obj.BitmaskFileEditField = uieditfield(g,'Tag','BitmaskFile','CreateFcn',@obj.create_field);
+obj.BitmaskFileEditField.Layout.Row = R;
+obj.BitmaskFileEditField.Layout.Column = 2;
+obj.BitmaskFileEditField.ValueChangedFcn = @obj.update_field;
+obj.BitmaskFileEditField.HorizontalAlignment = 'right';
+
+obj.LocateBitmaskButton = uibutton(g,'Tag','BitmaskFile');
+obj.LocateBitmaskButton.Layout.Row = R;
+obj.LocateBitmaskButton.Layout.Column = 3;
+obj.LocateBitmaskButton.Text = '...';
+obj.LocateBitmaskButton.ButtonPushedFcn = @obj.locate_file;
+obj.LocateBitmaskButton.UserData = {{'*.ebm','EPsych Bitmask'},'EPsych Bitmask File'}; % uigetfile parameters
 
 
 R = R + 1;

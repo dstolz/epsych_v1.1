@@ -18,7 +18,7 @@ classdef FigOnTop < handle
         function obj = FigOnTop(parent,state,prefGroup,prefVar)
             narginchk(0,4)
 
-            if nargin == 0, return; end
+            if nargin == 0 || isempty(parent), return; end
 
             obj.create(parent);
 
@@ -49,14 +49,14 @@ classdef FigOnTop < handle
         end
 
         function set.State(obj,state)
-            obj.figure_state(obj.parent,state);
+            epsych.Tool.figure_state(obj.parent,state);
             if obj.usePref
                 setpref(obj.prefGroup,obj.prefVar,state);
             end
         end
 
         function s = get.State(obj)
-            s = obj.figure_state(obj.parent);
+            s = epsych.Tool.figure_state(obj.parent);
         end
 
         function set.usePref(obj,tf)
@@ -73,48 +73,7 @@ classdef FigOnTop < handle
     end
 
     methods (Static)
-        function prevState = figure_state(h,state)
-            narginchk(1,2);
-
-            drawnow expose
-
-            figh = ancestor(h,'figure');
-
-            if nargin < 2, state = []; end % return state without setting it
-
-            try %#ok<TRYNC>
-                warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
-                
-                if isa(figh,'matlab.ui.Figure')
-                    warning('off','MATLAB:structOnObject');
-                    f = struct(figh);
-                    c = struct(f.Controller);
-                    p = struct(c.PlatformHost);
-                    prevState = p.CEF.isAlwaysOnTop;
-                    if isempty(prevState), prevState = false; end
-                    if ~isempty(state)
-                        p.CEF.setAlwaysOnTop(state);
-                    end
-                    warning('on','MATLAB:structOnObject');
-
-                elseif verLessThan('matlab','8.1')
-                    J = get(figh,'JavaFrame');
-                    prevState = J.fHG1Client.getWindow.isAlwaysOnTop;
-                    if ~isempty(state)
-                        J.fHG1Client.getWindow.setAlwaysOnTop(state);
-                    end
-                else
-                    J = get(figh,'JavaFrame');
-                    prevState = J.fHG2Client.getWindow.isAlwaysOnTop;
-                    if ~isempty(state)
-                        J.fHG2Client.getWindow.setAlwaysOnTop(state);
-                    end
-                end
-                warning('on','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
-            
-            end
-
-        end
+        
     end
 
 end

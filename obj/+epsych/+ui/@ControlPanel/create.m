@@ -4,8 +4,7 @@ global RUNTIME % for setting up the Log tab
 if nargin == 3 && reset
     switch class(obj.parent)
         case 'matlab.ui.Figure'
-            delete(obj.parent);
-            parent = [];
+            delete(obj.parent.Childrend);
 
         case 'matlab.ui.container.Panel'
             delete(obj.parent.Children)
@@ -15,7 +14,7 @@ end
 if nargin == 1 || isempty(parent)
     % Create UIFigure
     obj.parent = uifigure;
-    obj.parent.Position = [100 100 700 400];
+    obj.parent.Position = [100 100 800 400];
     obj.parent.CloseRequestFcn = @obj.closereq;
     obj.parent.Name = 'EPsych Control Panel';
 end
@@ -30,11 +29,15 @@ obj.TabGroup = uitabgroup(g);
 obj.TabGroup.Layout.Row    = [2 3];
 obj.TabGroup.Layout.Column = 1;
 
-
 % Create OverviewTab
 obj.OverviewTab = uitab(obj.TabGroup);
 obj.OverviewTab.Title = 'Overview';
 obj.OverviewObj = epsych.ui.OverviewSetup(obj.OverviewTab);
+
+% Create ShortcutsTab
+obj.ShortcutsTab = uitab(obj.TabGroup);
+obj.ShortcutsTab.Title = 'Shortcuts';
+obj.ShortcutsObj = epsych.ui.Shortcuts(obj.ShortcutsTab);
 
 % Create SubjectTab
 obj.SubjectTab = uitab(obj.TabGroup);
@@ -58,12 +61,11 @@ RUNTIME.Log.create_gui(obj.LogTab);
 
 
 
-
 % Create "Toolbar"
 obj.ToolbarPanel = uipanel(g);
 obj.ToolbarPanel.Layout.Row = 1;
 obj.ToolbarPanel.Layout.Column = 1;
-obj.ToolbarPanel.BorderType = 'none';
+obj.ToolbarPanel.BorderType = 'line';
 
 gc = uigridlayout(obj.ToolbarPanel);
 gc.Padding = [0 0 0 0];
@@ -71,15 +73,21 @@ gc.RowHeight = {'1x'};
 gc.ColumnWidth = {50,50};
 
 h = uibutton(gc);
-h.Text = 'load';
-% h.Icon = fullfile(epsych.Info.root,'icons','folder.png');
+h.Text = '';
+h.Tooltip = 'Load Configuration';
+h.Icon = fullfile(epsych.Info.root,'icons','folder.png');
+h.IconAlignment = 'center';
 h.ButtonPushedFcn = @obj.load_config;
+obj.LoadButton = h;
 
 h = uibutton(gc);
-h.Text = 'save';
-% h.Icon = fullfile(epsych.Info.root,'icons','save.png');
+h.Text = '';
+h.Tooltip = 'Save Current Configuration';
+h.Icon = fullfile(epsych.Info.root,'icons','save.png');
+h.IconAlignment = 'center';
+h.Enable = 'off';
 h.ButtonPushedFcn = @obj.save_config;
-
+obj.SaveButton = h;
 
 
 % Create RuntimePanel

@@ -1,7 +1,7 @@
 classdef HardwareSetup < handle
 
     properties (SetAccess = protected)
-        HWInterface
+        Hardware
     end
 
     properties (Access = protected)
@@ -34,22 +34,26 @@ classdef HardwareSetup < handle
             hObj.Items = c;
             hObj.Value = c{i};
 
-            obj.HWInterface = c{i};
+            obj.Hardware = c{i};
         end
 
         function value_changed(obj,hObj,event)
-            obj.HWInterface = hObj.Value;
+            obj.Hardware = hObj.Value;
         end
         
-        function set.HWInterface(obj,c)
-            try, delete(obj.HWInterface); end
+        function set.Hardware(obj,c)
+            global RUNTIME
+
+            try, delete(obj.Hardware); end
             try, delete(obj.HardwarePanel.Children); end
             
             % instantiate hardware object
-            obj.HWInterface = epsych.hw.(c);
-            obj.HWInterface.setup(obj.HardwarePanel);
-            v = sprintf('Type: %s\n%s',obj.HWInterface.Type,obj.HWInterface.Description);
+            obj.Hardware = epsych.hw.(c);
+            obj.Hardware.setup(obj.HardwarePanel);
+            v = sprintf('Type: %s\n%s',obj.Hardware.Type,obj.Hardware.Description);
             obj.HWDescriptionTextArea.Value = v;
+
+            RUNTIME.Hardware = copy(obj.Hardware);
             
             setpref('interface_HardwareSetup','dfltHardware',c);
         end
