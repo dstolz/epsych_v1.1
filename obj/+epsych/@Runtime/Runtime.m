@@ -6,7 +6,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     
     properties (SetObservable,AbortSet)
         Config          (1,1) epsych.RuntimeConfig
-        Hardware        (1,:) % epsych.hw....
+        Hardware        (1,:) % epsych.hw.(Abstraction)
         Subject         (1,:) % epsych.Subject
     end
 
@@ -24,6 +24,12 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
         State   (1,1) epsych.State = epsych.State.Prep;
     end
     
+    properties (Access = private)
+        el_PostSetConfig
+        el_PostSetSubject
+        el_PostSetHardware
+    end
+    
     properties (SetAccess = immutable)
         Info       % epsych.Info
     end
@@ -36,9 +42,9 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     
     methods
         function obj = Runtime
-            addlistener(obj,'Config','PostSet',@obj.some_var_was_updated);
-            addlistener(obj,'Subject','PostSet',@obj.some_var_was_updated);
-            addlistener(obj,'Hardware','PostSet',@obj.some_var_was_updated);
+            obj.el_PostSetConfig   = addlistener(obj,'Config','PostSet',@obj.some_var_was_updated);
+            obj.el_PostSetSubject  = addlistener(obj,'Subject','PostSet',@obj.some_var_was_updated);
+            obj.el_PostSetHardware = addlistener(obj,'Hardware','PostSet',@obj.some_var_was_updated);
 
             obj.Info = epsych.Info;
                         
@@ -51,12 +57,16 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
         end
                 
         % Destructor
-        function delete(obj)            
+        function delete(obj)   
             try
                 stop(obj.Timer);
                 delete(obj.Timer);
             end            
             delete(obj.Log);
+            
+            delete(obj.el_PostSetConfig);
+            delete(obj.el_PostSetSubject);
+            delete(obj.el_PostSetHardware);
             
             % be nice and return Matlab.exe process to normal priority in Windows
             pid = feature('getpid');
