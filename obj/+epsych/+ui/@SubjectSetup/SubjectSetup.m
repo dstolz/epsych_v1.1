@@ -45,13 +45,13 @@ classdef SubjectSetup < handle
 
         function set.Subject(obj,S)
             % update table
-            global RUNTIME
+            global RUNTIME LOG
 
             obj.Subject = S;
             
             if isempty(obj.Subject)
                 obj.SubjectTable.Data = [];
-                RUNTIME.Log.write('Verbose','Updated Subjects Table');
+                LOG.write('Verbose','Updated Subjects Table');
                 return
             end
 
@@ -65,7 +65,7 @@ classdef SubjectSetup < handle
 
             RUNTIME.Subject = copy(obj.Subject);
 
-            RUNTIME.Log.write('Verbose','Updated Subjects Table');
+            LOG.write('Verbose','Updated Subjects Table');
 
         end
 
@@ -115,7 +115,7 @@ classdef SubjectSetup < handle
         end
         
         function add_subject(obj,hObj,event)
-            global RUNTIME
+            global LOG
 
             h = epsych.ui.SubjectDialog;
             waitfor(h.parent);
@@ -128,7 +128,7 @@ classdef SubjectSetup < handle
                 return
             end
 
-            RUNTIME.Log.write('Verbose','Adding subject %s "%s"',h.Subject.ID,h.Subject.Name);
+            LOG.write('Verbose','Adding subject %s "%s"',h.Subject.ID,h.Subject.Name);
 
             obj.Subject(end+1) = h.Subject;
             
@@ -136,11 +136,11 @@ classdef SubjectSetup < handle
         end
 
         function remove_subject(obj,hObj,event)
-            global RUNTIME
+            global LOG
 
             if isempty(obj.selIdx), return; end
 
-            RUNTIME.Log.write('Verbose','Removing subject %s "%s"', ...
+            LOG.write('Verbose','Removing subject %s "%s"', ...
                 obj.Subject(obj.selIdx(1)).ID,obj.Subject(obj.selIdx(1)).Name);
 
             obj.SubjectTable.Data(obj.selIdx(1),:) = [];

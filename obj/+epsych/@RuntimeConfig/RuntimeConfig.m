@@ -26,6 +26,7 @@ classdef (ConstructOnLoad) RuntimeConfig < handle & dynamicprops & matlab.mixin.
         LastModified
     end
 
+
     properties (SetAccess = immutable)
         CreatedOn
     end
@@ -84,6 +85,7 @@ classdef (ConstructOnLoad) RuntimeConfig < handle & dynamicprops & matlab.mixin.
             d = obj.DataDirectory;
         end
     end % methods (Access = public)
+
 
     methods (Static)
         function obj = loadobj(s)

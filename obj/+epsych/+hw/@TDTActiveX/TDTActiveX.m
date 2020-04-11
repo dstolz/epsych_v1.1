@@ -67,6 +67,7 @@ classdef TDTActiveX < epsych.hw.Hardware
         end
 
         function set.State(obj,newState)
+            if isempty(newState), return; end
             switch newState
                 case epsych.State.Prep
                     obj.prepare;

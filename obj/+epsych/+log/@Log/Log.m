@@ -1,5 +1,5 @@
 classdef Log < handle
-    % L = epsych.log.Log([logFilename]);
+    % L = epsych.log.Log([logFilename],[parent]);
     %
     % Verbosity controlled message logging.
     %

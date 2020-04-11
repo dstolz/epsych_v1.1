@@ -19,12 +19,11 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     end
     
     properties (Transient)
-        Log     (1,1) epsych.log.Log
         Timer
         State   (1,1) epsych.State = epsych.State.Prep;
     end
     
-    properties (Access = private)
+    properties (Access = private,Transient)
         el_PostSet
     end
     
@@ -47,9 +46,6 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             obj.el_PostSet = cellfun(@(a) addlistener(obj,a,'PostSet',@obj.some_var_was_updated),psp);
 
             obj.Info = epsych.Info;
-                        
-            fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
-            obj.Log = epsych.log.Log(fullfile(obj.Config.LogDirectory,fn));
 
             % elevate Matlab.exe process to a high priority in Windows
             pid = feature('getpid');
@@ -57,15 +53,12 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
         end
                 
         % Destructor
-        function delete(obj)   
+        function delete(obj)            
             try
                 stop(obj.Timer);
                 delete(obj.Timer);
             end            
-            delete(obj.Log);
-            
-            delete(obj.el_PostSet);
-            
+                        
             % be nice and return Matlab.exe process to normal priority in Windows
             pid = feature('getpid');
             [~,~] = dos(sprintf('wmic process where processid=%d CALL setpriority 32',pid));
@@ -204,12 +197,13 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
 
     methods (Access = private)
         function some_var_was_updated(obj,hObj,event)
+            global LOG
+            
             obj.ConfigIsSaved = false;
 
             notify(obj,'ConfigChange',event);
 
-            obj.Log.write(epsych.log.Verbosity.Verbose, ...
-                'Runtime Object Updated "%s"',hObj.Name);
+            LOG.write('Verbose','Runtime Object Updated "%s"',hObj.Name);
         end
     end % methods (Access = private)
    

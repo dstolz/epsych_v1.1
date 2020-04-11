@@ -1,5 +1,5 @@
 function create(obj,parent,reset)
-global RUNTIME % for setting up the Log tab
+global LOG % for setting up the Log tab
 
 if nargin == 3 && reset
     switch class(obj.parent)
@@ -57,7 +57,7 @@ obj.RuntimeConfigSetupObj = epsych.ui.RuntimeConfigSetup(obj.CustomizationTab);
 % Create LogTab
 obj.LogTab = uitab(obj.TabGroup);
 obj.LogTab.Title = 'Log';
-RUNTIME.Log.create_gui(obj.LogTab);
+LOG.create_gui(obj.LogTab);
 
 
 

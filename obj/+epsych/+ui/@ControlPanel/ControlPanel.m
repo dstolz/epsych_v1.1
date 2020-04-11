@@ -30,19 +30,24 @@ classdef ControlPanel < handle
     methods
         % Constructor
         function obj = ControlPanel(parent)
-            global RUNTIME
+            global RUNTIME LOG
             
             if nargin == 0, parent = []; end
-            
+
             % permit only one instance at a time
             f = epsych.Tool.find_epsych_controlpanel;
             if isempty(f)
                 % INITIALIZE RUNTIME OBJECT
                 RUNTIME = epsych.Runtime;
-
+                
+                % INITIALIZE SESSION LOG
+                fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
+                LOG = epsych.log.Log(fullfile(RUNTIME.Config.LogDirectory,fn));
+                
                 addlistener(RUNTIME,'ConfigChange',@obj.config_change_detected);
 
                 obj.create(parent);
+
 
                 drawnow
 
@@ -62,19 +67,21 @@ classdef ControlPanel < handle
 
         % Destructor
         function delete(obj)
-            global RUNTIME
+            global RUNTIME LOG
             
-            RUNTIME.Log.write(epsych.log.Verbosity.Important,'ControlPanel closing.')
+            LOG.write('Important','ControlPanel closing.')
             
             drawnow
             
             delete(RUNTIME);
+
+            delete(LOG);
         end
         
         function closereq(obj,hObj,event)
-            global RUNTIME
+            global RUNTIME LOG
             
-            RUNTIME.Log.write(epsych.log.Verbosity.Important,'ControlPanel close requested.')
+            LOG.write(epsych.log.Verbosity.Important,'ControlPanel close requested.')
             
             if ~any(RUNTIME.State == [epsych.State.Halt, epsych.State.Prep])
                 uialert(ancestor(obj.parent,'figure'),'Close', ...
@@ -99,7 +106,7 @@ classdef ControlPanel < handle
                             return
                             
                         case 'Continue'
-                            RUNTIME.Log.write('Insanity','User chose to not save Runtime config on close')
+                            LOG.write('Insanity','User chose to not save Runtime config on close')
                     end
                 end
             end
@@ -109,7 +116,7 @@ classdef ControlPanel < handle
         end
         
         function save_config(obj,ffn,~,~)
-            global RUNTIME
+            global RUNTIME LOG
             
             prevState = epsych.Tool.figure_state(obj.parent,false);
             
@@ -130,7 +137,7 @@ classdef ControlPanel < handle
                 ffn = fullfile(pn,fn);
             end
 
-            RUNTIME.Log.write(epsych.log.Verbosity.Verbose,'Saving EPsych Runtime Config as "%s"',ffn);
+            LOG.write(epsych.log.Verbosity.Verbose,'Saving EPsych Runtime Config as "%s"',ffn);
             
             save(ffn,'RUNTIME','-mat');
 
@@ -140,7 +147,7 @@ classdef ControlPanel < handle
         
         
         function load_config(obj,ffn,~,~)
-            global RUNTIME
+            global RUNTIME LOG
 
             if ~RUNTIME.ConfigIsSaved
                 r = uiconfirm(obj.parent,'There have been changes made to the current configuration.  Would you like to first save the current configuration?', ...
@@ -155,7 +162,7 @@ classdef ControlPanel < handle
                         return
 
                     case 'Continue'
-                        RUNTIME.Log.write(epsych.log.Verbosity.Verbose,'User chose to not save the current configuration.')
+                        LOG.write(epsych.log.Verbosity.Verbose,'User chose to not save the current configuration.')
                 end
             end
             
@@ -183,22 +190,29 @@ classdef ControlPanel < handle
             warning('on','MATLAB:class:mustReturnObject');
             
             if isempty(x)
-                RUNTIME.Log.write(epsych.log.Verbosity.Verbose,'Invalid Config file: %s',ffn)
+                LOG.write(epsych.log.Verbosity.Verbose,'Invalid Config file: %s',ffn)
                 fprintf(2,'Unable to load the configuration: "%s"\n',ffn);
                 return
             end
 
             load(ffn,'-mat','RUNTIME');
-            RUNTIME.Log.write(epsych.log.Verbosity.Verbose,'Loaded Runtime Config file: %s',ffn)
+
+            addlistener(RUNTIME,'ConfigChange',@obj.config_change_detected);
+
+            LOG.write(epsych.log.Verbosity.Verbose,'Loaded Runtime Config file: %s',ffn)
 
             obj.reset_ui_objects;
+            
+            figure(obj.parent); % unhide gui
         end
         
         
         function reset_ui_objects(obj)
             global RUNTIME
 
-            % TODO: Load Runtime customizations
+            if ~isempty(RUNTIME.Config)
+                obj.RuntimeConfigSetupObj.Config = RUNTIME.Config;
+            end
 
             if ~isempty(RUNTIME.Subject)
                 obj.SubjectSetupObj.Subject = RUNTIME.Subject;

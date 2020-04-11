@@ -11,6 +11,7 @@ gt.ColumnWidth = {'1x',75};
 gt.RowHeight   = {'1x',25};
 
 obj.hEchoTextArea = uitextarea(gt);
+obj.hEchoTextArea.Tag = 'LogEchoTextArea';
 obj.hEchoTextArea.Layout.Column = [1 2];
 obj.hEchoTextArea.Layout.Row    = 1;
 obj.hEchoTextArea.Editable = 'off';

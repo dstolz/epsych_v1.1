@@ -1,6 +1,10 @@
 classdef RuntimeConfigSetup < handle
     % User-settable functions, directories, and options
     
+    properties
+        Config  epsych.RuntimeConfig = epsych.RuntimeConfig;
+    end
+
     properties (SetAccess = immutable)
         parent
     end
@@ -13,26 +17,45 @@ classdef RuntimeConfigSetup < handle
             obj.parent = parent;
         end
 
+        function set.Config(obj,C)
+            % TODO: Update fields based on new Config
+            m = metaclass(C);
+            ind = ismember({m.PropertyList.SetAccess},'public');
+            p = {m.PropertyList(ind).Name};
+            for i = 1:length(p)
+                h = findobj(obj.parent,'Tag',p{i},'-and','type','uieditfield');
+                if isempty(h)
+                    h = findobj(obj.parent,'Tag',p{i},'-and','type','uicheckbox');
+                end
+                if isempty(h), continue; end
+                if isa(C.(p{i}),'function_handle')
+                    h.Value = func2str(C.(p{i}));
+                else
+                    h.Value = C.(p{i});
+                end
+            end
+        end
+
         function create_field(obj,hObj,event)
-            global RUNTIME
-            v = RUNTIME.Config.(hObj.Tag);
+            v = obj.Config.(hObj.Tag);
             if isa(v,'function_handle')
                 hObj.Value = func2str(v);
             else
                 hObj.Value = v;
             end
-            
         end
         
         function update_function(obj,hObj,event)
-            global RUNTIME
+            global RUNTIME LOG
             hObj.Value = obj.check_function(event);
-            RUNTIME.Config.(hObj.Tag) = str2func(hObj.Value);
-            RUNTIME.Log.write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %s',hObj.Tag,hObj.Value)
+            obj.Config.(hObj.Tag) = str2func(hObj.Value);
+            LOG.write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %s',hObj.Tag,hObj.Value)
+
+            RUNTIME.Config = copy(obj.Config);
         end
 
         function update_directory(obj,hObj,event)
-            global RUNTIME
+            global RUNTIME LOG
             if ~isfolder(event.Value)
                 sel = uiconfirm(ancestor(obj.parent,'figure'), ...
                     sprintf('Directory does not exist: "%s"\n\nWould you like to create it?',event.Value), ...
@@ -46,35 +69,42 @@ classdef RuntimeConfigSetup < handle
                 mkdir(event.Value);
                 
             end
-            RUNTIME.Config.(hObj.Tag) = event.Value;
-            RUNTIME.Log.write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %s',hObj.Tag,event.Value)
+            obj.Config.(hObj.Tag) = event.Value;
+
+            RUNTIME.Config = copy(obj.Config);
+
+            LOG.write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %s',hObj.Tag,event.Value)
         end
 
         function update_checkbox(obj,hObj,event)
-            global RUNTIME
-            RUNTIME.Config.(hObj.Tag) = event.Value;
-            RUNTIME.Log.write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %d',hObj.Tag,event.Value)
+            global RUNTIME LOG
+            obj.Config.(hObj.Tag) = event.Value;
+            LOG.write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %d',hObj.Tag,event.Value)
 
             % one-off
             if isequal(hObj.Tag,'AutoLoadRuntimeConfig')
                 setpref('epsych_Config','AutoLoadRuntimeConfig',event.Value)
             end
+
+            RUNTIME.Config = copy(obj.Config);
         end
 
         function locate_directory(obj,hObj,event)
             global RUNTIME
-
-            d = uigetdir(RUNTIME.Config.(hObj.Tag),'Choose a Directory');
+            d = uigetdir(obj.Config.(hObj.Tag),'Choose a Directory');
             if isequal(d,0), return; end
-            RUNTIME.Config.(hObj.Tag) = d;
+            obj.Config.(hObj.Tag) = d;
             h = findall(0,'Tag',hObj.Tag,'-and','Type','uieditfield');
             h.Value = d;
 
             if isequal(hObj.Tag,'LogDirectory')
                 epsych.Tool.restart_required(obj.parent);
             end
+
+            RUNTIME.Config = copy(obj.Config);
         end
     end % methods
+
 
     methods (Static)
         function r = check_function(e)
