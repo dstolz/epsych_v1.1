@@ -23,7 +23,7 @@ classdef ControlPanel < handle
         RuntimeControlObj       % epsych.ui.RuntimeControl
         SubjectSetupObj         % epsych.ui.SubjectSetup
         HardwareSetupObj        % epsych.ui.HardwareSetup
-        CustomizationSetupObj   % epsych.ui.CustomizationSetup
+        RuntimeConfigSetupObj   % epsych.ui.RuntimeConfigSetup
         ShortcutsObj            % epsych.ui.Shortcuts
     end
     

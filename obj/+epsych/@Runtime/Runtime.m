@@ -25,9 +25,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     end
     
     properties (Access = private)
-        el_PostSetConfig
-        el_PostSetSubject
-        el_PostSetHardware
+        el_PostSet
     end
     
     properties (SetAccess = immutable)
@@ -42,9 +40,11 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     
     methods
         function obj = Runtime
-            obj.el_PostSetConfig   = addlistener(obj,'Config','PostSet',@obj.some_var_was_updated);
-            obj.el_PostSetSubject  = addlistener(obj,'Subject','PostSet',@obj.some_var_was_updated);
-            obj.el_PostSetHardware = addlistener(obj,'Hardware','PostSet',@obj.some_var_was_updated);
+           
+            m = metaclass(obj);
+            ind = [m.PropertyList.SetObservable];
+            psp = {m.PropertyList(ind).Name};
+            obj.el_PostSet = cellfun(@(a) addlistener(obj,a,'PostSet',@obj.some_var_was_updated),psp);
 
             obj.Info = epsych.Info;
                         
@@ -64,9 +64,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             end            
             delete(obj.Log);
             
-            delete(obj.el_PostSetConfig);
-            delete(obj.el_PostSetSubject);
-            delete(obj.el_PostSetHardware);
+            delete(obj.el_PostSet);
             
             % be nice and return Matlab.exe process to normal priority in Windows
             pid = feature('getpid');

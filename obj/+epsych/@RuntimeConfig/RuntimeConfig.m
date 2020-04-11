@@ -1,6 +1,6 @@
 classdef (ConstructOnLoad) RuntimeConfig < handle & dynamicprops & matlab.mixin.Copyable
 
-    properties
+    properties (AbortSet)
         LogDirectory  (1,:) char
         UserDirectory (1,:) char
         DataDirectory (1,:) char
@@ -24,7 +24,6 @@ classdef (ConstructOnLoad) RuntimeConfig < handle & dynamicprops & matlab.mixin.
 
     properties (SetAccess = private)
         LastModified
-        ConfigSaved     (1,1) logical = false;
     end
 
     properties (SetAccess = immutable)
@@ -42,16 +41,15 @@ classdef (ConstructOnLoad) RuntimeConfig < handle & dynamicprops & matlab.mixin.
             end
         end
 
+
         function modified(obj)
             obj.LastModified = datestr(now);
-            obj.ConfigSaved = false;
         end
 
         function s = get.Status(obj)
             if isempty(obj.SubjectConfig) ...
                 || isempty(obj.BitmaskConfig) ...
                 || isempty(obj.Hardware) ...
-                || ~obj.ConfigSaved
                 s = epsych.ConfigStatus.NotReady;
             else
                 s = epsych.ConfigStatus.Ready;
@@ -59,7 +57,6 @@ classdef (ConstructOnLoad) RuntimeConfig < handle & dynamicprops & matlab.mixin.
         end
 
         function s = saveobj(obj)
-            obj.ConfigSaved = true;
             s = obj;
         end
 

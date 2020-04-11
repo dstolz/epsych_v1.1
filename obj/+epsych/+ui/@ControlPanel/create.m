@@ -52,7 +52,7 @@ obj.HardwareSetupObj = epsych.ui.HardwareSetup(obj.HardwareTab);
 % Create CustomizationTab
 obj.CustomizationTab = uitab(obj.TabGroup);
 obj.CustomizationTab.Title = 'Customization';
-obj.CustomizationSetupObj = epsych.ui.CustomizationSetup(obj.CustomizationTab);
+obj.RuntimeConfigSetupObj = epsych.ui.RuntimeConfigSetup(obj.CustomizationTab);
 
 % Create LogTab
 obj.LogTab = uitab(obj.TabGroup);

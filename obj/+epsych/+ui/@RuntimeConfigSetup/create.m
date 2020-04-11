@@ -1,4 +1,4 @@
-function create(obj,parent) % epsych.ui.CustomizationSetup
+function create(obj,parent) % epsych.ui.RuntimeConfigSetup
 
 if isa(parent,'matlab.ui.Figure')
     % Create parent

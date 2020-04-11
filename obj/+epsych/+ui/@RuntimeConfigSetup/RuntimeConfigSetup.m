@@ -1,4 +1,4 @@
-classdef CustomizationSetup < handle
+classdef RuntimeConfigSetup < handle
     % User-settable functions, directories, and options
     
     properties (SetAccess = immutable)
@@ -8,7 +8,7 @@ classdef CustomizationSetup < handle
     methods
         create(obj,parent);
 
-        function obj = CustomizationSetup(parent)
+        function obj = RuntimeConfigSetup(parent)
             obj.create(parent);
             obj.parent = parent;
         end
