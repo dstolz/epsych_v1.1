@@ -1,0 +1,12 @@
+List of publications using EPsych
+
+
+Schormans, A., Allman, B. (2019). Compensatory Plasticity in the Lateral Extrastriate Visual Cortex Preserves Audiovisual Temporal Processing following Adult-Onset Hearing Loss. Neural plasticity  2019(), 7946987. https://dx.doi.org/10.1155/2019/7946987
+Mowery, T., Caras, M., Hassan, S., Wang, D., Dimidschstein, J., Fishell, G., Sanes, D. (2019). Preserving Inhibition during Developmental Hearing Loss Rescues Auditory Learning and Perception The Journal of Neuroscience  39(42), 8347-8361. https://dx.doi.org/10.1523/jneurosci.0749-19.2019
+Schormans, A., Allman, B. (2018). Behavioral Plasticity of Audiovisual Perception: Rapid Recalibration of Temporal Sensitivity but Not Perceptual Binding Following Adult-Onset Hearing Loss. Frontiers in behavioral neuroscience  12(), 256. https://dx.doi.org/10.3389/fnbeh.2018.00256
+Yao, J., Sanes, D. (2018). Developmental deprivation-induced perceptual and cortical processing deficits in awake-behaving animals. eLife  7(), e33891. https://dx.doi.org/10.7554/elife.33891
+Schormans, A., Scott, K., Vo, A., Tyker, A., Typlt, M., Stolzberg, D., Allman, B. (2017). Audiovisual Temporal Processing and Synchrony Perception in the Rat Frontiers in Behavioral Neuroscience  10(), 246. https://dx.doi.org/10.3389/fnbeh.2016.00246
+Radziwon, K., Holfoth, D., Lindner, J., Kaier-Green, Z., Bowler, R., Urban, M., Salvi, R. (2017). Salicylate-induced hyperacusis in rats: Dose- and frequency-dependent effects Hearing Research  350(), 133-138. https://dx.doi.org/10.1016/j.heares.2017.04.004
+Radziwon, K., Stolzberg, D., Urban, M., Bowler, R., Salvi, R. (2015). Salicylate-Induced Hearing Loss and Gap Detection Deficits in Rats Frontiers in Neurology  6(), 31. https://dx.doi.org/10.3389/fneur.2015.00031
+Chen, Y., Li, X., Liu, L., Wang, J., Lu, C., Yang, M., Jiao, Y., Zang, F., Radziwon, K., Chen, G., Sun, W., Muthaiah, V., Salvi, R., Teng, G. (2015). Tinnitus and hyperacusis involve hyperactivity and enhanced connectivity in auditory-limbic-arousal-cerebellar network eLife  4(), e06576. https://dx.doi.org/10.7554/elife.06576
+Stolzberg, D., Hayes, S., Kashanian, N., Radziwon, K., Salvi, R., Allman, B. (2013). A novel behavioral assay for the assessment of acute tinnitus in rats optimized for simultaneous recording of oscillatory neural activity Journal of Neuroscience Methods  219(2), 224-232. https://dx.doi.org/10.1016/j.jneumeth.2013.07.021
