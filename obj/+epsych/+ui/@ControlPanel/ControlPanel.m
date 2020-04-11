@@ -215,6 +215,7 @@ classdef ControlPanel < handle
         create(obj,parent,reset);
 
         function config_change_detected(obj,hObj,~)
+            if isempty(obj.SaveButton), return; end % may not be instantiated yet
             if hObj.ConfigIsSaved
                 obj.SaveButton.Enable = 'off';
             else
