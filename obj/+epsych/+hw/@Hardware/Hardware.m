@@ -38,12 +38,10 @@ classdef Hardware < handle & dynamicprops & matlab.mixin.Copyable
     methods (Static)
         function c = available
             w = which('epsych.hw.Hardware');
-            r = fileparts(fileparts(w));
-            d = dir(fullfile(r));
-            d(~[d.isdir]) = [];
-            c = {d.name};
-            c(cellfun(@(a) a(1)~='@',c)) = [];
-            c = cellfun(@(a) a(2:end),c,'uni',0);
+            d = dir(fileparts(fileparts(w)));
+            d(~startsWith({d.name},'@')) = [];
+            c = cellfun(@(a) a(2:end),{d.name},'uni',0);
+            c(ismember(c,'Hardware')) = [];
             ind = false(size(c));
             for i = 1:length(c)
                 s = superclasses(['epsych.hw.' c{i}]);
