@@ -82,7 +82,9 @@ classdef Log < handle
                 obj.LogFilenameLabel.Text = obj.LogFilename;
             end
             
-            obj.write(true,epsych.log.Verbosity.Important,'Log Initialized: %s',obj.LogFilename);
+            % rffn = strrep(ffn,'\','\\');
+            obj.write(true,epsych.log.Verbosity.Important, ...
+                'Log Initialized: <a href="matlab: winopen ''%s''">%s</a>',ffn,ffn);
         end
         
         function msg = write(obj,varargin)
@@ -111,14 +113,17 @@ classdef Log < handle
                 elseif isnumeric(varargin{i}) % verbosity as number or epsych.log.Verbosity enum
                     v = varargin{i};
                     
-                elseif ischar(varargin{i}) % char version of epsych.log.Verbosity
+                elseif ischar(varargin{i}) && length(varargin{i})<=63 % char version of epsych.log.Verbosity
                     try % best to avoid this syntax when worried about timing
                         v = epsych.log.Verbosity.(varargin{i});
                     catch % message first
                         msg = varargin{i};
                         break
                     end
-                    
+                
+                elseif ischar(varargin{i}) % message
+                    msg = varargin{i};
+                    break
 
                 elseif isstruct(varargin{i}) % display fields of the structure (only first level)
                     smsg = evalc('disp(varargin{i})');
@@ -164,7 +169,7 @@ classdef Log < handle
             
             msgTs = sprintf('%s: %s\n',tstr,msg);
             
-            msgLog = sprintf('%s %2d %-10s %s: %s\n',tstr,int8(v),v.char,obj.get_stack_string,msg);
+            msgLog = sprintf('%s\t%2d\t%-10s\t%s:\t%s\n',tstr,int8(v),v.char,obj.get_stack_string,msg);
             
             
             noFile = obj.fid == -1;

@@ -8,21 +8,21 @@ g = uigridlayout(parent);
 g.ColumnWidth = {'1x','1x','1x','1.25x','1.25x'};
 g.RowHeight   = {25, '1x'};
 
-% Create InterfaceDropDownLabel
+% Create ConnectionTypeDropDownLabel
 h = uilabel(g);
 h.Layout.Column = 1;
 h.Layout.Row    = 1;
 h.HorizontalAlignment = 'right';
 h.Text = 'Interface:';
-obj.InterfaceDropDownLabel = h;
+obj.ConnectionTypeDropDownLabel = h;
 
-% Create InterfaceDropDown
+% Create ConnectionTypeDropDown
 h = uidropdown(g);
 h.Layout.Column = 2;
 h.Layout.Row    = 1;
 h.Items = {'GB', 'USB'};
 h.Value = 'GB';
-obj.InterfaceDropDown = h;
+obj.ConnectionTypeDropDown = h;
 
 % Create AddModuleButton
 h = uibutton(g, 'push');

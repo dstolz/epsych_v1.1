@@ -19,8 +19,8 @@ classdef TDTSynapse < epsych.hw.Hardware
     end
 
     properties (Access = private)
-        InterfaceDropDownLabel  matlab.ui.control.Label
-        InterfaceDropDown       matlab.ui.control.DropDown
+        ConnectionTypeDropDownLabel  matlab.ui.control.Label
+        ConnectionTypeDropDown       matlab.ui.control.DropDown
         TDTModulesTable         matlab.ui.control.Table
         AddModuleButton         matlab.ui.control.Button
         RemoveModuleButton      matlab.ui.control.Button

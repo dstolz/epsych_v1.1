@@ -8,21 +8,22 @@ g = uigridlayout(parent);
 g.ColumnWidth = {'1x','1x','1x','1.25x','1.25x'};
 g.RowHeight   = {25, '1x'};
 
-% Create InterfaceDropDownLabel
+% Create ConnectionTypeDropDownLabel
 h = uilabel(g);
 h.Layout.Column = 1;
 h.Layout.Row    = 1;
 h.HorizontalAlignment = 'right';
 h.Text = 'Interface:';
-obj.InterfaceDropDownLabel = h;
+obj.ConnectionTypeDropDownLabel = h;
 
-% Create InterfaceDropDown
+% Create ConnectionTypeDropDown
 h = uidropdown(g);
 h.Layout.Column = 2;
 h.Layout.Row    = 1;
 h.Items = {'GB', 'USB'};
-h.Value = 'GB';
-obj.InterfaceDropDown = h;
+h.Value = obj.ConnectionType;
+h.ValueChangedFcn = @obj.connectiontype_changed;
+obj.ConnectionTypeDropDown = h;
 
 % Create AddModuleButton
 h = uibutton(g, 'push');
@@ -48,10 +49,25 @@ h.Layout.Column = [1 5];
 h.Layout.Row    = 2;
 h.RowName = {};
 h.ColumnName = {'Module', 'Index', 'Fs (kHz)', 'Alias', 'RPvds File'};
-h.ColumnWidth = {70, 40, 65, 100, 200};
+h.ColumnWidth = {70, 40, 65, 100, 250};
 h.ColumnFormat = {epsych.hw.TDTModules.list,'numeric',fs,'char','char'};
 h.ColumnEditable = true;
-h.Data = {'RZ6',1,'24.4','',''};
+if isempty(obj.Module)
+    h.Data = {'RZ6',1,'Dflt','',''};
+else
+    m = obj.Module;
+    D = cell(length(m),5);
+    for i = 1:length(m)
+        D{i,1} = char(m(i).Type);
+        D{i,2} = m(i).Index;
+        Fs = m(i).Fs;
+        if Fs == -1, Fs = 'Dflt'; end
+        D{i,3} = Fs;
+        D{i,4} = m(i).Alias;
+        D{i,5} = m(i).RPvds;
+    end
+    h.Data = D;
+end
 h.CellEditCallback = @obj.module_edit;
 h.CellSelectionCallback = @obj.module_select;
 obj.TDTModulesTable = h;

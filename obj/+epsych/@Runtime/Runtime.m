@@ -39,11 +39,11 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     
     methods
         function obj = Runtime
-           
+            % monitor changes in SetObservable hardware properties and notify anyone listening
             m = metaclass(obj);
             ind = [m.PropertyList.SetObservable];
             psp = {m.PropertyList(ind).Name};
-            obj.el_PostSet = cellfun(@(a) addlistener(obj,a,'PostSet',@obj.some_var_was_updated),psp);
+            obj.el_PostSet = cellfun(@(a) addlistener(obj,a,'PostSet',@obj.runtime_updated),psp);
 
             obj.Info = epsych.Info;
 
@@ -196,21 +196,27 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     end % methods (Access = protected)
 
     methods (Access = private)
-        function some_var_was_updated(obj,hObj,event)
-            global LOG
-            
-            obj.ConfigIsSaved = false;
-
-            notify(obj,'ConfigChange',event);
-
-            LOG.write('Verbose','Runtime Object Updated "%s"',hObj.Name);
-        end
+        
     end % methods (Access = private)
    
     methods (Static)
         function obj = loadobj(s)
             obj = s;
             notify(obj,'ConfigChange');
+        end
+
+        function runtime_updated(obj,hObj,event)
+            global RUNTIME LOG
+            
+            RUNTIME.ConfigIsSaved = false;
+
+            if nargin < 3
+                notify(RUNTIME,'ConfigChange');    
+            else
+                notify(RUNTIME,'ConfigChange',event);
+            end
+
+            LOG.write('Verbose','Runtime Object Updated "%s"',hObj.Source.Name);
         end
     end % methods (Static)
     

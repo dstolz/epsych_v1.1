@@ -1,4 +1,9 @@
-classdef Hardware < handle & dynamicprops & matlab.mixin.Copyable
+classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copyable
+    % Inheritable superclass for defining hardware abstraction
+    %
+    % Superclass constructor must be called from inheriting subclass: 
+    %   obj = obj@epsych.hw.Hardware;
+    %
     % Abstract properties and methods must be defined in subclass
     %
     % h = interface(obj,parent);  % minimal gui to set custom parameters
@@ -34,6 +39,25 @@ classdef Hardware < handle & dynamicprops & matlab.mixin.Copyable
         v = read(obj,parameter);    % read current parameter value
         trigger(obj,parameter);     % send a trigger
     end
+
+    properties (Access = protected,Transient)
+        el_PostSet
+    end
+
+    methods
+        % Constructor
+        function obj = Hardware
+            % monitor changes in SetObservable hardware properties and notify anyone listening
+            m = metaclass(obj);
+            ind = [m.PropertyList.SetObservable];
+            if any(ind)
+                psp = {m.PropertyList(ind).Name};
+                obj.el_PostSet = cellfun(@(a) addlistener(obj,a,'PostSet',@epsych.Runtime.runtime_updated),psp);
+            end
+        end
+    end % methods
+
+
 
     methods (Static)
         function c = available

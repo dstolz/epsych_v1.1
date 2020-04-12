@@ -27,6 +27,8 @@ classdef HardwareSetup < handle
 
         
         function create_dropdown(obj,hObj,~)
+            global LOG
+
             p = getpref('interface_HardwareSetup','dfltHardware',[]);
             c = epsych.hw.Hardware.available;
             if isempty(p), p = c{1}; end
@@ -39,6 +41,8 @@ classdef HardwareSetup < handle
             hObj.Value = c{i};
 
             obj.Hardware = c{i};
+
+            LOG.write('Verbose','Hardware selection updated')
         end
 
         function value_changed(obj,hObj,event)
@@ -48,8 +52,8 @@ classdef HardwareSetup < handle
         function set.Hardware(obj,hw)
             global RUNTIME
 
-            try, delete(obj.Hardware); end
-            try, delete(obj.HardwarePanel.Children); end
+            try delete(obj.Hardware); end
+            try delete(obj.HardwarePanel.Children); end
             
             % instantiate hardware object
             if ischar(hw)
@@ -60,7 +64,7 @@ classdef HardwareSetup < handle
             obj.Hardware.setup(obj.HardwarePanel);
             v = sprintf('Type: %s\n%s',obj.Hardware.Type,obj.Hardware.Description);
             obj.HWDescriptionTextArea.Value = v;
-
+            
             RUNTIME.Hardware = copy(obj.Hardware);
             
             setpref('interface_HardwareSetup','dfltHardware',hw);

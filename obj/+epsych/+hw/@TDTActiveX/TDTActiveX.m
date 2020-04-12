@@ -1,4 +1,4 @@
-classdef TDTActiveX < epsych.hw.Hardware
+classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
 
     properties (Constant) % define constant abstract properties from superclass
         Name         = 'TDTActiveX';
@@ -10,33 +10,25 @@ classdef TDTActiveX < epsych.hw.Hardware
         State          
     end
 
-    
-    properties (SetAccess = private)
+    properties (SetAccess = private,Transient)
         handle              % handle to ActiveX
-
-        InterfaceParent     % matlab.ui.container
     end
-
-    properties (Access = private)
-        InterfaceDropDownLabel  matlab.ui.control.Label
-        InterfaceDropDown       matlab.ui.control.DropDown
-        TDTModulesTable         matlab.ui.control.Table
-        AddModuleButton         matlab.ui.control.Button
-        RemoveModuleButton      matlab.ui.control.Button
+    
+    properties (Access = private,Transient,Hidden)
+        InterfaceParent     % matlab.ui.container
+    
+        ConnectionTypeDropDownLabel matlab.ui.control.Label
+        ConnectionTypeDropDown      matlab.ui.control.DropDown
+        TDTModulesTable             matlab.ui.control.Table
+        AddModuleButton             matlab.ui.control.Button
+        RemoveModuleButton          matlab.ui.control.Button
 
         CurrentIdx % selected row
     end
     
-    properties
-        Parameters
-
+    properties (SetObservable,AbortSet)
         ConnectionType  (1,:) char {mustBeMember(ConnectionType,{'GB','USB'})} = 'GB';
-
-        ModuleAlias     (1,:) cell
-        Module          (1,:) epsych.hw.TDTModules
-        ModuleID        (1,:) double {mustBePositive,mustBeInteger}
-        ModuleRPvdsFile (1,:) cell
-        ModuleFs        (1,:) double {mustBePositive,mustBeFinite} = 24414.0625; % Hz
+        Module          (1,:) % structure
     end
 
 
@@ -46,11 +38,10 @@ classdef TDTActiveX < epsych.hw.Hardware
     end
 
     properties (Access = private)
-        emptyFig
+        emptyFig % holds TDT ActiveX object which requires a figure
     end
 
     methods
-        interface(obj,parent);
         prepare(obj);
 
         write(obj,parameter,value);
@@ -60,6 +51,8 @@ classdef TDTActiveX < epsych.hw.Hardware
         function obj = TDTActiveX
             % call superclass constructor
             obj = obj@epsych.hw.Hardware;
+            
+            
         end
 
         function delete(obj)
@@ -142,15 +135,20 @@ classdef TDTActiveX < epsych.hw.Hardware
 
 
         % UI -----------------------------------------------------
+        function connectiontype_changed(obj,hObj,event)
+            obj.ConnectionType = hObj.Value;
+        end
+
         function add_module(obj,hObj,event)
             % add module to the table
-            obj.Module(end+1) = epsych.hw.TDTModules.RZ6;
             D = obj.TDTModulesTable.Data;
             idx = min(setdiff(1:100,[D{ismember(D(:,1),D(end,1)),2}]));
             n = D(end,:);
             n{2} = idx;
+            n{3} = 'Dflt';
             n{4} = '';
             obj.TDTModulesTable.Data(end+1,:) = n;
+            obj.module_updated;
         end
 
         function remove_module(obj,hObj,event)
@@ -160,11 +158,8 @@ classdef TDTActiveX < epsych.hw.Hardware
 
             obj.TDTModulesTable.Data(idx,:) = [];
             
-            obj.Module(idx)          = [];
-            obj.ModuleID(idx)        = [];
-            obj.ModuleFs(idx)        = [];
-            obj.ModuleAlias(idx)     = [];
-            obj.ModuleRPvdsFile(idx) = [];
+            obj.Module(idx) = [];
+            obj.module_updated;
         end
 
         function module_edit(obj,hObj,event)
@@ -205,6 +200,7 @@ classdef TDTActiveX < epsych.hw.Hardware
                     hObj.Data{row,5} = '';
                     obj.select_rpvds_file(hObj,event);
             end
+            obj.module_updated;
         end
 
         function module_select(obj,hObj,event)
@@ -213,28 +209,63 @@ classdef TDTActiveX < epsych.hw.Hardware
             if event.Indices(1,2) < 5, return; end
             
             obj.select_rpvds_file(hObj,event);
+
+            obj.module_updated;
         end
 
     end % methods
     
     methods (Access = private)
+
+        function module_updated(obj)
+            global RUNTIME
+            
+            D = obj.TDTModulesTable.Data;
+            UD = obj.TDTModulesTable.UserData;
+            for i = 1:size(D,1)
+                m(i).Type  = epsych.hw.TDTModules(D{i,1});
+                m(i).Index = D{i,2};
+                Fs = D{i,3};
+                if isequal(Fs,'Dflt'), Fs = -1; end
+                m(i).Fs    = Fs;
+                m(i).Alias = D{i,4};
+                if isempty(UD) || size(UD,1)<i
+                    m(i).RPvds = '';
+                else
+                    m(i).RPvds = UD{i,5};
+                end
+            end
+            
+            obj.Module = m;
+            
+            RUNTIME.Hardware = copy(obj);
+        end
+
         function select_rpvds_file(obj,hObj,event)
+            figState = epsych.Tool.figure_state(hObj,false);
+
             row = event.Indices(1);
-            if row <= length(obj.ModuleRPvdsFile) && ~isempty(obj.ModuleRPvdsFile{row})
-                pn = fileparts(obj.ModuleRPvdsFile{row});
+            if row <= length(obj.Module) && ~isempty(obj.Module(row).RPvds)
+                pn = fileparts(obj.Module(row).RPvds);
             else
                 pn = getpref('epsych_Hardware','RPvdsPath',epsych.Info.user_directory);
             end
             [fn,pn] = uigetfile('*.rcx','RPvds File',pn);
-            
+
+            epsych.Tool.figure_state(hObj,figState);
+
             if isequal(fn,0), return; end
-            
-            obj.ModuleRPvdsFile{row} = fullfile(pn,fn);
-            
+                        
             hObj.Data{row,5} = fn;
+            hObj.UserData{row,5} = fullfile(pn,fn);
             
             setpref('epsych_Hardware','RPvdsPath',pn);
-        end % methods (Access = private)
-    end
+
+            figure(ancestor(hObj,'figure'));
+
+            obj.module_updated;
+
+        end 
+    end % methods (Access = private)
     
 end

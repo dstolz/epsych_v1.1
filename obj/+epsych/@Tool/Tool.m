@@ -29,8 +29,6 @@ classdef Tool < handle
             epsych.ui.ControlPanel;
         end
 
-        
-
         function [unit,multiplier] = time_gauge(S)
             if S >= 1
                 unit = 's';
@@ -164,6 +162,7 @@ classdef Tool < handle
             end
 
         end
-    end
+
+    end % methods (Static)
 
 end
