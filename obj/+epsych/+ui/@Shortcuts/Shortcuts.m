@@ -11,5 +11,9 @@ classdef Shortcuts < handle
             
             obj.create(parent);
         end
+
+        function launch(obj,hObj,event)
+            eval(hObj.Tag);
+        end
     end
 end

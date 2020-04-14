@@ -17,6 +17,14 @@ function create(obj,parent) % epsych.ui.Shortcuts
     
     g = uigridlayout(obj.parent);
     g.RowHeight   = {30,30,30,30};
-    g.ColumnWidth = {'1x','1x'};
+    g.ColumnWidth = {'1x','1x','1x'};
 
-    % TODO: Make button shortcuts
+
+    % Make button shortcuts - use Tag to code launch using eval
+    h = uibutton(g,'Tag','epsych.ui.BitmaskGen');
+    h.Text = 'Bitmask Generator';
+    h.ButtonPushedFcn = @obj.launch;
+
+    h = uibutton(g,'Tag','ep_ExperimentDesign');
+    h.Text = 'Experiment Design';
+    h.ButtonPushedFcn = @obj.launch;
