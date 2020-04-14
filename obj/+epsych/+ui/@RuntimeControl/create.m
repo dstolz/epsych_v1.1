@@ -21,6 +21,7 @@ end
 obj.StateLabel = uilabel(g);
 obj.StateLabel.HorizontalAlignment = 'right';
 obj.StateLabel.Text = 'Setup';
+obj.StateLabel.FontSize = 14;
 
 % Create StateLamp
 obj.StateLamp = uilamp(g);

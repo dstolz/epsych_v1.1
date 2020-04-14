@@ -9,10 +9,10 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
         SaveFcn       (1,1) = @ep_SaveDataFcn;
         
         % TODO: Default timer functions need to be revamped for new object format
-        StartFcn    (1,1) = @ep_TimerFcn_Start;
-        TimerFcn    (1,1) = @ep_TimerFcn_RunTime;
-        StopFcn     (1,1) = @ep_TimerFcn_Stop;
-        ErrorFcn    (1,1) = @ep_TimerFcn_Error;
+        StartFcn    (1,1) = @epsych.expt.Runtime.start;
+        TimerFcn    (1,1) = @epsych.expt.Runtime.timer;
+        StopFcn     (1,1) = @epsych.expt.Runtime.stop;
+        ErrorFcn    (1,1) = @epsych.expt.Runtime.error;
 
         AutoSaveRuntimeConfig (1,1) logical = true;
         AutoLoadRuntimeConfig (1,1) logical = true;
@@ -32,7 +32,7 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
     end
 
     methods
-        function obj = RuntimeConfiguration(file)
+        function obj = Config(file)
             if nargin == 0, return; end % ConstructOnLoad
 
             if ischar(file) && isfile(file)

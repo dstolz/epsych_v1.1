@@ -20,8 +20,6 @@ classdef RuntimeControl < handle
         create(obj,parent);
         
         function obj = RuntimeControl(parent,Orientation)
-            global RUNTIME
-
             narginchk(0,2)
             
             if nargin == 2, obj.Orientation = Orientation; end
@@ -30,35 +28,36 @@ classdef RuntimeControl < handle
             
             obj.parent = parent;
 
-            if isempty(RUNTIME)
-                RUNTIME = epsych.expt.Runtime;
-            end
-            
             if nargout == 0, clear obj; end
         end
         
         function update_state(obj,btn)
-            global RUNTIME
+            global RUNTIME LOG
 
             switch btn
                 case 'Run|Halt'
                     switch RUNTIME.State
                         case epsych.State.Prep
+                            LOG.write('Verbose','Updating State: Prep -> Run');
                             RUNTIME.State = epsych.State.Run;
 
                         case [epsych.State.Run, epsych.State.Preview]
+                            LOG.write('Verbose','Updating State: %s -> Halt',char(RUNTIME.State));
                             RUNTIME.State = epsych.State.Halt;
 
                         case epsych.State.Halt
+                            LOG.write('Verbose','Updating State: Halt -> Run');
                             RUNTIME.State = epsych.State.Run;
                     end
 
                 case 'Pause'
                     switch RUNTIME.State
                         case epsych.State.Pause
+                            LOG.write('Verbose','Updating State: Pause -> Resume');
                             RUNTIME.State = epsych.State.Resume;
 
                         case [epsych.State.Run, epsych.State.Preview]
+                            LOG.write('Verbose','Updating State: %s -> Pause',char(RUNTIME.State));
                             RUNTIME.State = epsych.State.Pause;
                     end
             end

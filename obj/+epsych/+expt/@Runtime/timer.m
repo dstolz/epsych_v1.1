@@ -1,0 +1,1 @@
+function timer(obj) % epsych.expt.Runtime

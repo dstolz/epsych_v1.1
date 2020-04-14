@@ -1,0 +1,1 @@
+function stop(obj) % epsych.expt.Runtime
