@@ -44,7 +44,7 @@ classdef ControlPanel < handle
                 fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
                 LOG = epsych.log.Log(fullfile(RUNTIME.Config.LogDirectory,fn));
                 
-                addlistener(RUNTIME,'ConfigChange',@obj.config_change_detected);
+                addlistener(RUNTIME,'RuntimeConfigChange',@obj.config_change_detected);
 
                 obj.create(parent);
 
@@ -197,7 +197,7 @@ classdef ControlPanel < handle
 
             load(ffn,'-mat','RUNTIME');
 
-            addlistener(RUNTIME,'ConfigChange',@obj.config_change_detected);
+            addlistener(RUNTIME,'RuntimeConfigChange',@obj.config_change_detected);
 
             LOG.write(epsych.log.Verbosity.Verbose,'Loaded Runtime Config file: %s',ffn)
 

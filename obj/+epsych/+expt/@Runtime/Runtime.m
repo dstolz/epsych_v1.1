@@ -32,7 +32,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     end
     
     events
-        ConfigChange
+        RuntimeConfigChange
         PreStateChange
         PostStateChange
     end
@@ -68,29 +68,37 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
 
 
         % TIMER FUNCTIONS -----------------------------------------------------------------
-        function call_StartFcn(obj,varargin)            
-            obj.epsych.log.write(epsych.log.Verbosity.Debug,'Calling Runtime.StartFcn: "%s"',func2str(obj.StartFcn));
+        function call_StartFcn(obj,varargin)
+            global LOG
+
+            LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.StartFcn: "%s"',func2str(obj.StartFcn));
 
             feval(obj.StartFcn,obj)
         end
 
         function call_TimerFcn(obj,varargin)
-            obj.epsych.log.write(epsych.log.Verbosity.Debug,'Calling Runtime.TimerFcn: "%s"',func2str(obj.TimerFcn));
+            global LOG
+
+            LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.TimerFcn: "%s"',func2str(obj.TimerFcn));
 
             feval(obj.TimerFcn,obj)
         end
         
         function call_StopFcn(obj,varargin)
+            global LOG
+
             % timer is stopped on pause and started again on resume
             if obj.State == epsych.State.Pause, return; end
 
-            obj.epsych.log.write(epsych.log.Verbosity.Debug,'Calling Runtime.StopFcn: "%s"',func2str(obj.StopFcn));
+            LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.StopFcn: "%s"',func2str(obj.StopFcn));
 
             feval(obj.StopFcn,obj)
         end
         
         function call_ErrorFcn(obj,varargin)
-            obj.epsych.log.write(epsych.log.Verbosity.Debug,'Calling Runtime.ErrorFcn: "%s"',func2str(obj.ErrorFcn));
+            global LOG
+
+            LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.ErrorFcn: "%s"',func2str(obj.ErrorFcn));
 
             feval(obj.ErrorFcn,obj)
         end
@@ -101,6 +109,8 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
 
         
         function set.State(obj,newState)
+            global LOG
+
             timestamp = now;
 
             prevState = obj.State;
@@ -117,13 +127,13 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
                         
                         
                     case [epsych.State.Run, epsych.State.Preview]
-                        obj.epsych.log.write(epsych.log.Verbosity.Debug,'Initializing Hardware')
+                        LOG.write(epsych.log.Verbosity.Debug,'Initializing Hardware')
                         obj.Hardware.initialize;
 
-                        obj.epsych.log.write(epsych.log.Verbosity.Debug,'Preparing Hardware')
+                        LOG.write(epsych.log.Verbosity.Debug,'Preparing Hardware')
                         obj.Hardware.prepare;
 
-                        obj.epsych.log.write(epsych.log.Verbosity.Debug,'Creating Runtime Timer')
+                        LOG.write(epsych.log.Verbosity.Debug,'Creating Runtime Timer')
                         obj.create_timer;
 
                         start(obj.Timer);
@@ -145,7 +155,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
                 end
             
             catch me
-                obj.epsych.log.write(me);
+                LOG.write(me);
                 obj.ErrorMException = me;
                 obj.State = epsych.State.Error;
                 return
@@ -154,7 +164,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             ev = epsych.evProgramState(newState,prevState,timestamp);
             notify(obj,'PostStateChange',ev);
 
-            obj.epsych.log.write(epsych.log.Verbosity.Debug,'Runtime.State updated from "%s" to "%s"',prevState,newState);
+            LOG.write(epsych.log.Verbosity.Debug,'Runtime.State updated from "%s" to "%s"',prevState,newState);
         end % set.State
         
         
@@ -165,7 +175,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
         function sobj = saveobj(obj)
             obj.ConfigIsSaved = true;
             sobj = obj;
-            notify(obj,'ConfigChange');
+            notify(obj,'RuntimeConfigChange');
         end
 
     end % methods (Access = public)
@@ -190,7 +200,6 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             T.StartFcn = @obj.call_StartFcn;
             T.StopFcn  = @obj.call_StopFcn;
             T.ErrorFcn = @obj.call_ErrorFcn;
-            
             obj.Timer = T;
         end
     end % methods (Access = protected)
@@ -202,7 +211,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     methods (Static)
         function obj = loadobj(s)
             obj = s;
-            notify(obj,'ConfigChange');
+            notify(obj,'RuntimeConfigChange');
         end
 
         function runtime_updated(obj,hObj,event)
@@ -211,9 +220,9 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             RUNTIME.ConfigIsSaved = false;
 
             if nargin < 3
-                notify(RUNTIME,'ConfigChange');    
+                notify(RUNTIME,'RuntimeConfigChange');    
             else
-                notify(RUNTIME,'ConfigChange',event);
+                notify(RUNTIME,'RuntimeConfigChange',event);
             end
 
             LOG.write('Verbose','Runtime Object Updated "%s"',hObj.Source.Name);
