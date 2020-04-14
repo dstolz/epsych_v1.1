@@ -1,4 +1,4 @@
-classdef (ConstructOnLoad) RuntimeConfig < handle & dynamicprops & matlab.mixin.Copyable
+classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyable
 
     properties (AbortSet)
         LogDirectory  (1,:) char

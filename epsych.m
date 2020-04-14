@@ -1,6 +1,6 @@
 function obj = epsych(varargin)
 
-w = which('epsych.Runtime');
+w = which('epsych.expt.Runtime');
 if isempty(w)
     epsych_startup(fileparts(mfilename));
 end

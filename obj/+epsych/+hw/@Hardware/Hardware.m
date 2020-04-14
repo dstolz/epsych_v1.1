@@ -52,7 +52,7 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
             ind = [m.PropertyList.SetObservable];
             if any(ind)
                 psp = {m.PropertyList(ind).Name};
-                obj.el_PostSet = cellfun(@(a) addlistener(obj,a,'PostSet',@epsych.Runtime.runtime_updated),psp);
+                obj.el_PostSet = cellfun(@(a) addlistener(obj,a,'PostSet',@epsych.expt.Runtime.runtime_updated),psp);
             end
         end
     end % methods

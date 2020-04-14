@@ -1,8 +1,8 @@
-classdef RuntimeConfigSetup < handle
+classdef ConfigSetup < handle
     % User-settable functions, directories, and options
     
     properties
-        Config  epsych.RuntimeConfig = epsych.RuntimeConfig;
+        Config  epsych.expt.Config = epsych.expt.Config;
     end
 
     properties (SetAccess = immutable)
@@ -12,7 +12,7 @@ classdef RuntimeConfigSetup < handle
     methods
         create(obj,parent);
 
-        function obj = RuntimeConfigSetup(parent)
+        function obj = ConfigSetup(parent)
             obj.create(parent);
             obj.parent = parent;
         end

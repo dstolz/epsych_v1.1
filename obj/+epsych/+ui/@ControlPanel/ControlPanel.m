@@ -23,7 +23,7 @@ classdef ControlPanel < handle
         RuntimeControlObj       % epsych.ui.RuntimeControl
         SubjectSetupObj         % epsych.ui.SubjectSetup
         HardwareSetupObj        % epsych.ui.HardwareSetup
-        RuntimeConfigSetupObj   % epsych.ui.RuntimeConfigSetup
+        RuntimeConfigSetupObj   % epsych.ui.ConfigSetup
         ShortcutsObj            % epsych.ui.Shortcuts
     end
     
@@ -38,7 +38,7 @@ classdef ControlPanel < handle
             f = epsych.Tool.find_epsych_controlpanel;
             if isempty(f)
                 % INITIALIZE RUNTIME OBJECT
-                RUNTIME = epsych.Runtime;
+                RUNTIME = epsych.expt.Runtime;
                 
                 % INITIALIZE SESSION LOG
                 fn = sprintf('EPsychLog_%s.txt',datestr(now,30));

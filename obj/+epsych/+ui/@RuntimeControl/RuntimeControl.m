@@ -31,7 +31,7 @@ classdef RuntimeControl < handle
             obj.parent = parent;
 
             if isempty(RUNTIME)
-                RUNTIME = epsych.Runtime;
+                RUNTIME = epsych.expt.Runtime;
             end
             
             if nargout == 0, clear obj; end

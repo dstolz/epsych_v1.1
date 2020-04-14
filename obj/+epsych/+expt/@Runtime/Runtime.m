@@ -5,8 +5,8 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     end
     
     properties (SetObservable,AbortSet)
-        Config          (1,1) epsych.RuntimeConfig
-        Hardware        (1,:) % epsych.hw.(Abstraction)
+        Config          (1,1) epsych.expt.Config
+        Hardware        (1,:) % epsych.hw.(Abstraction); 
         Subject         (1,:) % epsych.Subject
     end
 
