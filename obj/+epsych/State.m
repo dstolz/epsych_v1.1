@@ -8,5 +8,10 @@ classdef State < int8
         Resume  (4)
         Halt    (5)
     end
-    
+
+    methods (Static)
+        function s = list
+            s = arrayfun(@char,epsych.State(-1:5),'uni',0);
+        end
+    end
 end
