@@ -11,4 +11,11 @@ classdef Verbosity < int8
         Insanity        (5)
     end
 
+    
+    methods (Static)
+        function s = list
+            s = arrayfun(@char,epsych.log.Verbosity(-2:5),'uni',0);
+        end
+        
+    end
 end
