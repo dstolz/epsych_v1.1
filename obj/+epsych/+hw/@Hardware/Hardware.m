@@ -19,6 +19,7 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
         Name         % name for the control
         Type         % typically the class name
         Description  % detailed information
+        MaxNumInstances % determines max number of instances of this hardware can be used at once
     end
     
     properties (Abstract)
@@ -27,6 +28,10 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
 
     properties (Abstract,Dependent)
         Status       % returns some indicator of connector status
+    end
+
+    properties (Access = protected,Transient)
+        el_PostSet
     end
 
     methods (Abstract)
@@ -38,10 +43,6 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
         write(obj,parameter,value); % write (update) parameter value
         v = read(obj,parameter);    % read current parameter value
         trigger(obj,parameter);     % send a trigger
-    end
-
-    properties (Access = protected,Transient)
-        el_PostSet
     end
 
     methods

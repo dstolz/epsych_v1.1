@@ -46,6 +46,7 @@ classdef ControlPanel < handle
                 
                 addlistener(RUNTIME,'RuntimeConfigChange',@obj.config_change_detected);
 
+                LOG.write('Important','Launching EPsych GUI')
                 obj.create(parent);
 
 
@@ -223,6 +224,7 @@ classdef ControlPanel < handle
             end
         end
         
+
     end
     
     methods (Access = private)

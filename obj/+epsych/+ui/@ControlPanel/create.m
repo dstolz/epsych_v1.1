@@ -70,7 +70,7 @@ obj.ToolbarPanel.BorderType = 'line';
 gc = uigridlayout(obj.ToolbarPanel);
 gc.Padding = [0 0 0 0];
 gc.RowHeight = {'1x'};
-gc.ColumnWidth = {50,50};
+gc.ColumnWidth = {50,50,'1x',100};
 
 h = uibutton(gc);
 h.Text = '';
@@ -88,7 +88,6 @@ h.IconAlignment = 'center';
 h.Enable = 'off';
 h.ButtonPushedFcn = @obj.save_config;
 obj.SaveButton = h;
-
 
 % Create RuntimePanel
 obj.RuntimePanel = uipanel(g);

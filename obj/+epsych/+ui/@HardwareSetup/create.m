@@ -1,41 +1,39 @@
 function create(obj,parent) % epsych.ui.HardwareSetup
 if isa(parent,'matlab.ui.Figure')
     % Create parent
-    parent = uipanel(parent);
+    g = uigridlayout(parent);
+    g.RowHeight   = {'1x'};
+    g.ColumnWidth = {'1x'};
+    parent = uipanel(g);
     parent.Title = 'Hardware Setup';
     parent.FontWeight = 'bold';
     parent.FontSize = 16;
-    parent.Position = [5 4 560 225];
 end
 
 g = uigridlayout(parent);
-g.RowHeight   = {25,25,'1x'};
-g.ColumnWidth = {'0.5x','0.5x'};
+g.RowHeight   = {25,'1x'};
+g.ColumnWidth = {'1x',150,75,75};
 
-% panel for hardware-specific setup
-obj.HardwarePanel = uipanel(g);
-obj.HardwarePanel.Tag = 'HardwareHWSpecificPanel';
-obj.HardwarePanel.Layout.Row = 3;
-obj.HardwarePanel.Layout.Column = [1 2];
-obj.HardwarePanel.BorderType = 'none';
-obj.HardwarePanel.Scrollable = 'on';
+h = uibutton(g);
+h.Layout.Column = length(g.ColumnWidth)-1;
+h.Text = '+ Hardware';
+h.Tooltip = 'Add Hardware';
+h.FontWeight = 'bold';
+h.ButtonPushedFcn = @obj.add_hardware_callback;
+obj.AddHardwareButton = h;
 
-obj.HWDescriptionTextArea = uitextarea(g);
-obj.HWDescriptionTextArea.Layout.Row = [1 2];
-obj.HWDescriptionTextArea.Layout.Column = 2;
-obj.HWDescriptionTextArea.Editable = 'off';
 
-obj.HardwareLabel = uilabel(g);
-obj.HardwareLabel.Layout.Row = 1;
-obj.HardwareLabel.Layout.Column = 1;
-obj.HardwareLabel.Text = 'Select Hardware';
-obj.HardwareLabel.FontSize = 14;
-obj.HardwareLabel.FontWeight = 'bold';
+h = uibutton(g);
+h.Layout.Column = length(g.ColumnWidth);
+h.Text = '- Hardware';
+h.Tooltip = 'Remove Hardware';
+h.FontWeight = 'bold';
+h.ButtonPushedFcn = @obj.remove_hardware_callback;
+obj.RemoveHardwareButton = h;
 
-% initialize HardwareDropDown last
-obj.HardwareDropDown = uidropdown(g,'CreateFcn',@obj.create_dropdown);
-obj.HardwareDropDown.Layout.Row = 2;
-obj.HardwareDropDown.Layout.Column = 1;
-obj.HardwareDropDown.FontSize = 14;
-obj.HardwareDropDown.FontWeight = 'bold';
-obj.HardwareDropDown.ValueChangedFcn = @obj.value_changed;
+
+obj.TabGroup = uitabgroup(g);
+obj.TabGroup.Layout.Row = 2;
+obj.TabGroup.Layout.Column = [1 length(g.ColumnWidth)];
+obj.TabGroup.TabLocation = 'top';
+

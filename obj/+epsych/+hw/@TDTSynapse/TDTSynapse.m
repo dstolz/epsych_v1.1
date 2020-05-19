@@ -5,6 +5,7 @@ classdef TDTSynapse < epsych.hw.Hardware
         Name         = 'TDTSynapseAPI';
         Type         = 'COM.Synapse'; % NOT ACTUAL NAME OF CLASS
         Description  = 'Interface with TDT Synapse';
+        MaxNumInstances = 1;
     end
 
     properties % define publilc abstract properties from superclass

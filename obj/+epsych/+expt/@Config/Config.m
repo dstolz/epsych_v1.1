@@ -8,7 +8,6 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
         UserInterface (1,1) = @ep_GenericGUI;
         SaveFcn       (1,1) = @ep_SaveDataFcn;
         
-        % TODO: Default timer functions need to be revamped for new object format
         StartFcn    (1,1) = @epsych.expt.Runtime.start;
         TimerFcn    (1,1) = @epsych.expt.Runtime.timer;
         StopFcn     (1,1) = @epsych.expt.Runtime.stop;

@@ -4,9 +4,10 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         Name         = 'TDTActiveX';
         Type         = 'COM.RPco_x';
         Description  = 'Standalone TDT ActiveX controls';
+        MaxNumInstances = 1;
     end
 
-    properties % define publilc abstract properties from superclass
+    properties % define public abstract properties from superclass
         State          
     end
 
@@ -50,9 +51,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
 
         function obj = TDTActiveX
             % call superclass constructor
-            obj = obj@epsych.hw.Hardware;
-            
-            
+            obj = obj@epsych.hw.Hardware;           
         end
 
         function delete(obj)
@@ -238,6 +237,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
             
             obj.Module = m;
             
+            % TODO: NEED SOME HARDWARE INDEX ID
             RUNTIME.Hardware = copy(obj);
         end
 

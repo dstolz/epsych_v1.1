@@ -127,13 +127,13 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
                         
                         
                     case [epsych.State.Run, epsych.State.Preview]
-                        LOG.write(epsych.log.Verbosity.Debug,'Initializing Hardware')
+                        LOG.write(epsych.log.Verbosity.Verbose,'Initializing Hardware')
                         obj.Hardware.initialize;
 
-                        LOG.write(epsych.log.Verbosity.Debug,'Preparing Hardware')
+                        LOG.write(epsych.log.Verbosity.Verbose,'Preparing Hardware')
                         obj.Hardware.prepare;
 
-                        LOG.write(epsych.log.Verbosity.Debug,'Creating Runtime Timer')
+                        LOG.write(epsych.log.Verbosity.Verbose,'Creating Runtime Timer')
                         obj.create_timer;
 
                         start(obj.Timer);
