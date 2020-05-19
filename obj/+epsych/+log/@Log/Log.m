@@ -250,6 +250,7 @@ classdef Log < handle
             v = getpref('epsych_Log','logVerbosity',epsych.log.Verbosity.Important);
             hObj.Items = string(epsych.log.Verbosity(1:5));
             hObj.ItemsData = epsych.log.Verbosity(1:5);
+            if isempty(v) || ~any(hObj.ItemsData==v); v = epsych.log.Verbosity.Important; end % just in case pref gets lost
             hObj.Value    = v;
             obj.Verbosity = v;
         end
