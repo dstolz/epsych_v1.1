@@ -35,7 +35,7 @@ classdef (ConstructOnLoad) enBitmask < dynamicprops & matlab.mixin.Copyable
     
     
     methods
-        function obj = Bitmask(initVal,isBits)
+        function obj = enBitmask(initVal,isBits)
             if nargin == 0, return; end
             if nargin < 2, isBits = false; end
             
