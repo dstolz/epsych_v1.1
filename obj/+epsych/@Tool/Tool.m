@@ -163,6 +163,10 @@ classdef Tool < handle
 
         end
 
+        function iconPath = icon(name)
+            iconPath = fullfile(epsych.Info.root,'icons',[name '.png']);
+        end
+
     end % methods (Static)
 
 end

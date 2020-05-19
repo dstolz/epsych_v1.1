@@ -50,17 +50,22 @@ classdef HardwareSetup < handle
             end
 
             ots = epsych.Tool.figure_state(hObj,false);
+
             [sel,ok] = listdlg( ...
                 'Name','Add Hardware', ...
                 'PromptString','Select Hardware', ...
                 'SelectionMode','single', ...
                 'ListString',hwlist);
+                
             epsych.Tool.figure_state(hObj,ots);
+
             if ~ok, return; end
             
             obj.add_hardware_tab(hwlist(sel));
             
             obj.update_hardware;
+
+
 %             setpref('interface_HardwareSetup','dfltHardware',hw);
         end
 

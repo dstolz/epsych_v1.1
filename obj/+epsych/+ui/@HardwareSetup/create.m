@@ -11,13 +11,14 @@ if isa(parent,'matlab.ui.Figure')
 end
 
 g = uigridlayout(parent);
-g.RowHeight   = {25,'1x'};
-g.ColumnWidth = {'1x',150,75,75};
+g.RowHeight   = {30,'1x'};
+g.ColumnWidth = {'1x',150,30,30};
 
 h = uibutton(g);
 h.Layout.Column = length(g.ColumnWidth)-1;
-h.Text = '+ Hardware';
 h.Tooltip = 'Add Hardware';
+h.Icon = epsych.Tool.icon('add');
+h.IconAlignment = 'left';
 h.FontWeight = 'bold';
 h.ButtonPushedFcn = @obj.add_hardware_callback;
 obj.AddHardwareButton = h;
@@ -25,8 +26,9 @@ obj.AddHardwareButton = h;
 
 h = uibutton(g);
 h.Layout.Column = length(g.ColumnWidth);
-h.Text = '- Hardware';
 h.Tooltip = 'Remove Hardware';
+h.Icon = epsych.Tool.icon('Remove');
+h.IconAlignment = 'left';
 h.FontWeight = 'bold';
 h.ButtonPushedFcn = @obj.remove_hardware_callback;
 obj.RemoveHardwareButton = h;

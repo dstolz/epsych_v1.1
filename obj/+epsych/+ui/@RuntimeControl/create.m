@@ -33,7 +33,10 @@ obj.RunButton.BackgroundColor = [0.5 1 0.5];
 obj.RunButton.FontSize = 16;
 obj.RunButton.FontWeight = 'bold';
 obj.RunButton.Enable = 'off';
-obj.RunButton.Text = 'Run';
+% obj.RunButton.Text = 'Run';
+obj.RunButton.Text = '';
+obj.RunButton.Icon = epsych.Tool.icon('play');
+obj.RunButton.IconAlignment = 'center';
 obj.RunButton.ButtonPushedFcn = {@obj.update_state,'Run|Halt'};
 
 % Create PauseButton
@@ -42,7 +45,10 @@ obj.PauseButton.BackgroundColor = [1 0.8667 0.5608];
 obj.PauseButton.FontSize = 16;
 obj.PauseButton.FontWeight = 'bold';
 obj.PauseButton.Enable = 'off';
-obj.PauseButton.Text = 'Pause';
+% obj.PauseButton.Text = 'Pause';
+obj.PauseButton.Text = '';
+obj.PauseButton.Icon = epsych.Tool.icon('interface');
+obj.PauseButton.IconAlignment = 'center';
 obj.PauseButton.ButtonPushedFcn = {@obj.update_state,'Pause'};
 
 
