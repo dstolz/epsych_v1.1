@@ -1,7 +1,7 @@
 classdef (ConstructOnLoad) evProgramState < event.EventData
    properties
-        State           (1,1) epsych.State
-        previousState   (1,1) epsych.State
+        State           (1,1) epsych.enState
+        previousState   (1,1) epsych.enState
         Timestamp       (1,1) double
         Error           (:,1) MException
    end

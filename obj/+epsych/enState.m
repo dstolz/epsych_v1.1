@@ -1,4 +1,4 @@
-classdef State < int8
+classdef enState < int8
     enumeration
         Error   (-1)
         Prep    (0)
@@ -11,7 +11,7 @@ classdef State < int8
 
     methods (Static)
         function s = list
-            s = arrayfun(@char,epsych.State(-1:5),'uni',0);
+            s = arrayfun(@char,epsych.enState(-1:5),'uni',0);
         end
     end
 end

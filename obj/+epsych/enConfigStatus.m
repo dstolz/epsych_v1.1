@@ -1,4 +1,4 @@
-classdef ConfigStatus < int8
+classdef enConfigStatus < int8
 
     enumeration
         Error           (-99)

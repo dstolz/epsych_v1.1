@@ -50,9 +50,9 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
             if isempty(obj.SubjectConfig) ...
                 || isempty(obj.BitmaskConfig) ...
                 || isempty(obj.Hardware) ...
-                s = epsych.ConfigStatus.NotReady;
+                s = epsych.enConfigStatus.NotReady;
             else
-                s = epsych.ConfigStatus.Ready;
+                s = epsych.enConfigStatus.Ready;
             end
         end
 

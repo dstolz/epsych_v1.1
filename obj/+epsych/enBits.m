@@ -1,4 +1,4 @@
-classdef Bits < uint32
+classdef enBits < uint32
 
     enumeration
         Undefined     (0)

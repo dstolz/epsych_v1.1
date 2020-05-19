@@ -120,7 +120,7 @@ classdef BitmaskGen < handle
             else
                 m = obj.DataTable.Data{obj.bmIdx(1),obj.bmIdx(2)};
             end
-            bm = epsych.Bitmask(m);
+            bm = epsych.enBitmask(m);
         end
 
         function set.Data(obj,d)
@@ -213,7 +213,7 @@ classdef BitmaskGen < handle
                     RC = D{j+4,i};
                     set(obj.summary_hPanel(j,i),'Title',sprintf('S%d | output-%d [%d]',i-1,j-1,RC));
                     
-                    BM = epsych.Bitmask(RC);
+                    BM = epsych.enBitmask(RC);
                     
                     set(obj.summary_hLabel(j,i),'Text',BM.Labels);
                 end
@@ -240,7 +240,7 @@ classdef BitmaskGen < handle
             
             
             % Variable Table
-            exptVars = epsych.Bitmask.default_bits;
+            exptVars = epsych.enBitmask.default_bits;
             exptVars(ismember(exptVars,'Undefined')) = [];
             exptVars = [{'< REMOVE >'}; exptVars(:)];
             hV = uitable(g);

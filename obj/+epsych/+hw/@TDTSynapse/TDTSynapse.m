@@ -67,16 +67,16 @@ classdef TDTSynapse < epsych.hw.Hardware
 
         function set.State(obj,newState)
             switch newState
-                case epsych.State.Prep
+                case epsych.enState.Prep
                     obj.prepare;
 
-                case [epsych.State.Run epsych.State.Preview]
+                case [epsych.enState.Run epsych.enState.Preview]
                     obj.run;
                     
-                case [epsych.State.Pause epsych.State.Resume]
+                case [epsych.enState.Pause epsych.enState.Resume]
                     % nothing to do here
                     
-                case epsych.State.Halt
+                case epsych.enState.Halt
                     obj.stop;
 
             end

@@ -88,9 +88,9 @@ classdef History < epsych.ui.comp.Helper
     methods (Access = private)
         function update_row_colors(obj)
             C = ones(size(obj.Data,1),3);
-            R = cellfun(@epsych.Bits,obj.Data(:,3));
+            R = cellfun(@epsych.enBits,obj.Data(:,3));
             fn = fieldnames(obj.ResultRowColor);
-            E = cellfun(@epsych.Bits,fn);
+            E = cellfun(@epsych.enBits,fn);
             for i = 1:length(E)
                 ind = R == E(i);
                 if ~any(ind), continue; end
@@ -140,7 +140,7 @@ classdef History < epsych.ui.comp.Helper
             
             % prefix Timestamp, Response, and Result fields
             RC = obj.metricsObj.ResponseCode;
-            bits = arrayfun(@(a) epsych.Bits(find(bitget(a,[3:7 16],'uint16'))+2),RC);
+            bits = arrayfun(@(a) epsych.enBits(find(bitget(a,[3:7 16],'uint16'))+2),RC);
             Result = arrayfun(@char,bits,'uni',0)';
             DataOut = [Result DataOut];
             DataOut = [Response DataOut];

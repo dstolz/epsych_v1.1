@@ -20,7 +20,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     
     properties (Transient)
         Timer
-        State   (1,1) epsych.State = epsych.State.Prep;
+        State   (1,1) epsych.enState = epsych.enState.Prep;
     end
     
     properties (Access = private,Transient)
@@ -88,7 +88,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             global LOG
 
             % timer is stopped on pause and started again on resume
-            if obj.State == epsych.State.Pause, return; end
+            if obj.State == epsych.enState.Pause, return; end
 
             LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.StopFcn: "%s"',func2str(obj.StopFcn));
 
@@ -122,11 +122,11 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             try
 
                 switch newState
-                    case epsych.State.Prep
+                    case epsych.enState.Prep
                         
                         
                         
-                    case [epsych.State.Run, epsych.State.Preview]
+                    case [epsych.enState.Run, epsych.enState.Preview]
                         LOG.write(epsych.log.Verbosity.Verbose,'Initializing Hardware')
                         obj.Hardware.initialize;
 
@@ -139,17 +139,17 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
                         start(obj.Timer);
                         
                     
-                    case epsych.State.Halt
+                    case epsych.enState.Halt
                         stop(obj.Timer);
                         
                         
-                    case epsych.State.Pause
+                    case epsych.enState.Pause
                         stop(obj.Timer);
 
-                    case epsych.State.Resume
+                    case epsych.enState.Resume
                         start(obj.Timer);
                         
-                    case epsych.State.Error
+                    case epsych.enState.Error
                         stop(obj.Timer);
                         rethrow(obj.ErrorMException);
                 end
@@ -157,7 +157,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             catch me
                 LOG.write(me);
                 obj.ErrorMException = me;
-                obj.State = epsych.State.Error;
+                obj.State = epsych.enState.Error;
                 return
             end
             

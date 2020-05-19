@@ -37,28 +37,28 @@ classdef RuntimeControl < handle
             switch btn
                 case 'Run|Halt'
                     switch RUNTIME.State
-                        case epsych.State.Prep
+                        case epsych.enState.Prep
                             LOG.write('Verbose','Updating State: Prep -> Run');
-                            RUNTIME.State = epsych.State.Run;
+                            RUNTIME.State = epsych.enState.Run;
 
-                        case [epsych.State.Run, epsych.State.Preview]
+                        case [epsych.enState.Run, epsych.enState.Preview]
                             LOG.write('Verbose','Updating State: %s -> Halt',char(RUNTIME.State));
-                            RUNTIME.State = epsych.State.Halt;
+                            RUNTIME.State = epsych.enState.Halt;
 
-                        case epsych.State.Halt
+                        case epsych.enState.Halt
                             LOG.write('Verbose','Updating State: Halt -> Run');
-                            RUNTIME.State = epsych.State.Run;
+                            RUNTIME.State = epsych.enState.Run;
                     end
 
                 case 'Pause'
                     switch RUNTIME.State
-                        case epsych.State.Pause
+                        case epsych.enState.Pause
                             LOG.write('Verbose','Updating State: Pause -> Resume');
-                            RUNTIME.State = epsych.State.Resume;
+                            RUNTIME.State = epsych.enState.Resume;
 
-                        case [epsych.State.Run, epsych.State.Preview]
+                        case [epsych.enState.Run, epsych.enState.Preview]
                             LOG.write('Verbose','Updating State: %s -> Pause',char(RUNTIME.State));
-                            RUNTIME.State = epsych.State.Pause;
+                            RUNTIME.State = epsych.enState.Pause;
                     end
             end
             
