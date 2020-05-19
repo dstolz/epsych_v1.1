@@ -278,6 +278,9 @@ classdef ControlPanel < handle
                 
                 h = findobj(obj.TabGroup.Children,'-property','Enable');
                 set(h,'Enable','off');
+                
+                h = findobj(obj.LogTab,'-property','Enable');
+                set(h,'Enable','on');
             end
         end
     end
