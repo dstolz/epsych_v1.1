@@ -1,4 +1,4 @@
-classdef UIControl < handle & matlab.mixin.SetGet
+classdef uiControl < handle & matlab.mixin.SetGet
     
     properties
         Value
@@ -36,7 +36,7 @@ classdef UIControl < handle & matlab.mixin.SetGet
     
     methods
         % Constructor
-        function obj = UIControl(Parameter,parent,varargin)            
+        function obj = uiControl(Parameter,parent,varargin)            
             obj.Parameter = Parameter;
             
             if nargin < 2 || isempty(parent), parent = gcf; end
@@ -48,7 +48,7 @@ classdef UIControl < handle & matlab.mixin.SetGet
             p = properties(obj);
             for i = 1:2:length(varargin)
                 ind = strcmpi(p,varargin{i});
-                assert(any(ind),'epsych.ui.comp.UIControl:UIControl:InvalidParameter', ...
+                assert(any(ind),'epsych.ui.comp.uiControl:uiControl:InvalidParameter', ...
                     'Invalid property "%s"',varargin{i})
                 obj.(p{ind}) = varargin{i+1};
             end
@@ -188,7 +188,7 @@ classdef UIControl < handle & matlab.mixin.SetGet
                 end
                 obj.update_position;
             else
-                style = epsych.ui.comp.UIControl.guess_uistyle(obj.Parameter);
+                style = epsych.ui.comp.uiControl.guess_uistyle(obj.Parameter);
                 if isequal(obj.hControl.Style,style), return; end
                 position = obj.Position;
                 delete(obj.hControl);

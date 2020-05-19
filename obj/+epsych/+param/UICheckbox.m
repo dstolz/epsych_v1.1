@@ -1,16 +1,16 @@
-classdef UICheckbox < epsych.param.UIControl
+classdef uiCheckbox < epsych.param.uiControl
     
     properties
         ValueType = 'Value';
     end
     
     properties (Constant)
-        Style = 'UICheckbox';
+        Style = 'uiCheckbox';
     end
 
     methods
-        function obj = UICheckbox(varargin)
-            obj = obj@epsych.param.UIControl(varargin{:});
+        function obj = uiCheckbox(varargin)
+            obj = obj@epsych.param.uiControl(varargin{:});
             obj.hControl.Value = obj.epsych.param.Value;
         end
         

@@ -1,4 +1,4 @@
-classdef UIPanel < handle & matlab.mixin.SetGet
+classdef uiPanel < handle & matlab.mixin.SetGet
     
     properties
         Position        (1,4) double {mustBeFinite,mustBeNonNan}
@@ -26,7 +26,7 @@ classdef UIPanel < handle & matlab.mixin.SetGet
     
     methods
         % Constructor
-        function obj = UIPanel(Group,Styles,parent,varargin)
+        function obj = uiPanel(Group,Styles,parent,varargin)
             narginchk(1,3);
             
             if nargin < 3 || isempty(parent), parent = gcf; end
@@ -44,7 +44,7 @@ classdef UIPanel < handle & matlab.mixin.SetGet
             p = properties(obj);
             for i = 1:2:length(varargin)
                 ind = strcmpi(p,varargin{i});
-                assert(any(ind),'epsych.ui.comp.UIPanel:UIPanel:InvalidParameter', ...
+                assert(any(ind),'epsych.ui.comp.uiPanel:uiPanel:InvalidParameter', ...
                     'Invalid property "%s"',varargin{i})
                 obj.(p{ind}) = varargin{i+1};
             end
@@ -58,7 +58,7 @@ classdef UIPanel < handle & matlab.mixin.SetGet
         
         
         function create(obj)
-            obj.hPanel = UIPanel(obj.parent);
+            obj.hPanel = uiPanel(obj.parent);
             obj.hPanel.Position = obj.Position;
 
             obj.hPanel.Units = 'pixels';
@@ -73,7 +73,7 @@ classdef UIPanel < handle & matlab.mixin.SetGet
 
             for i = 1:obj.Group.N
                 if isequal(obj.Styles{i},'auto')
-                    obj.Styles{i} = epsych.param.UIControl.guess_uistyle(obj.Group.Parameters(i));
+                    obj.Styles{i} = epsych.param.uiControl.guess_uistyle(obj.Group.Parameters(i));
                 end
                 
                 switch obj.Styles{i}

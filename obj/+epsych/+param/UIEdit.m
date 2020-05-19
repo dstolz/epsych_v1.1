@@ -1,4 +1,4 @@
-classdef UIEdit < epsych.param.UIControl
+classdef uiEdit < epsych.param.uiControl
     
     properties 
         ValueType = 'ValuesStr';
@@ -9,8 +9,8 @@ classdef UIEdit < epsych.param.UIControl
     end
 
     methods
-        function obj = UIEdit(varargin)
-            obj = obj@epsych.param.UIControl(varargin{:});
+        function obj = uiEdit(varargin)
+            obj = obj@epsych.param.uiControl(varargin{:});
             obj.ValueType = obj.ValueType;
         end        
         

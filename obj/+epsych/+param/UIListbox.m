@@ -1,4 +1,4 @@
-classdef UIListbox < epsych.param.UIControl
+classdef uiListbox < epsych.param.uiControl
     
     properties
         ValueType = 'ValuesStr';
@@ -9,8 +9,8 @@ classdef UIListbox < epsych.param.UIControl
     end
 
     methods
-        function obj = UIListbox(varargin)
-            obj = obj@epsych.param.UIControl(varargin{:});
+        function obj = uiListbox(varargin)
+            obj = obj@epsych.param.uiControl(varargin{:});
             obj.ValueType = obj.ValueType;
         end
         

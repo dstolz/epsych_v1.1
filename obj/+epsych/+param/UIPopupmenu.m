@@ -1,4 +1,4 @@
-classdef UIPopupmenu < epsych.param.UIControl
+classdef uiPopupmenu < epsych.param.uiControl
     
     properties         
         ValueType = 'ValuesStr';
@@ -9,8 +9,8 @@ classdef UIPopupmenu < epsych.param.UIControl
     end
 
     methods
-        function obj = UIPopupmenu(varargin)
-            obj = obj@epsych.param.UIControl(varargin{:});
+        function obj = uiPopupmenu(varargin)
+            obj = obj@epsych.param.uiControl(varargin{:});
             obj.ValueType = obj.ValueType;
         end
         
