@@ -34,10 +34,10 @@ obj.OverviewTab = uitab(obj.TabGroup);
 obj.OverviewTab.Title = 'Overview';
 obj.OverviewObj = epsych.ui.OverviewSetup(obj.OverviewTab);
 
-% Create ShortcutsTab
-obj.ShortcutsTab = uitab(obj.TabGroup);
-obj.ShortcutsTab.Title = 'Shortcuts';
-obj.ShortcutsObj = epsych.ui.Shortcuts(obj.ShortcutsTab);
+% % Create ShortcutsTab
+% obj.ShortcutsTab = uitab(obj.TabGroup);
+% obj.ShortcutsTab.Title = 'Shortcuts';
+% obj.ShortcutsObj = epsych.ui.Shortcuts(obj.ShortcutsTab);
 
 % Create SubjectTab
 obj.SubjectTab = uitab(obj.TabGroup);
@@ -70,7 +70,7 @@ obj.ToolbarPanel.BorderType = 'line';
 gc = uigridlayout(obj.ToolbarPanel);
 gc.Padding = [0 0 0 0];
 gc.RowHeight = {'1x'};
-gc.ColumnWidth = {50,50,'1x',100};
+gc.ColumnWidth = {50,50,50,50,50,'1x',100};
 
 h = uibutton(gc);
 h.Text = '';
@@ -87,6 +87,24 @@ h.Icon = fullfile(epsych.Info.root,'icons','save.png');
 h.IconAlignment = 'center';
 h.Enable = 'off';
 h.ButtonPushedFcn = @obj.save_config;
+obj.SaveButton = h;
+
+h = uibutton(gc);
+h.Text = '';
+h.Tooltip = 'Bitmask Design';
+h.Icon = fullfile(epsych.Info.root,'icons','binary.png');
+h.IconAlignment = 'center';
+h.Enable = 'off';
+% h.ButtonPushedFcn = @obj.save_config;
+obj.SaveButton = h;
+
+h = uibutton(gc);
+h.Text = '';
+h.Tooltip = 'Parameterization GUI';
+h.Icon = fullfile(epsych.Info.root,'icons','equaliser.png');
+h.IconAlignment = 'center';
+h.Enable = 'off';
+% h.ButtonPushedFcn = @obj.save_config;
 obj.SaveButton = h;
 
 % Create RuntimePanel

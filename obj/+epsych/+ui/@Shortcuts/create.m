@@ -21,10 +21,10 @@ function create(obj,parent) % epsych.ui.Shortcuts
 
 
     % Make button shortcuts - use Tag to code launch using eval
-    h = uibutton(g,'Tag','epsych.ui.BitmaskGen');
+    h = uibutton(g,'UserData','epsych.ui.BitmaskGen');
     h.Text = 'Bitmask Generator';
     h.ButtonPushedFcn = @obj.launch;
 
-    h = uibutton(g,'Tag','ep_ExperimentDesign');
+    h = uibutton(g,'UserData','ep_ExperimentDesign');
     h.Text = 'Experiment Design';
     h.ButtonPushedFcn = @obj.launch;

@@ -13,7 +13,7 @@ classdef Shortcuts < handle
         end
 
         function launch(obj,hObj,event)
-            eval(hObj.Tag);
+            eval(hObj.UserData);
         end
     end
 end
