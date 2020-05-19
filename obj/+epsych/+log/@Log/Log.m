@@ -138,7 +138,7 @@ classdef Log < handle
                     dbstr = '';
                     for j = 1:length(dbs)
                         dbstr = sprintf('Stack %d\n\tfile:\t%s\n\tname:\t%s\n\tline:\t%d', ...
-                            j,msg.stack(j).file,msg.stack(j).name,msg.stack(j).line);
+                            j,dbs(j).file,dbs(j).name,dbs(j).line);
                     end
                     msg = sprintf('%s%s',msg,dbstr);
                     break
