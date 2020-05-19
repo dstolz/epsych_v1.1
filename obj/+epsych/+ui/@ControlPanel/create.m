@@ -96,7 +96,7 @@ h.Icon = epsych.Tool.icon('binary');
 h.IconAlignment = 'center';
 h.Enable = 'on';
 % h.ButtonPushedFcn = @obj.save_config;
-obj.SaveButton = h;
+obj.BitmaskDesignButton = h;
 
 h = uibutton(gc);
 h.Text = '';
@@ -105,7 +105,7 @@ h.Icon = epsych.Tool.icon('equaliser');
 h.IconAlignment = 'center';
 h.Enable = 'on';
 % h.ButtonPushedFcn = @obj.save_config;
-obj.SaveButton = h;
+obj.ParameterizeButton = h;
 
 % Create RuntimePanel
 obj.RuntimePanel = uipanel(g);

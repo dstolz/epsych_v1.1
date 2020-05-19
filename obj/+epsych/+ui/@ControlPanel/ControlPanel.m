@@ -16,6 +16,8 @@ classdef ControlPanel < handle
 
         LoadButton       matlab.ui.control.Button
         SaveButton       matlab.ui.control.Button
+        BitmaskDesignButton matlab.ui.control.Button
+        ParameterizeButton  matlab.ui.control.Button
         
         AlwaysOnTopCheckbox     % epsych.ui.FigOnTop
 
@@ -34,6 +36,8 @@ classdef ControlPanel < handle
             
             if nargin == 0, parent = []; end
 
+
+
             % permit only one instance at a time
             f = epsych.Tool.find_epsych_controlpanel;
             if isempty(f)
@@ -44,7 +48,9 @@ classdef ControlPanel < handle
                 fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
                 LOG = epsych.log.Log(fullfile(RUNTIME.Config.LogDirectory,fn));
                 
-                addlistener(RUNTIME,'RuntimeConfigChange',@obj.config_change_detected);
+                addlistener(RUNTIME,'RuntimeConfigChange',@obj.listener_RuntimeConfigChange);
+                addlistener(RUNTIME,'PreStateChange',@obj.listener_PreStateChange);
+                addlistener(RUNTIME,'PostStateChange',@obj.listener_PostStateChange);
 
                 LOG.write('Important','Launching EPsych GUI')
                 obj.create(parent);
@@ -198,8 +204,10 @@ classdef ControlPanel < handle
 
             load(ffn,'-mat','RUNTIME');
 
-            addlistener(RUNTIME,'RuntimeConfigChange',@obj.config_change_detected);
-
+            addlistener(RUNTIME,'RuntimeConfigChange',@obj.listener_RuntimeConfigChange);
+            addlistener(RUNTIME,'PreStateChange',@obj.listener_PreStateChange);
+            addlistener(RUNTIME,'PostStateChange',@obj.listener_PostStateChange);
+            
             LOG.write(epsych.log.Verbosity.Verbose,'Loaded Runtime Config file: %s',ffn)
 
             obj.reset_ui_objects;
@@ -230,12 +238,46 @@ classdef ControlPanel < handle
     methods (Access = private)
         create(obj,parent,reset);
 
-        function config_change_detected(obj,hObj,~)
+        function listener_RuntimeConfigChange(obj,hObj,event)
             if isempty(obj.SaveButton), return; end % may not be instantiated yet
             if hObj.ConfigIsSaved
                 obj.SaveButton.Enable = 'off';
             else
                 obj.SaveButton.Enable = 'on';
+            end
+        end
+
+
+        function listener_PreStateChange(obj,hObj,event)
+            global LOG
+            
+            % update GUI component availability
+            if event.State == epsych.enState.Run
+                LOG.write('Debug','Disabling ControlPanel interface');
+                
+                obj.LoadButton.Enable = 'off';
+                obj.SaveButton.Enable = 'off';
+                
+                h = findobj(obj.TabGroup.Children,'-property','Enable');
+                set(h,'Enable','off');
+                
+                h = findobj(obj.LogTab,'-property','Enable');
+                set(h,'Enable','on');
+            end
+        end
+
+        
+        function listener_PostStateChange(obj,hObj,event)
+            global LOG
+            
+            % update GUI component availability
+            if any(event.State == [epsych.enState.Prep epsych.enState.Halt epsych.enState.Error])
+                LOG.write('Debug','Enabling ControlPanel interface');
+
+                obj.LoadButton.Enable = 'on';
+                
+                h = findobj(obj.TabGroup.Children,'-property','Enable');
+                set(h,'Enable','off');
             end
         end
     end

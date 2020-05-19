@@ -11,7 +11,7 @@ g = uigridlayout(parent);
 isvertical = strcmp(obj.Orientation,'vertical');
 if isvertical
     g.RowHeight   = {'0.5x','1x','1x'};
-    g.ColumnWidth = {'0.75x','0.25x'};
+    g.ColumnWidth = {'1x',55};
 else
     g.RowHeight   = {'0.5x','0.5x'};
     g.ColumnWidth = {'0.2x','0.4x','0.4x'};
@@ -23,9 +23,26 @@ obj.StateLabel.HorizontalAlignment = 'right';
 obj.StateLabel.Text = 'Setup';
 obj.StateLabel.FontSize = 14;
 
-% Create StateLamp
-obj.StateLamp = uilamp(g);
-obj.StateLamp.Color = [0.8 0.8 0.8];
+% % Create StateLamp
+% obj.StateLamp = uilamp(g);
+% obj.StateLamp.Color = [0.8 0.8 0.8];
+
+% Create StateIcon
+h = uiaxes(g);
+h.Layout.Row = 1;
+h.Layout.Column = 2;
+h.XTick = [];
+h.YTick = [];
+h.XColor = 'none';
+h.YColor = 'none';
+h.Color  = 'none';
+h.Colormap = flipud(gray);
+obj.StateIcon = h;
+
+[m,alpha] = epsych.Tool.get_icon('config');
+imagesc(obj.StateIcon,m,'AlphaData',alpha);
+axis(obj.StateIcon,'image');
+
 
 % Create RunButton
 obj.RunButton = uibutton(g, 'push');
@@ -54,21 +71,21 @@ obj.PauseButton.ButtonPushedFcn = {@obj.update_state,'Pause'};
 
 if isvertical
     obj.StateLabel.Layout.Row   = 1;
-    obj.StateLamp.Layout.Row    = 1;
+    obj.StateIcon.Layout.Row    = 1;
     obj.RunButton.Layout.Row    = 2;
     obj.PauseButton.Layout.Row  = 3;
     
     obj.StateLabel.Layout.Column   = 1;
-    obj.StateLamp.Layout.Column    = 2;
+    obj.StateIcon.Layout.Column    = 2;
     obj.RunButton.Layout.Column    = [1 2];
     obj.PauseButton.Layout.Column  = [1 2];
 else
-    obj.StateLamp.Layout.Row    = 1;
+    obj.StateIcon.Layout.Row    = 1;
     obj.StateLabel.Layout.Row   = 2;
     obj.RunButton.Layout.Row    = [1 2];
     obj.PauseButton.Layout.Row  = [1 2];
     
-    obj.StateLamp.Layout.Column    = 1;
+    obj.StateIcon.Layout.Column    = 1;
     obj.StateLabel.Layout.Column   = 1;
     obj.RunButton.Layout.Column    = 2;
     obj.PauseButton.Layout.Column  = 3;
