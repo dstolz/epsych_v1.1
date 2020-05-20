@@ -20,7 +20,10 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     
     properties (Transient)
         Timer
-        State   (1,1) epsych.enState = epsych.enState.Prep;
+    end
+
+    properties (Transient,SetObservable,AbortSet)
+        State   (1,1) epsych.enState
     end
     
     properties (Access = private,Transient)
@@ -50,6 +53,8 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             % elevate Matlab.exe process to a high priority in Windows
             pid = feature('getpid');
             [~,~] = dos(sprintf('wmic process where processid=%d CALL setpriority 128',pid));
+
+            obj.State = epsych.enState.Prep;
         end
                 
         % Destructor
