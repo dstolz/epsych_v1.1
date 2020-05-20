@@ -284,6 +284,21 @@ classdef ControlPanel < handle
                 set(h,'Enable','on');
             end
         end
+
+
+        function launch_bitmaskgen(obj,hObj,event)
+            global LOG
+            LOG.write('Debug','Launching epsych.ui.BitmaskGen')
+
+            epsych.ui.BitmaskGen;
+        end
+
+        function launch_exptparameterization(obj,hObj,event)
+            global LOG
+            LOG.write('Debug','Launching epsych.ui.BitmaskGen')
+
+            ep_ExperimentDesign;
+        end
     end
     
 end

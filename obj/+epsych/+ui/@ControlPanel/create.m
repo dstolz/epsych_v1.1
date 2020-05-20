@@ -95,7 +95,7 @@ h.Tooltip = 'Bitmask Design';
 h.Icon = epsych.Tool.icon('binary');
 h.IconAlignment = 'center';
 h.Enable = 'on';
-% h.ButtonPushedFcn = @obj.save_config;
+h.ButtonPushedFcn = @obj.launch_bitmaskgen;
 obj.BitmaskDesignButton = h;
 
 h = uibutton(gc);
@@ -104,7 +104,7 @@ h.Tooltip = 'Parameterization GUI';
 h.Icon = epsych.Tool.icon('equaliser');
 h.IconAlignment = 'center';
 h.Enable = 'on';
-% h.ButtonPushedFcn = @obj.save_config;
+h.ButtonPushedFcn = @obj.launch_exptparameterization;
 obj.ParameterizeButton = h;
 
 % Create RuntimePanel
