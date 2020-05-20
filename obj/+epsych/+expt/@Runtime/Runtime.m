@@ -10,6 +10,10 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
         Subject         (1,:) % epsych.Subject
     end
 
+    properties (Transient,SetObservable,AbortSet)
+        State   (1,1) epsych.enState
+    end
+    
     properties (SetAccess = private)
         ConfigIsSaved     (1,1) logical = true;
     end
@@ -22,10 +26,6 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
         Timer
     end
 
-    properties (Transient,SetObservable,AbortSet)
-        State   (1,1) epsych.enState
-    end
-    
     properties (Access = private,Transient)
         el_PostSet
     end
