@@ -10,18 +10,18 @@ g = uigridlayout(parent);
 
 isvertical = strcmp(obj.Orientation,'vertical');
 if isvertical
-    g.RowHeight   = {'0.5x','1x','1x'};
-    g.ColumnWidth = {'1x',55};
+    g.RowHeight   = {55,'1x','1x'};
+    g.ColumnWidth = {'1x'};
 else
-    g.RowHeight   = {'0.5x','0.5x'};
-    g.ColumnWidth = {'0.2x','0.4x','0.4x'};
+    g.RowHeight   = {'1x'};
+    g.ColumnWidth = {55,'1x','1x'};
 end
 
-% Create StateLabel
-obj.StateLabel = uilabel(g);
-obj.StateLabel.HorizontalAlignment = 'right';
-obj.StateLabel.Text = 'Setup';
-obj.StateLabel.FontSize = 14;
+% % Create StateLabel
+% obj.StateLabel = uilabel(g);
+% obj.StateLabel.HorizontalAlignment = 'right';
+% obj.StateLabel.Text = '';
+% obj.StateLabel.FontSize = 14;
 
 % % Create StateLamp
 % obj.StateLamp = uilamp(g);
@@ -29,14 +29,13 @@ obj.StateLabel.FontSize = 14;
 
 % Create StateIcon
 h = uiaxes(g);
-h.Layout.Row = 1;
-h.Layout.Column = 2;
 h.XTick = [];
 h.YTick = [];
 h.XColor = 'none';
 h.YColor = 'none';
 h.Color  = 'none';
 h.Colormap = flipud(gray);
+disableDefaultInteractivity(h);
 obj.StateIcon = h;
 
 [m,alpha] = epsych.Tool.get_icon('config');
@@ -70,23 +69,23 @@ obj.PauseButton.ButtonPushedFcn = {@obj.update_state,'Pause'};
 
 
 if isvertical
-    obj.StateLabel.Layout.Row   = 1;
+    % obj.StateLabel.Layout.Row   = 1;
     obj.StateIcon.Layout.Row    = 1;
     obj.RunButton.Layout.Row    = 2;
     obj.PauseButton.Layout.Row  = 3;
     
-    obj.StateLabel.Layout.Column   = 1;
-    obj.StateIcon.Layout.Column    = 2;
-    obj.RunButton.Layout.Column    = [1 2];
-    obj.PauseButton.Layout.Column  = [1 2];
+    % obj.StateLabel.Layout.Column   = 1;
+    obj.StateIcon.Layout.Column    = 1;
+    obj.RunButton.Layout.Column    = 1;
+    obj.PauseButton.Layout.Column  = 1;
 else
     obj.StateIcon.Layout.Row    = 1;
-    obj.StateLabel.Layout.Row   = 2;
-    obj.RunButton.Layout.Row    = [1 2];
-    obj.PauseButton.Layout.Row  = [1 2];
+    % obj.StateLabel.Layout.Row   = 2;
+    obj.RunButton.Layout.Row    = 1;
+    obj.PauseButton.Layout.Row  = 1;
     
     obj.StateIcon.Layout.Column    = 1;
-    obj.StateLabel.Layout.Column   = 1;
+    % obj.StateLabel.Layout.Column   = 1;
     obj.RunButton.Layout.Column    = 2;
     obj.PauseButton.Layout.Column  = 3;
 end

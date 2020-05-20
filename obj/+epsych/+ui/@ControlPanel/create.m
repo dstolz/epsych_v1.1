@@ -21,7 +21,7 @@ end
 
 g = uigridlayout(obj.parent);
 g.RowHeight   = {30,'.3x','.6x',25};
-g.ColumnWidth = {'0.8x','0.2x'};
+g.ColumnWidth = {'1x',100};
 
 
 % Create TabGroup

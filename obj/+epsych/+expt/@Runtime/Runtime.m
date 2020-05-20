@@ -54,7 +54,6 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             pid = feature('getpid');
             [~,~] = dos(sprintf('wmic process where processid=%d CALL setpriority 128',pid));
 
-            obj.State = epsych.enState.Prep;
         end
                 
         % Destructor
