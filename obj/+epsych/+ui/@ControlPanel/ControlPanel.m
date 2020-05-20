@@ -36,25 +36,26 @@ classdef ControlPanel < handle
             
             if nargin == 0, parent = []; end
 
-
-
-            % permit only one instance at a time
-            f = epsych.Tool.find_epsych_controlpanel;
-            if isempty(f)
-                % INITIALIZE RUNTIME OBJECT
+            % INITIALIZE RUNTIME OBJECT
+            if isempty(RUNTIME) || ~isvalid(RUNTIME)
                 RUNTIME = epsych.expt.Runtime;
-                
-                % INITIALIZE SESSION LOG
-                fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
-                LOG = epsych.log.Log(fullfile(RUNTIME.Config.LogDirectory,fn));
                 
                 addlistener(RUNTIME,'RuntimeConfigChange',@obj.listener_RuntimeConfigChange);
                 addlistener(RUNTIME,'PreStateChange',@obj.listener_PreStateChange);
                 addlistener(RUNTIME,'PostStateChange',@obj.listener_PostStateChange);
+            end
+            
+            % INITIALIZE SESSION LOG
+            if isempty(LOG) || ~isvalid(LOG)
+                fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
+                LOG = epsych.log.Log(fullfile(RUNTIME.Config.LogDirectory,fn));
+            end
 
+            % permit only one instance at a time
+            f = epsych.Tool.find_epsych_controlpanel;
+            if isempty(f)
                 LOG.write('Important','Launching EPsych GUI')
                 obj.create(parent);
-
 
                 drawnow
 
