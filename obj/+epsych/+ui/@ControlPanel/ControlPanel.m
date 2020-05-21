@@ -199,7 +199,7 @@ classdef ControlPanel < handle
             warning('on','MATLAB:class:mustReturnObject');
             
             if isempty(x)
-                LOG.write(epsych.log.Verbosity.Verbose,'Invalid Config file: %s',ffn)
+                LOG.write('Verbose','Invalid Config file: %s',ffn)
                 fprintf(2,'Unable to load the configuration: "%s"\n',ffn);
                 return
             end
@@ -210,7 +210,7 @@ classdef ControlPanel < handle
             addlistener(RUNTIME,'PreStateChange',@obj.listener_PreStateChange);
             addlistener(RUNTIME,'PostStateChange',@obj.listener_PostStateChange);
             
-            LOG.write(epsych.log.Verbosity.Verbose,'Loaded Runtime Config file: %s',ffn)
+            LOG.write('Verbose','Loaded Runtime Config file: %s',ffn)
 
             obj.reset_ui_objects;
             
@@ -232,6 +232,8 @@ classdef ControlPanel < handle
             if ~isempty(RUNTIME.Hardware)
                 obj.HardwareSetupObj.Hardware = RUNTIME.Hardware;
             end
+            
+            
         end
         
 
@@ -248,10 +250,8 @@ classdef ControlPanel < handle
                 obj.SaveButton.Enable = 'on';
             end
             
-            if hObj.ReadyToBegin
+            if  hObj.State == epsych.enState.Prep && hObj.ReadyToBegin
                 hObj.State = epsych.enState.Ready;
-            else
-                hObj.State = epsych.enState.Prep;
             end
         end
 

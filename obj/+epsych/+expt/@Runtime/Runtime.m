@@ -11,8 +11,8 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     end
 
     properties (Transient,SetObservable,AbortSet)
-        State   (1,1) epsych.enState
-        ReadyToBegin (1,1) logical = false;
+        State           (1,1) epsych.enState
+        ReadyToBegin    (1,1) logical = false;
     end
     
     properties (SetAccess = private)
@@ -83,9 +83,9 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
         end
 
         function call_TimerFcn(obj,varargin)
-            global LOG
+            % global LOG
 
-            LOG.write(epsych.log.Verbosity.Insanity,'Calling Runtime.TimerFcn: "%s"',func2str(obj.Config.TimerFcn));
+            % LOG.write(epsych.log.Verbosity.Insanity,'Calling Runtime.TimerFcn: "%s"',func2str(obj.Config.TimerFcn));
 
             feval(obj.Config.TimerFcn,obj)
         end
@@ -144,11 +144,9 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
                         obj.create_timer;
 
                         start(obj.Timer);
-                        
                     
                     case epsych.enState.Halt
                         stop(obj.Timer);
-                        
                         
                     case epsych.enState.Pause
                         stop(obj.Timer);
@@ -162,10 +160,10 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
                 end
             
             catch me
+                newState = epsych.enState.Error;
                 LOG.write(me);
                 obj.ErrorMException = me;
-                obj.State = epsych.enState.Error;
-                return
+                obj.State = newState;
             end
             
             ev = epsych.evProgramState(newState,prevState,timestamp);

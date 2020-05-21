@@ -49,7 +49,7 @@ classdef RuntimeControl < handle
                             LOG.write('Verbose','Updating State: Prep -> Run');
                             RUNTIME.State = epsych.enState.Run;
 
-                        case [epsych.enState.Run, epsych.enState.Preview]
+                        case {epsych.enState.Run, epsych.enState.Preview, epsych.enState.Pause, epsych.enState.Resume}
                             LOG.write('Verbose','Updating State: %s -> Halt',char(RUNTIME.State));
                             RUNTIME.State = epsych.enState.Halt;
 
@@ -64,7 +64,7 @@ classdef RuntimeControl < handle
                             LOG.write('Verbose','Updating State: Pause -> Resume');
                             RUNTIME.State = epsych.enState.Resume;
 
-                        case [epsych.enState.Run, epsych.enState.Preview]
+                        case {epsych.enState.Run, epsych.enState.Preview, epsych.enState.Resume}
                             LOG.write('Verbose','Updating State: %s -> Pause',char(RUNTIME.State));
                             RUNTIME.State = epsych.enState.Pause;
                     end
@@ -80,11 +80,10 @@ classdef RuntimeControl < handle
 
             obj.RunButton.Enable = 'off';
             obj.PauseButton.Enable = 'off';
-            
-            epsych.Tool.set_icon(obj.StateIcon,'Waiting');
+
+            epsych.Tool.set_icon(obj.StateIcon,'Thinking');
 
             drawnow
-
             
         end
         
@@ -95,47 +94,65 @@ classdef RuntimeControl < handle
             
             switch event.State
                 case epsych.enState.Prep
-                    icon = 'config';
-                    obj.RunButton.Enable = 'off';
+                    obj.RunButton.Enable   = 'off';
                     obj.PauseButton.Enable = 'off';
+                    stateIndicatorIcon   = 'config';
+                    runButtonIcon   = 'play';
+                    pauseButtonIcon = 'interface';
 
                 case epsych.enState.Ready
-                    icon = 'Ready';
-                    obj.RunButton.Enable = 'on';
+                    obj.RunButton.Enable   = 'on';
                     obj.PauseButton.Enable = 'off';
+                    stateIndicatorIcon   = 'Ready';
+                    runButtonIcon   = 'play';
+                    pauseButtonIcon = 'interface';
 
                 case epsych.enState.Run
-                    icon = 'Running';
-                    obj.RunButton.Enable = 'on';
+                    obj.RunButton.Enable   = 'on';
                     obj.PauseButton.Enable = 'on';
+                    stateIndicatorIcon   = 'Running';
+                    runButtonIcon   = 'stop';
+                    pauseButtonIcon = 'interface';
 
                 case epsych.enState.Preview
-                    obj.RunButton.Enable = 'on';
+                    obj.RunButton.Enable   = 'on';
                     obj.PauseButton.Enable = 'on';
-                    icon = 'preview';
+                    stateIndicatorIcon   = 'preview';
+                    runButtonIcon   = 'stop';
+                    pauseButtonIcon = 'interface';
 
                 case epsych.enState.Pause
-                    obj.RunButton.Enable = 'on';
+                    obj.RunButton.Enable   = 'on';
                     obj.PauseButton.Enable = 'on';
-                    icon = 'pause';
+                    stateIndicatorIcon   = 'pause';
+                    runButtonIcon   = 'stop';
+                    pauseButtonIcon = 'play_pause';
 
                 case epsych.enState.Resume
-                    obj.RunButton.Enable = 'on';
+                    obj.RunButton.Enable   = 'on';
                     obj.PauseButton.Enable = 'on';
-                    icon = 'Running';
+                    stateIndicatorIcon   = 'Running';
+                    runButtonIcon   = 'stop';
+                    pauseButtonIcon = 'interface';
 
                 case epsych.enState.Halt
-                    obj.RunButton.Enable = 'on';
+                    obj.RunButton.Enable   = 'on';
                     obj.PauseButton.Enable = 'off';
-                    icon = 'finish_line';
+                    stateIndicatorIcon   = 'finish_line';
+                    runButtonIcon   = 'play';
+                    pauseButtonIcon = 'interface';
                     
                 case epsych.enState.Error
-                    obj.RunButton.Enable = 'off';
+                    obj.RunButton.Enable   = 'on';
                     obj.PauseButton.Enable = 'off';
-                    icon = 'Error';
+                    stateIndicatorIcon   = 'Error';
+                    runButtonIcon   = 'play';
+                    pauseButtonIcon = 'interface';
             end
 
-            epsych.Tool.set_icon(obj.StateIcon,icon);
+            epsych.Tool.set_icon(obj.StateIcon,stateIndicatorIcon);
+            obj.RunButton.Icon   = epsych.Tool.icon(runButtonIcon);
+            obj.PauseButton.Icon = epsych.Tool.icon(pauseButtonIcon);
 
             drawnow
         end
