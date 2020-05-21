@@ -91,9 +91,10 @@ classdef ControlPanel < handle
             
             LOG.write(epsych.log.Verbosity.Important,'ControlPanel close requested.')
             
-            if ~any(RUNTIME.State == [epsych.enState.Halt, epsych.enState.Prep])
+            if RUNTIME.isRunning
                 uialert(ancestor(obj.parent,'figure'), ...
-                    'Please Halt the experiment before closing the Control Panel.','Close');
+                    'Please Halt the experiment before closing the Control Panel.','Close', ...
+                    'Icon','warning');
                 return
             end
             
