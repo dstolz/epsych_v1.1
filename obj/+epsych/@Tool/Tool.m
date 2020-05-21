@@ -167,9 +167,11 @@ classdef Tool < handle
             iconPath = fullfile(epsych.Info.root,'icons',[name '.png']);
         end
 
-        function [im,alpha] = get_icon(name)
+        function varargout = get_icon(name)
             [~,~,im] = imread(epsych.Tool.icon(name));
             alpha = single(im ~= 0);
+            varargout{1} = alpha;
+            varargout{2} = im;
         end
 
         function set_icon(ax,name)
