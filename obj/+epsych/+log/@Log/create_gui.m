@@ -14,7 +14,8 @@ obj.hEchoTextArea = uitextarea(gt);
 obj.hEchoTextArea.Tag = 'LogEchoTextArea';
 obj.hEchoTextArea.Layout.Column = [1 2];
 obj.hEchoTextArea.Layout.Row    = 1;
-obj.hEchoTextArea.Editable = 'off';
+% obj.hEchoTextArea.Editable = 'off';
+obj.hEchoTextArea.Enable = 'off';
 obj.hEchoTextArea.FontName = 'Consolas';
 
 obj.LogFilenameLabel = uilabel(gt);
