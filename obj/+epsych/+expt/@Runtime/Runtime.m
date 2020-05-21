@@ -44,11 +44,6 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     end
     
     methods
-        startFcn(obj)
-        timerFcn(obj)
-        stopFcn(obj)
-        errorFcn(obj)
-
         function obj = Runtime
             % monitor changes in SetObservable hardware properties and notify anyone listening
             m = metaclass(obj);
@@ -82,7 +77,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
         function call_StartFcn(obj,varargin)
             global LOG
 
-            LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.StartFcn: "%s"',func2str(obj.StartFcn));
+            LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.StartFcn: "%s"',func2str(obj.Config.StartFcn));
 
             feval(obj.Config.StartFcn,obj)
         end
@@ -90,7 +85,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
         function call_TimerFcn(obj,varargin)
             global LOG
 
-            LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.TimerFcn: "%s"',func2str(obj.TimerFcn));
+            LOG.write(epsych.log.Verbosity.Insanity,'Calling Runtime.TimerFcn: "%s"',func2str(obj.Config.TimerFcn));
 
             feval(obj.Config.TimerFcn,obj)
         end
@@ -101,7 +96,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             % timer is stopped on pause and started again on resume
             if obj.State == epsych.enState.Pause, return; end
 
-            LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.StopFcn: "%s"',func2str(obj.StopFcn));
+            LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.StopFcn: "%s"',func2str(obj.Config.StopFcn));
 
             feval(obj.Config.StopFcn,obj)
         end
@@ -109,7 +104,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
         function call_ErrorFcn(obj,varargin)
             global RUNTIME LOG
 
-            LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.ErrorFcn: "%s"',func2str(obj.ErrorFcn));
+            LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.ErrorFcn: "%s"',func2str(obj.Config.ErrorFcn));
 
             feval(obj.Config.ErrorFcn,obj)
             
@@ -268,6 +263,11 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     end % methods (Access = private)
    
     methods (Static)
+        startFcn(obj)
+        timerFcn(obj)
+        stopFcn(obj)
+        errorFcn(obj)
+
         function obj = loadobj(s)
             obj = s;
             notify(obj,'RuntimeConfigChange');
