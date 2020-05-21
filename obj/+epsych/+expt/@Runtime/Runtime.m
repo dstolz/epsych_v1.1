@@ -21,6 +21,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
 
     properties (Dependent)
         nSubjects
+        isRunning
     end
     
     properties (Transient)
@@ -43,6 +44,11 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     end
     
     methods
+        startFcn(obj)
+        timerFcn(obj)
+        stopFcn(obj)
+        errorFcn(obj)
+
         function obj = Runtime
             % monitor changes in SetObservable hardware properties and notify anyone listening
             m = metaclass(obj);
@@ -78,7 +84,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
 
             LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.StartFcn: "%s"',func2str(obj.StartFcn));
 
-            feval(obj.StartFcn,obj)
+            feval(obj.Config.StartFcn,obj)
         end
 
         function call_TimerFcn(obj,varargin)
@@ -86,7 +92,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
 
             LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.TimerFcn: "%s"',func2str(obj.TimerFcn));
 
-            feval(obj.TimerFcn,obj)
+            feval(obj.Config.TimerFcn,obj)
         end
         
         function call_StopFcn(obj,varargin)
@@ -97,15 +103,17 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
 
             LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.StopFcn: "%s"',func2str(obj.StopFcn));
 
-            feval(obj.StopFcn,obj)
+            feval(obj.Config.StopFcn,obj)
         end
         
         function call_ErrorFcn(obj,varargin)
-            global LOG
+            global RUNTIME LOG
 
             LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.ErrorFcn: "%s"',func2str(obj.ErrorFcn));
 
-            feval(obj.ErrorFcn,obj)
+            feval(obj.Config.ErrorFcn,obj)
+            
+            RUNTIME.State = epsych.enState.Error;
         end
         
 
@@ -174,6 +182,10 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
         
         function n = get.nSubjects(obj)
             n = length(obj.Config.Subject);
+        end
+
+        function tf = get.isRunning(obj)
+            tf = any(obj.State == [epsych.enState.Run, epsych.enState.Preview]);
         end
         
         function sobj = saveobj(obj)

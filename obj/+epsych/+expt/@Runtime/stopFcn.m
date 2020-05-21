@@ -1,0 +1,1 @@
+function stopFcn(obj) % epsych.expt.Runtime

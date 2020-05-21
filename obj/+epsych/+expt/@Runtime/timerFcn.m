@@ -1,0 +1,1 @@
+function timerFcn(obj) % epsych.expt.Runtime

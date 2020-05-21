@@ -8,10 +8,10 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
         UserInterface (1,1) = @ep_GenericGUI;
         SaveFcn       (1,1) = @ep_SaveDataFcn;
         
-        StartFcn    (1,1) = @epsych.expt.Runtime.start;
-        TimerFcn    (1,1) = @epsych.expt.Runtime.timer;
-        StopFcn     (1,1) = @epsych.expt.Runtime.stop;
-        ErrorFcn    (1,1) = @epsych.expt.Runtime.error;
+        StartFcn    (1,1) = @epsych.expt.Runtime.startFcn;
+        TimerFcn    (1,1) = @epsych.expt.Runtime.timerFcn;
+        StopFcn     (1,1) = @epsych.expt.Runtime.stopFcn;
+        ErrorFcn    (1,1) = @epsych.expt.Runtime.errorFcn;
 
         AutoSaveRuntimeConfig (1,1) logical = true;
         AutoLoadRuntimeConfig (1,1) logical = true;
