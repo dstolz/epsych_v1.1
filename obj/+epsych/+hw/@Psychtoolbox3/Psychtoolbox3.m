@@ -15,7 +15,6 @@ classdef (ConstructOnLoad) Psychtoolbox3 < epsych.hw.Hardware
         Status
     end
 
-
     properties (SetAccess = private,Transient)
         hScreen % handle to Screen element
     end
@@ -37,5 +36,8 @@ classdef (ConstructOnLoad) Psychtoolbox3 < epsych.hw.Hardware
             obj = obj@epsych.hw.Hardware;
         end
 
+        function status = get.Status(obj)
+            status = epsych.hw.enStatus.Ready;
+        end
     end
 end

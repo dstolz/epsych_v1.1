@@ -1,4 +1,4 @@
-classdef Status < int8
+classdef enStatus < int8
 
     enumeration
         Error           (-99)

@@ -39,13 +39,13 @@ classdef RuntimeControl < handle
             if nargout == 0, clear obj; end
         end
         
-        function update_state(obj,btn)
+        function update_state(obj,hObj,event,btn)
             global RUNTIME LOG
 
             switch btn
                 case 'Run|Halt'
                     switch RUNTIME.State
-                        case epsych.enState.Prep
+                        case epsych.enState.Ready
                             LOG.write('Verbose','Updating State: Prep -> Run');
                             RUNTIME.State = epsych.enState.Run;
 
@@ -96,47 +96,46 @@ classdef RuntimeControl < handle
             switch event.State
                 case epsych.enState.Prep
                     icon = 'config';
-                    info = 'Setup';
+                    obj.RunButton.Enable = 'off';
+                    obj.PauseButton.Enable = 'off';
+
+                case epsych.enState.Ready
+                    icon = 'Ready';
+                    obj.RunButton.Enable = 'on';
+                    obj.PauseButton.Enable = 'off';
 
                 case epsych.enState.Run
+                    icon = 'Running';
                     obj.RunButton.Enable = 'on';
                     obj.PauseButton.Enable = 'on';
-                    icon = 'Running';
-                    info = 'Running';
 
                 case epsych.enState.Preview
                     obj.RunButton.Enable = 'on';
                     obj.PauseButton.Enable = 'on';
                     icon = 'preview';
-                    info = 'Previewing';
 
                 case epsych.enState.Pause
                     obj.RunButton.Enable = 'on';
                     obj.PauseButton.Enable = 'on';
                     icon = 'pause';
-                    info = 'Paused';
 
                 case epsych.enState.Resume
                     obj.RunButton.Enable = 'on';
                     obj.PauseButton.Enable = 'on';
                     icon = 'Running';
-                    info = 'Running';
 
                 case epsych.enState.Halt
                     obj.RunButton.Enable = 'on';
                     obj.PauseButton.Enable = 'off';
                     icon = 'finish_line';
-                    info = 'Stopped';
                     
                 case epsych.enState.Error
                     obj.RunButton.Enable = 'off';
                     obj.PauseButton.Enable = 'off';
                     icon = 'Error';
-                    info = 'Error!';
             end
 
             epsych.Tool.set_icon(obj.StateIcon,icon);
-            % obj.StateIcon.Title.String = info;
 
             drawnow
         end

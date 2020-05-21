@@ -13,6 +13,10 @@ classdef Subject < handle & dynamicprops & matlab.mixin.Copyable
         Active          (1,1) logical = true;
     end
 
+    properties (Dependent)
+        isReady (1,1) logical
+    end
+
     properties (Constant)
         CreatedOn = datetime('now');
     end
@@ -29,6 +33,11 @@ classdef Subject < handle & dynamicprops & matlab.mixin.Copyable
                     obj.(pn{ind}) = varargin{i+1};
                 end
             end
+        end
+
+        function ready = get.isReady(obj)
+            % TODO: test data fields
+            ready = true;
         end
     end
 

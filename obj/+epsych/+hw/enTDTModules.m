@@ -1,4 +1,4 @@
-classdef TDTModules < uint8
+classdef enTDTModules < uint8
 
     enumeration
         PA5     (33)
@@ -20,12 +20,12 @@ classdef TDTModules < uint8
     
     methods (Static)
         function m = list
-            mx = ?epsych.hw.TDTModules;
+            mx = ?epsych.hw.enTDTModules;
             m = {mx.EnumerationMemberList.Name};
         end
 
         function c = list_codes
-            c = cellfun(@(a) uint8(epsych.hw.TDTModules.(a)),epsych.hw.TDTModules.list);
+            c = cellfun(@(a) uint8(epsych.hw.enTDTModules.(a)),epsych.hw.enTDTModules.list);
         end
 
         function fs = sampling_rates
@@ -35,7 +35,7 @@ classdef TDTModules < uint8
 
         function s = sampling_rates_str(sz)
             if nargin == 0, sz = ''; end
-            fs = epsych.hw.TDTModules.sampling_rates;
+            fs = epsych.hw.enTDTModules.sampling_rates;
             switch sz
                 case 'Hz'
                     s = arrayfun(@(a) sprintf('%.1f Hz',a),fs,'uni',0);

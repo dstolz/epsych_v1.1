@@ -42,7 +42,7 @@ h.ButtonPushedFcn = @obj.remove_module;
 obj.RemoveModuleButton= h;
 
 % Create TDTModulesTable
-fs = arrayfun(@(a) sprintf('%.1f',a),epsych.hw.TDTModules.sampling_rates/1000,'uni',0);
+fs = arrayfun(@(a) sprintf('%.1f',a),epsych.hw.enTDTModules.sampling_rates/1000,'uni',0);
 fs = [{'Dflt'},fs];
 h = uitable(g);
 h.Layout.Column = [1 5];
@@ -50,7 +50,7 @@ h.Layout.Row    = 2;
 h.RowName = {};
 h.ColumnName = {'Module', 'Index', 'Fs (kHz)', 'Alias', 'RPvds File'};
 h.ColumnWidth = {70, 40, 65, 100, 250};
-h.ColumnFormat = {epsych.hw.TDTModules.list,'numeric',fs,'char','char'};
+h.ColumnFormat = {epsych.hw.enTDTModules.list,'numeric',fs,'char','char'};
 h.ColumnEditable = true;
 if isempty(obj.Module)
     h.Data = {'RZ6',1,'Dflt','',''};

@@ -11,6 +11,10 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         State          
     end
 
+    properties (Dependent)
+        Status
+    end
+    
     properties (SetAccess = private,Transient)
         handle              % handle to ActiveX
     end
@@ -34,7 +38,6 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
 
 
     properties (Dependent)
-        Status
         FsIdx
     end
 
@@ -109,21 +112,21 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
                 for i = 1:length(obj.handle)
                     rpstatus = obj.handle(i).GetStatus;
                     if rpstatus == 7
-                        status = epsych.hw.Status.Running;
+                        status = epsych.hw.enStatus.Running;
 
                     elseif rpstatus == 3
-                        status = epsych.hw.Status.Ready;
+                        status = epsych.hw.enStatus.Ready;
                         return
 
                     else
-                        status = epsych.hw.Status.InPrep;
+                        status = epsych.hw.enStatus.InPrep;
                         return
                     end
                 end
             else
-                status = epsych.hw.Status.Error;
+                status = epsych.hw.enStatus.Error;
             end
-        end % get.Status
+        end % get.enStatus
 
 
         function i = get.FsIdx(obj)
@@ -222,7 +225,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
             D = obj.TDTModulesTable.Data;
             UD = obj.TDTModulesTable.UserData;
             for i = 1:size(D,1)
-                m(i).Type  = epsych.hw.TDTModules(D{i,1});
+                m(i).Type  = epsych.hw.enTDTModules(D{i,1});
                 m(i).Index = D{i,2};
                 Fs = D{i,3};
                 if isequal(Fs,'Dflt'), Fs = -1; end

@@ -27,6 +27,8 @@ classdef SubjectSetup < handle
         
         % Constructor
         function obj = SubjectSetup(parent)
+            global RUNTIME
+            
             narginchk(0,1)
 
             if nargin == 0, parent = []; end
@@ -36,6 +38,9 @@ classdef SubjectSetup < handle
             obj.parent = parent;
             
             if nargout == 0, clear obj; end
+
+            addlistener(RUNTIME,'PreStateChange',@obj.listener_PreStateChange);
+            addlistener(RUNTIME,'PostStateChange',@obj.listener_PostStateChange);
         end
 
         function delete(obj)
@@ -70,6 +75,8 @@ classdef SubjectSetup < handle
         end
 
         function modify_subject(obj,hObj,event)
+            if isempty(obj.Subject), return; end
+            
             if size(obj.SubjectTable.Data,1) == 1
                 obj.selIdx = [1 1];
             end
@@ -97,9 +104,6 @@ classdef SubjectSetup < handle
         
     end % methods (Access = public)
     
-    methods (Access = protected)
-        
-    end % methods (Access = protected)
 
     methods (Access = private)
 
@@ -115,7 +119,7 @@ classdef SubjectSetup < handle
         end
         
         function add_subject(obj,hObj,event)
-            global LOG
+            global RUNTIME LOG
 
             h = epsych.ui.SubjectDialog;
             waitfor(h.parent);
@@ -132,13 +136,17 @@ classdef SubjectSetup < handle
 
             obj.Subject(end+1) = h.Subject;
             
+            RUNTIME.Subject = obj.Subject;
+            
             delete(h);
         end
 
         function remove_subject(obj,hObj,event)
-            global LOG
+            global RUNTIME LOG
 
-            if isempty(obj.selIdx), return; end
+            if isempty(obj.Subject) || isempty(obj.selIdx), return; end
+                        
+            if obj.selIdx(1) == 0, obj.selIdx = 1; end
 
             LOG.write('Verbose','Removing subject %s "%s"', ...
                 obj.Subject(obj.selIdx(1)).ID,obj.Subject(obj.selIdx(1)).Name);
@@ -147,7 +155,34 @@ classdef SubjectSetup < handle
             
             obj.Subject(obj.selIdx(1)) = [];
 
+            RUNTIME.Subject = obj.Subject;
         end
-    end
+        
+        function listener_PreStateChange(obj,hObj,event)
+            global LOG
+            
+            % update GUI component availability
+            if event.State == epsych.enState.Run
+                LOG.write('Debug','Disabling Subject Setup interface');
+                
+                obj.AddButton.Enable = 'off';
+                obj.ModifyButton.Enable = 'off';
+                obj.RemoveButton.Enable = 'off';
+            end
+        end
 
+        
+        function listener_PostStateChange(obj,hObj,event)
+            global LOG
+            
+            % update GUI component availability
+            if any(event.State == [epsych.enState.Prep epsych.enState.Halt epsych.enState.Error])
+                LOG.write('Debug','Enabling Subject Setup interface');
+
+                obj.AddButton.Enable = 'on';
+                obj.ModifyButton.Enable = 'on';
+                obj.RemoveButton.Enable = 'on';
+            end
+        end
+    end % methods (Access = private)
 end

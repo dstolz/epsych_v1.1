@@ -2,11 +2,12 @@ classdef enState < int8
     enumeration
         Error   (-1)
         Prep    (0)
-        Run     (1)
+        Ready   (1)
         Preview (2)
-        Pause   (3)
-        Resume  (4)
-        Halt    (5)
+        Run     (3)
+        Pause   (4)
+        Resume  (5)
+        Halt    (6)
     end
 
     methods (Static)

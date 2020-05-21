@@ -92,8 +92,8 @@ classdef ControlPanel < handle
             LOG.write(epsych.log.Verbosity.Important,'ControlPanel close requested.')
             
             if ~any(RUNTIME.State == [epsych.enState.Halt, epsych.enState.Prep])
-                uialert(ancestor(obj.parent,'figure'),'Close', ...
-                    'Please Halt the experiment before closing the Control Panel.');
+                uialert(ancestor(obj.parent,'figure'), ...
+                    'Please Halt the experiment before closing the Control Panel.','Close');
                 return
             end
             
@@ -246,6 +246,12 @@ classdef ControlPanel < handle
             else
                 obj.SaveButton.Enable = 'on';
             end
+            
+            if hObj.ReadyToBegin
+                hObj.State = epsych.enState.Ready;
+            else
+                hObj.State = epsych.enState.Prep;
+            end
         end
 
 
@@ -258,12 +264,6 @@ classdef ControlPanel < handle
                 
                 obj.LoadButton.Enable = 'off';
                 obj.SaveButton.Enable = 'off';
-                
-                h = findobj(obj.TabGroup.Children,'-property','Enable');
-                set(h,'Enable','off');
-                
-                h = findobj(obj.LogTab,'-property','Enable');
-                set(h,'Enable','on');
             end
         end
 
@@ -276,12 +276,6 @@ classdef ControlPanel < handle
                 LOG.write('Debug','Enabling ControlPanel interface');
 
                 obj.LoadButton.Enable = 'on';
-                
-                h = findobj(obj.TabGroup.Children,'-property','Enable');
-                set(h,'Enable','off');
-                
-                h = findobj(obj.LogTab,'-property','Enable');
-                set(h,'Enable','on');
             end
         end
 

@@ -11,8 +11,6 @@ classdef HardwareSetup < handle
         Hardware
     end
     
-
-    
     properties (SetAccess = immutable)
         parent
     end
@@ -22,15 +20,19 @@ classdef HardwareSetup < handle
         create(obj,parent);
         
         function obj = HardwareSetup(parent)
+            global RUNTIME
+            
             obj.create(parent);
             obj.parent = parent;
+
+            addlistener(RUNTIME,'PreStateChange',@obj.listener_PreStateChange);
+            addlistener(RUNTIME,'PostStateChange',@obj.listener_PostStateChange);
         end
 
 
         function update_hardware(obj)
             global RUNTIME
 
-%             RUNTIME.Hardware = copy(obj.Hardware);
             RUNTIME.Hardware = obj.Hardware;
         end
 
@@ -59,12 +61,13 @@ classdef HardwareSetup < handle
                 
             epsych.Tool.figure_state(hObj,ots);
 
+            figure(ancestor(hObj,'figure'));
+
             if ~ok, return; end
             
             obj.add_hardware_tab(hwlist(sel));
             
             obj.update_hardware;
-
 
 %             setpref('interface_HardwareSetup','dfltHardware',hw);
         end
@@ -112,6 +115,38 @@ classdef HardwareSetup < handle
             delete(obj.TabGroup.SelectedTab);
             obj.update_hardware;
         end
-    end
+    end % methods (Access = public)
+
+    methods (Access = private)
+
+        function listener_PreStateChange(obj,hObj,event)
+            global LOG
+            
+            % update GUI component availability
+            if event.State == epsych.enState.Run
+                LOG.write('Debug','Disabling Hardware Setup interface');
+                
+                h = findobj(obj.TabGroup,'-property','Enable');
+                set(h,'Enable','off');
+                obj.AddHardwareButton.Enable = 'off';
+                obj.RemoveHardwareButton.Enable = 'off';
+            end
+        end
+
+        
+        function listener_PostStateChange(obj,hObj,event)
+            global LOG
+            
+            % update GUI component availability
+            if any(event.State == [epsych.enState.Prep epsych.enState.Halt epsych.enState.Error])
+                LOG.write('Debug','Enabling Hardware Setup interface');
+
+                h = findobj(obj.TabGroup,'-property','Enable');
+                set(h,'Enable','off');
+                obj.AddHardwareButton.Enable = 'on';
+                obj.RemoveHardwareButton.Enable = 'on';
+            end
+        end
+    end % methods (Access = private)
 
 end

@@ -27,7 +27,11 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
     end
 
     properties (Abstract,Dependent)
-        Status       % returns some indicator of connector status
+        Status       % returns indicator of connector status: epsych.hw.enStatus
+    end
+    
+    properties (Dependent)
+        isReady (1,1) logical = false;
     end
 
     properties (Access = protected,Transient)

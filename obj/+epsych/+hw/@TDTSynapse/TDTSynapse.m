@@ -115,21 +115,21 @@ classdef TDTSynapse < epsych.hw.Hardware
                 for i = 1:length(obj.handle)
                     rpstatus = obj.handle(i).GetStatus;
                     if rpstatus == 7
-                        status = epsych.hw.Status.Running;
+                        status = epsych.hw.enStatus.Running;
 
                     elseif rpstatus == 3
-                        status = epsych.hw.Status.Ready;
+                        status = epsych.hw.enStatus.Ready;
                         return
 
                     else
-                        status = epsych.hw.Status.InPrep;
+                        status = epsych.hw.enStatus.InPrep;
                         return
                     end
                 end
             else
-                status = epsych.hw.Status.Error;
+                status = epsych.hw.enStatus.Error;
             end
-        end % get.Status
+        end % get.enStatus
 
 
         function i = get.FsInt(obj)

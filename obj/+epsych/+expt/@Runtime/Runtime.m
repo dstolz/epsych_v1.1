@@ -12,6 +12,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
 
     properties (Transient,SetObservable,AbortSet)
         State   (1,1) epsych.enState
+        ReadyToBegin (1,1) logical = false;
     end
     
     properties (SetAccess = private)
@@ -36,6 +37,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     
     events
         RuntimeConfigChange
+        RuntimeIsReady
         PreStateChange
         PostStateChange
     end
@@ -53,7 +55,6 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             % elevate Matlab.exe process to a high priority in Windows
             pid = feature('getpid');
             [~,~] = dos(sprintf('wmic process where processid=%d CALL setpriority 128',pid));
-
         end
                 
         % Destructor
@@ -127,15 +128,14 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
 
                 switch newState
                     case epsych.enState.Prep
+                        LOG.write(epsych.log.Verbosity.Verbose,'Need more info to begin experiment')
                         
+                    case epsych.enState.Ready
+                        LOG.write(epsych.log.Verbosity.Verbose,'Ready to begin experiment')
                         
-                        
-                    case [epsych.enState.Run, epsych.enState.Preview]
-                        LOG.write(epsych.log.Verbosity.Verbose,'Initializing Hardware')
-                        obj.Hardware.initialize;
-
+                    case {epsych.enState.Run, epsych.enState.Preview}
                         LOG.write(epsych.log.Verbosity.Verbose,'Preparing Hardware')
-                        obj.Hardware.prepare;
+                        cellfun(@prepare,obj.Hardware);
 
                         LOG.write(epsych.log.Verbosity.Verbose,'Creating Runtime Timer')
                         obj.create_timer;
@@ -168,7 +168,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             ev = epsych.evProgramState(newState,prevState,timestamp);
             notify(obj,'PostStateChange',ev);
 
-            LOG.write(epsych.log.Verbosity.Debug,'Runtime.State updated from "%s" to "%s"',prevState,newState);
+            LOG.write(epsych.log.Verbosity.Verbose,'Runtime.State updated from "%s" to "%s"',prevState,newState);
         end % set.State
         
         
@@ -209,7 +209,50 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     end % methods (Access = protected)
 
     methods (Access = private)
-        
+        function runtime_updated(obj,hObj,event)
+            global LOG
+            
+            LOG.write('Verbose','Runtime Object Updated "%s"',hObj.Name);
+
+            obj.ConfigIsSaved = false;
+            
+            % Test whether Runtime is ready to begin
+            h = false; s = false;
+            if ~isempty(obj.Hardware)
+                h = cellfun(@(a) a.Status == epsych.hw.enStatus.Ready,obj.Hardware);
+            end
+            
+            if ~isempty(obj.Subject)
+                s = [obj.Subject.isReady];
+            end
+            
+            obj.ReadyToBegin = all(h) && all(s);
+
+            for i = 1:length(obj.Hardware)
+                LOG.write('Verbose','Hardware: %s; status = %s',obj.Hardware{i}.Name,char(obj.Hardware{i}.Status))
+            end
+
+            for i = 1:length(obj.Subject)
+                if obj.Subject(i).isReady
+                    LOG.write('Verbose','Subject: %s [ID %s] is ready',obj.Subject(i).Name,obj.Subject(i).ID)
+                else
+                    LOG.write('Verbose','Subject: %s [ID %s] is not ready',obj.Subject(i).Name,obj.Subject(i).ID)
+                end
+            end
+
+            if obj.ReadyToBegin
+                LOG.write('Important','Runtime is ready to begin');
+            else
+                LOG.write('Important','Runtime is not ready to begin');
+            end
+
+            if nargin < 3
+                notify(obj,'RuntimeConfigChange');    
+            else
+                notify(obj,'RuntimeConfigChange',event);
+            end
+
+        end
     end % methods (Access = private)
    
     methods (Static)
@@ -218,19 +261,6 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             notify(obj,'RuntimeConfigChange');
         end
 
-        function runtime_updated(obj,hObj,event)
-            global RUNTIME LOG
-            
-            RUNTIME.ConfigIsSaved = false;
-
-            if nargin < 3
-                notify(RUNTIME,'RuntimeConfigChange');    
-            else
-                notify(RUNTIME,'RuntimeConfigChange',event);
-            end
-
-            LOG.write('Verbose','Runtime Object Updated "%s"',hObj.Source.Name);
-        end
     end % methods (Static)
     
 end

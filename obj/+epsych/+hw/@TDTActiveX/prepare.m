@@ -32,7 +32,7 @@ errordlg(sprintf('File does not exist: "%s"',obj.RPvdsFile), ...
 return
 end
 
-if obj.Status == epsych.hw.Status.Running
+if obj.enStatus == epsych.hw.enStatus.Running
 fprintf('RPco.X already connected, loaded, and running.\n')
 return
 end
