@@ -146,7 +146,7 @@ classdef Bitmask < matlab.mixin.Copyable
         end
         
         function d = get.Digits(obj)
-            d = obj.digs(obj.digitOrder);
+            d = obj.digs(obj.digitOrder)';
         end
         
         function v = get.Values(obj)

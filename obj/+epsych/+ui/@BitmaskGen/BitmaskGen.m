@@ -112,7 +112,7 @@ classdef BitmaskGen < handle
             BitmaskTable = obj.VarTable.Data;
             BitmaskTable(:,2) = num2cell(false(size(BitmaskTable,1),1));
             Options = struct('ExptType',obj.ExptTypeDropdown.Value);
-            BitmaskData = obj.BitmaskData;
+            BitmaskData = obj.BitmaskData; %#ok<PROPLC>
             
             fprintf('Saving Bitmask Data "%s" ...',obj.filename)
             save(obj.filename,'BitmaskData','StateMachineData','BitmaskTable','Options','-mat');
@@ -126,10 +126,13 @@ classdef BitmaskGen < handle
         
         function bm = get.CurrentBitmask(obj)
             bm = [];
+            obj.bmIdx(any(obj.bmIdx<1,2),:) = [];
             if ~isempty(obj.bmIdx)
-                bm = obj.BitmaskData(obj.bmIdx(1),obj.bmIdx(2));
+                ind = sub2ind(size(obj.BitmaskData),obj.bmIdx(:,1),obj.bmIdx(:,2));
+                bm = obj.BitmaskData(ind);
             end
         end
+        
         
 
         function set.Data(obj,d)
@@ -143,6 +146,7 @@ classdef BitmaskGen < handle
         function d = get.Data(obj)
             d = cellfun(@uint16,obj.DataTable.Data);
         end
+        
         
         
         function reset_data(obj,~,~)
@@ -250,17 +254,13 @@ classdef BitmaskGen < handle
             g.RowHeight   = {25,25,'1x'};
             
             
-            
             % Variable Table
-
-            
-
             hV = uitable(g);
             hV.Layout.Column  = [1 2];
             hV.Layout.Row     = [2 3];
-            hV.RowName        = [];
+%             hV.RowName        = [];
             hV.ColumnName     = {'Variable','State'};
-            hV.ColumnWidth    = {'auto',40};
+            hV.ColumnWidth    = {'auto',60};
             hV.ColumnEditable = [true true];
             D = cell(15,2);
             D(:,2) = {false};
@@ -348,7 +348,6 @@ classdef BitmaskGen < handle
         end
         
         function variable_updated(obj,src,event)                        
-            
             r = event.Indices;
             
             if isempty(obj.bmIdx)
@@ -371,26 +370,31 @@ classdef BitmaskGen < handle
                 end
             end
             
-            if r(1) == size(src.Data,1)
-                src.Data(end+1,:) = {'',true};
-            end
                         
             lbl = src.Data{r(1),1};
             val = src.Data{r(1),2};
             
+            bm = obj.CurrentBitmask;
 
             if isempty(lbl)
                 src.Data{r(1),2} = false;
                 return
             elseif isequal(lbl,'< REMOVE >')
                 src.Data(r(1),:) = [];
-                obj.CurrentBitmask.remove_bit(lbl);
+                arrayfun(@(a) a.remove_bit(event.PreviousData),obj.BitmaskData);
+                
+            elseif ~ismember(lbl,bm(1).Labels)
+                if ~isempty(event.PreviousData)
+                    arrayfun(@(a) a.remove_bit(event.PreviousData),obj.BitmaskData);
+                end
+                arrayfun(@(a) a.add_bit(lbl,r(1)-1),obj.BitmaskData);
+                
             else
-                obj.CurrentBitmask.update_bit(lbl,val);
+                arrayfun(@(a) a.update_bit(lbl,val),bm);
             end
             
-            obj.Data(obj.tblIdx(end,1),obj.tblIdx(end,2)) = obj.CurrentBitmask.Mask;
-            
+            ind = sub2ind(size(obj.Data),obj.bmIdx(:,1)+4,obj.bmIdx(:,2));
+            obj.Data(ind) = [bm.Mask];
         end
         
         function select_data(obj,src,event)
@@ -398,7 +402,7 @@ classdef BitmaskGen < handle
                 obj.bmIdx = [];
                 obj.VarTable.Enable = 'off';
             else
-                obj.bmIdx = [event.Indices(end,1)-4, event.Indices(end,2)];
+                obj.bmIdx = [event.Indices(:,1)-4, event.Indices(:,2)];
                 obj.VarTable.Enable = 'on';
                 obj.update_variable_table;
             end
@@ -432,7 +436,13 @@ classdef BitmaskGen < handle
         end
         
         function update_variable_table(obj)
-            d = [obj.CurrentBitmask.Labels', num2cell(obj.CurrentBitmask.Values)'];
+            bm = obj.CurrentBitmask;
+            if numel(bm) > 1
+                vals = all(cell2mat({bm.Values}'));
+            else
+                vals = bm.Values;
+            end
+            d = [bm(1).Labels', num2cell(vals)'];
             d(end+1,:) = {'',false};
             obj.VarTable.Data = d;
         end
