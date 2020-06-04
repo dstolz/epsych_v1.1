@@ -6,9 +6,8 @@ classdef BitmaskGen < handle
         VarTable
         DataTable
         
-        currentTableSelection
+        tblIdx
         
-        Data
     end
     
     properties (Access = protected)
@@ -24,11 +23,19 @@ classdef BitmaskGen < handle
         bmIdx
 
         el_UpdatedBitmask
+        
+        
+        Data
+        
+        BitmaskData         epsych.Bitmask
     end
     
     properties (Dependent)
-        
-        CurrentBitmask
+        CurrentBitmask      epsych.Bitmask
+    end
+    
+    properties (Access = private)
+        defaultVars = {'StimulusTrial','CatchTrial','Hit','Miss','CorrectReject','FalseAlarm','Reward','Punish','Timeout'};
     end
     
     properties (SetAccess = immutable)
@@ -79,17 +86,19 @@ classdef BitmaskGen < handle
                 obj.filename = fullfile(pn,fn);
             end
             fprintf('Loading Bitmask Data "%s" ...',obj.filename)
-            load(obj.filename,'data','vars','opts','-mat');
-            obj.DataTable.Data = data;
-            obj.VarTable.Data  = vars;
-            obj.ExptTypeDropdown.Value = opts.ExptType;
+            load(obj.filename,'BitmaskData','StateMachineData','BitmaskTable','Options','-mat');
+            obj.DataTable.Data = StateMachineData;
+            obj.VarTable.Data  = BitmaskTable;
+            obj.BitmaskData    = BitmaskData; %#ok<PROPLC>
+            obj.ExptTypeDropdown.Value = Options.ExptType;
             fprintf(' done\n')
             
             setpref('epsych_BitmaskGen','projectDir',pn);
             
             figure(obj.parent);
             
-            notify(obj,'UpdatedBitmask');
+            event.Indices = obj.tblIdx;
+            obj.select_data([],event);
         end
         
         function save(obj,~,~)
@@ -99,13 +108,14 @@ classdef BitmaskGen < handle
             if isequal(fn,0), figure(obj.parent); return; end
             obj.filename = fullfile(pn,fn);
             
-            data = obj.DataTable.Data;
-            vars = obj.VarTable.Data;
-            vars(:,2) = num2cell(false(size(vars,1),1));
-            opts = struct('ExptType',obj.ExptTypeDropdown.Value);
+            StateMachineData = obj.DataTable.Data;
+            BitmaskTable = obj.VarTable.Data;
+            BitmaskTable(:,2) = num2cell(false(size(BitmaskTable,1),1));
+            Options = struct('ExptType',obj.ExptTypeDropdown.Value);
+            BitmaskData = obj.BitmaskData;
             
             fprintf('Saving Bitmask Data "%s" ...',obj.filename)
-            save(obj.filename,'data','vars','opts','-mat');
+            save(obj.filename,'BitmaskData','StateMachineData','BitmaskTable','Options','-mat');
             fprintf(' done\n')
             
             setpref('epsych_BitmaskGen','projectDir',pn);
@@ -115,23 +125,23 @@ classdef BitmaskGen < handle
         
         
         function bm = get.CurrentBitmask(obj)
-            if isempty(obj.bmIdx)
-                m = 0;
-            else
-                m = obj.DataTable.Data{obj.bmIdx(1),obj.bmIdx(2)};
+            bm = [];
+            if ~isempty(obj.bmIdx)
+                bm = obj.BitmaskData(obj.bmIdx(1),obj.bmIdx(2));
             end
-            bm = epsych.enBitmask(m);
         end
+        
 
         function set.Data(obj,d)
             if ~iscell(d)
                 d = num2cell(d);
             end
             obj.DataTable.Data = d;
+            notify(obj,'UpdatedBitmask');
         end
         
         function d = get.Data(obj)
-            d = cellfun(@uint32,obj.DataTable.Data);
+            d = cellfun(@uint16,obj.DataTable.Data);
         end
         
         
@@ -140,6 +150,11 @@ classdef BitmaskGen < handle
             sz = size(d,2);
             d(5:end,:) = zeros(4,sz);
             obj.Data = d;
+            
+            obj.default_bitmask_data;
+            
+            event.Indices = obj.tblIdx;
+            obj.select_data([],event);
         end
         
         
@@ -149,7 +164,7 @@ classdef BitmaskGen < handle
         end
 
         function show_summary(obj,~,~)
-            if isempty(obj.el_UpdatedBitmask)
+            if isempty(obj.el_UpdatedBitmask) || ~isvalid(obj.el_UpdatedBitmask)
                 obj.el_UpdatedBitmask = addlistener(obj,'UpdatedBitmask',@obj.show_summary);
             end
 
@@ -207,23 +222,20 @@ classdef BitmaskGen < handle
             ind = ismember(obj.ExptTypeDropdown.ItemsData,obj.ExptTypeDropdown.Value);
             obj.summary_hTitle.Text = sprintf('Paradigm: %s',obj.ExptTypeDropdown.Items{ind});
 
-            D = obj.DataTable.Data;
             for i = 2:5 % col
                 for j = 1:4 % row
-                    RC = D{j+4,i};
-                    set(obj.summary_hPanel(j,i),'Title',sprintf('S%d | output-%d [%d]',i-1,j-1,RC));
+                    set(obj.summary_hPanel(j,i),'Title',sprintf('S%d | output-%d [%d]',i-1,j-1,obj.BitmaskData(j,i).Mask));
                     
-                    BM = epsych.enBitmask(RC);
-                    
-                    set(obj.summary_hLabel(j,i),'Text',BM.Labels);
+                    v = obj.BitmaskData(j,i).Values;
+                    set(obj.summary_hLabel(j,i),'Text',obj.BitmaskData(j,i).Labels(v));
                 end
             end
             set(obj.summary_hPanel, ...
-                'BackgroundColor',obj.figSummary.Color, ...
+                'BackgroundColor',[1 1 1], ...
                 'FontWeight','normal');
-            idx = obj.currentTableSelection;
-            if isempty(idx) || idx(1) < 5, return; end
-            set(obj.summary_hPanel(idx(:,1)-4,idx(:,2)), ...
+            idx = obj.bmIdx;
+            if isempty(idx), return; end
+            set(obj.summary_hPanel(idx(:,1),idx(:,2)), ...
                 'FontWeight','bold', ...
                 'BackgroundColor',[.7 1 1]);
         end
@@ -240,9 +252,9 @@ classdef BitmaskGen < handle
             
             
             % Variable Table
-            exptVars = epsych.enBitmask.default_bits;
-            exptVars(ismember(exptVars,'Undefined')) = [];
-            exptVars = [{'< REMOVE >'}; exptVars(:)];
+
+            
+
             hV = uitable(g);
             hV.Layout.Column  = [1 2];
             hV.Layout.Row     = [2 3];
@@ -253,7 +265,7 @@ classdef BitmaskGen < handle
             D = cell(15,2);
             D(:,2) = {false};
             hV.Data = D;
-            hV.ColumnFormat   = {exptVars','logical'};
+            hV.ColumnFormat   = {[{'< REMOVE >'}; obj.defaultVars(:)]','logical'};
             hV.CellEditCallback = @obj.variable_updated;
 
             % Load button
@@ -302,7 +314,7 @@ classdef BitmaskGen < handle
             hL = uilabel(g);
             hL.Layout.Column = [3 6];
             hL.Layout.Row    = 2;
-            hL.Text          = 'RPvds State Machine Data Table';
+            hL.Text          = 'State Machine Data Table';
             hL.HorizontalAlignment = 'center';
             hL.FontSize      = 16;
             hL.FontWeight    = 'bold';
@@ -321,56 +333,77 @@ classdef BitmaskGen < handle
             hD.CellEditCallback      = @obj.edit_data;
             hD.BackgroundColor = [ones(4,1)*[1 1 0.5]; ones(4,3)];
 
-            obj.CopyButton = hC;
+
+            obj.CopyButton       = hC;
             obj.ExptTypeDropdown = hE;
-            obj.VarTable  = hV;
-            obj.DataTable = hD;
-            obj.DataTableTitle = hL;
+            obj.VarTable         = hV;
+            obj.DataTable        = hD;
+            obj.DataTableTitle   = hL;
             
-            obj.DataTable.Data = num2cell(zeros(8,5,'uint32'));
+            obj.DataTable.Data = num2cell(zeros(8,5,'uint16'));
             
+            obj.default_bitmask_data;
+
             obj.load_expts;
         end
         
         function variable_updated(obj,src,event)                        
+            
             r = event.Indices;
             
-            if r(1) == size(src.Data,1)
-                src.Data(end+1,:) = {'',false};
+            if isempty(obj.bmIdx)
+                uialert(obj.parent, ...
+                    sprintf('You must select a cell in the Bitmask table\n\ni.e. The white area of the State Machine Data Table.'), ...
+                    'Bitmask','Icon','info');
+                src.Data(r(1),r(2)) = {event.PreviousData};
+                return
             end
             
-            v = src.Data{r(1),1};
-            if isempty(v)
+            % check for duplicates
+            if r(2) == 1
+                ind = true(size(obj.Data,1),1);
+                ind(r(1)) = false;
+                if ismember(event.NewData,src.Data(ind,1))
+                    src.Data(r(1),1) = {event.PreviousData};
+                    uialert(obj.parent,'Duplicates are not allowed', ...
+                        'Bitmask','Icon','warning');
+                    return
+                end
+            end
+            
+            if r(1) == size(src.Data,1)
+                src.Data(end+1,:) = {'',true};
+            end
+                        
+            lbl = src.Data{r(1),1};
+            val = src.Data{r(1),2};
+            
+
+            if isempty(lbl)
                 src.Data{r(1),2} = false;
                 return
-                
-            elseif isequal(v,'< REMOVE >')
+            elseif isequal(lbl,'< REMOVE >')
                 src.Data(r(1),:) = [];
+                obj.CurrentBitmask.remove_bit(lbl);
+            else
+                obj.CurrentBitmask.update_bit(lbl,val);
             end
             
-            if isempty(obj.bmIdx), return; end
-
-            d = src.Data;
+            obj.Data(obj.tblIdx(end,1),obj.tblIdx(end,2)) = obj.CurrentBitmask.Mask;
             
-            d(cellfun(@isempty,d(:,1)),:) = [];
-            n = [d{:,2}];
-            bm = obj.CurrentBitmask;
-            bm.Labels = d(n,1);
-            
-            obj.DataTable.Data{obj.bmIdx(1),obj.bmIdx(2)} = bm.Value;
-            
-            notify(obj,'UpdatedBitmask');
         end
         
         function select_data(obj,src,event)
-            if event.Indices(1) <= 4 || event.Indices(2) == 1
+            if event.Indices(end,1) <= 4
                 obj.bmIdx = [];
+                obj.VarTable.Enable = 'off';
             else
-                obj.bmIdx = event.Indices(end,:);
+                obj.bmIdx = [event.Indices(end,1)-4, event.Indices(end,2)];
+                obj.VarTable.Enable = 'on';
                 obj.update_variable_table;
             end
             
-            obj.currentTableSelection = event.Indices;
+            obj.tblIdx = event.Indices;
             
             notify(obj,'UpdatedBitmask');
         end
@@ -382,14 +415,16 @@ classdef BitmaskGen < handle
             if x(1) <= 4
                 if d > 4
                     uialert(obj.parent,'Values must be less than or equal to the number of states (<=4)','Invalid Value','Icon','info')
-                    src.Data{x(1),x(2)} = event.PreviousData;
+                    obj.Data{x(1),x(2)} = event.PreviousData;
                 end
             
             elseif x(2) == 1
                 uialert(obj.parent,'State 0 (S0) must always be zero.','Invalid Value','Icon','info')
-                src.Data{x(1),x(2)} = 0;
+                obj.Data{x(1),x(2)} = 0;
                 
             else
+                bm = obj.CurrentBitmask;
+%                 d.Mask = d; % TODO:...
                 obj.update_variable_table;
             end
 
@@ -397,20 +432,8 @@ classdef BitmaskGen < handle
         end
         
         function update_variable_table(obj)
-            bm = obj.CurrentBitmask;
-            lbls  = bm.Labels;
-            d = obj.VarTable.Data;
-            d(cellfun(@isempty,d),:) = [];
-            if ~isempty(lbls)
-                u = union(d(:,1),bm.Labels);
-                d = [u num2cell(false(length(u),1))];
-            end
-            ind = false(size(d,1),1);
-            for i = 1:length(lbls)
-                ind = ind | ismember(d(:,1),char(lbls(i)));
-            end
-            d(end+1,1) = {''};
-            d(:,2)     = num2cell([ind; false]);
+            d = [obj.CurrentBitmask.Labels', num2cell(obj.CurrentBitmask.Values)'];
+            d(end+1,:) = {'',false};
             obj.VarTable.Data = d;
         end
         
@@ -425,7 +448,7 @@ classdef BitmaskGen < handle
                     fn  = matlab.lang.makeValidName(name);
                     fn  = [fn '.ebmx'];
                     ffn = fullfile(pn,fn);
-                    fprintf('Saving new template: "%s" ...', name)
+                    fprintf('Saving new template: "%s" [%s] ...', name,ffn)
                     data = obj.DataTable.Data(1:4,:);
                     vars = obj.VarTable.Data;
                     vars(:,2) = num2cell(false(size(vars,1),1));
@@ -435,14 +458,16 @@ classdef BitmaskGen < handle
                     fprintf(' done\n')
                     
                 otherwise
-                    load(fullfile(pn,et),'data','vars','-mat');
+                    ffn = fullfile(pn,et);
+                    fprintf('Loading template: "%s" [%s] ...', et,ffn)
+                    load(ffn,'data','vars','-mat');
                     d = obj.DataTable.Data;
                     d(1:4,:) = repmat({0},4,size(d,2));
                     if isnumeric(data), data = num2cell(data); end
                     d(1:4,1:size(data,2)) = data;
                     obj.DataTable.Data = d;
                     obj.VarTable.Data = vars;
-                    
+                    fprintf(' done\n')
             end
             setpref('epsych_BitmaskGen','expt',obj.ExptTypeDropdown.Value);
         end
@@ -457,8 +482,8 @@ classdef BitmaskGen < handle
             end
             
             clipboard('copy',s)
-            s = ['The data table has been copied to the clipboard.\n', ...
-                'Highlight all cells in your RPvds state machine data table and use ''Ctrl+v'' to paste.'];
+            s = sprintf(['The data table has been copied to the clipboard.\n\n', ...
+                'Highlight all cells in your RPvds state machine data table and use ''Ctrl+v'' to paste.']);
             uialert(obj.parent,s,'Data Table Copied','Icon','success');
         end
         
@@ -477,5 +502,19 @@ classdef BitmaskGen < handle
             
             obj.expt_changed;
         end
-    end
+        
+        
+        
+        function default_bitmask_data(obj)    
+            sz = size(obj.DataTable.Data);
+            bm(4,sz(2)) = epsych.Bitmask(obj.defaultVars);
+            for i = 1:numel(bm)
+                bm(i) = epsych.Bitmask(obj.defaultVars);
+                [r,c] = ind2sub([4 sz(2)],i);
+                bm(i).UserData = [r c];
+            end
+            obj.BitmaskData = bm;
+        end
+        
+    end % methods (Access = private)
 end
