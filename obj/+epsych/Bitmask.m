@@ -171,6 +171,8 @@ classdef Bitmask < matlab.mixin.Copyable
         
         
         
+        
+        
     end % methods
     
     methods (Access = private)
