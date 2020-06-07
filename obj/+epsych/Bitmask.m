@@ -107,6 +107,8 @@ classdef Bitmask < matlab.mixin.Copyable
                 value = cellfun(@(a) ~obj.Bits.(a).Value,lbl);
             end
             
+            value = logical(value);
+            
             for i = 1:length(lbl)
                 obj.Bits.(lbl{i}).Value = value(i);
             end
