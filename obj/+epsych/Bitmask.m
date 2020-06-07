@@ -116,6 +116,14 @@ classdef Bitmask < matlab.mixin.Copyable
             obj.update_props;
         end
         
+        function reset_bits(obj)
+            lbl = obj.Labels;
+            for i = 1:length(lbl)
+                obj.Bits.(lbl{i}).Value = false;
+            end
+            update_props(obj);
+        end
+
         function remove_bit(obj,targ)
             if ischar(targ), targ = cellstr(targ); end
                         
