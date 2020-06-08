@@ -3,6 +3,8 @@ classdef Bitmask < matlab.mixin.Copyable
        
     properties
         UserData
+        
+        Mask    (1,1) uint16
     end
     
     
@@ -10,9 +12,7 @@ classdef Bitmask < matlab.mixin.Copyable
         Bits    (1,1) struct
     end
     
-    properties (SetAccess = private)
-        Mask    (1,1) uint16
-        
+    properties (SetAccess = private)        
         Boolean (1,:) logical
         Labels
         Digits
@@ -84,12 +84,12 @@ classdef Bitmask < matlab.mixin.Copyable
             obj.Bits.(label).Digit = uint16(digit);
             obj.Bits.(label).Value = value;
             
-            obj.update_props;
+            obj.update;
         end
         
         function update_bit(obj,targ,value)
             if ischar(targ), targ = cellstr(targ); end
-                        
+            
             if iscellstr(targ)
                 ind = ~ismember(targ,obj.Labels);
                 targ(ind) = [];
@@ -108,12 +108,15 @@ classdef Bitmask < matlab.mixin.Copyable
             end
             
             value = logical(value);
+
+            nv = length(value);
+            if nv == 1 && nv < length(lbl), value = repmat(value,size(lbl)); end
             
             for i = 1:length(lbl)
                 obj.Bits.(lbl{i}).Value = value(i);
             end
             
-            obj.update_props;
+            obj.update;
         end
         
         function reset_bits(obj)
@@ -121,7 +124,7 @@ classdef Bitmask < matlab.mixin.Copyable
             for i = 1:length(lbl)
                 obj.Bits.(lbl{i}).Value = false;
             end
-            update_props(obj);
+            update(obj);
         end
 
         function remove_bit(obj,targ)
@@ -144,7 +147,7 @@ classdef Bitmask < matlab.mixin.Copyable
             for i = 1:numel(lbl)
                 obj.Bits = rmfield(obj.Bits,lbl{i});
             end
-            obj.update_props;
+            obj.update;
         end
         
         
@@ -161,6 +164,12 @@ classdef Bitmask < matlab.mixin.Copyable
         
         function v = get.Values(obj)
             v = obj.vals(obj.digitOrder);
+        end
+        
+        function set.Mask(obj,m)
+            d = obj.bitmask2digits(m);
+            obj.reset_bits;
+            obj.update_bit(d,true);
         end
         
         function m = get.Mask(obj)
@@ -186,7 +195,7 @@ classdef Bitmask < matlab.mixin.Copyable
     end % methods
     
     methods (Access = private)
-        function update_props(obj)
+        function update(obj)
             obj.lbls = fieldnames(obj.Bits)';
             obj.digs = structfun(@(a) a.Digit,obj.Bits);
             obj.vals = structfun(@(a) a.Value,obj.Bits)';
@@ -204,7 +213,7 @@ classdef Bitmask < matlab.mixin.Copyable
         end
         
         function d = bitmask2digits(bm)
-            d = find(epsych.Bitmask.bitmask2boolean(bm));
+            d = find(epsych.Bitmask.bitmask2boolean(bm))-1;
         end
         
         function bm = digits2bitmask(digits)
