@@ -11,6 +11,8 @@ classdef Subject < handle & dynamicprops & matlab.mixin.Copyable
         Note            (1,1) string
 
         Active          (1,1) logical = true;
+
+        Data            (1,1) % epsych.Data
     end
 
     properties (Dependent)
