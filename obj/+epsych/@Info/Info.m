@@ -10,7 +10,7 @@ classdef Info < handle
     
     properties (Constant)
         Version     = '2.0';
-        DataVersion = '1.0';        
+        DataVersion = '2.0';        
         Author      = 'Daniel Stolzberg';
         AuthorEmail = 'daniel.stolzberg@gmail.com';
         License     = 'GNU General Public License v3.0';

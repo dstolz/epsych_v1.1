@@ -17,7 +17,7 @@ catch
             '/_____/  /_/     /____/ _\__, / \___/ /_/ /_/ ', ...
             '                        /____/             '};   
 end
-cm{end} = sprintf('%s\nv1.1 <a href="matlab: edit(''%s'')">(C) 2019  Daniel Stolzberg, PhD</a>',cm{end},fullfile(epsych_path,'LICENSE'));
+cm{end} = sprintf('%s\nv1.1 <a href="matlab: edit(''%s'')">(C) 2020  Daniel Stolzberg, PhD</a>',cm{end},fullfile(epsych_path,'LICENSE'));
 lnk = 'https://github.com/dstolz/epsych_v1.1';
 cm{end+1} = sprintf('Repository: <a href="matlab: web(''%s'',''-browser'')">%s</a>',lnk,lnk);
 cm{end+1} = '-> <a href="matlab: ep_LaunchPad">ep_LaunchPad</a>  ... Launch panel for EPsych utilities';

@@ -6,10 +6,6 @@ classdef (ConstructOnLoad) Psychtoolbox3 < epsych.hw.Hardware
         Description  = 'http://psychtoolbox.org';
         MaxNumInstances = 1;
     end
-
-    properties % define public abstract properties from superclass
-        State          
-    end
     
     properties (Dependent)
         Status
@@ -23,7 +19,7 @@ classdef (ConstructOnLoad) Psychtoolbox3 < epsych.hw.Hardware
     methods
         h = setup(obj,parent);      % minimal gui to set custom parameters
         prepare(obj,varargin);      % complete any required tasks before run
-        run(obj,varargin);          % establish connection to hardware (if not already connected) and run
+        start(obj,varargin);        % establish connection to hardware (if not already connected) and run
         stop(obj,varargin);         % stop running hardware
 
         write(obj,parameter,value); % write (update) parameter value

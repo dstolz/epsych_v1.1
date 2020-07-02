@@ -16,7 +16,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     end
     
     properties (SetAccess = private)
-        ConfigIsSaved     (1,1) logical = true;
+        ConfigIsSaved   (1,1) logical = true;
     end
 
     properties (Dependent)
@@ -131,16 +131,26 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
 
                 switch newState
                     case epsych.enState.Prep
-                        LOG.write(epsych.log.Verbosity.Verbose,'Need more info to begin experiment')
+                        LOG.write('Important','Need more info to begin experiment')
                         
                     case epsych.enState.Ready
-                        LOG.write(epsych.log.Verbosity.Verbose,'Ready to begin experiment')
+                        LOG.write('Important','Ready to begin experiment')
                         
                     case {epsych.enState.Run, epsych.enState.Preview}
-                        LOG.write(epsych.log.Verbosity.Verbose,'Preparing Hardware')
-                        cellfun(@prepare,obj.Hardware);
+                        for i = 1:numel(obj.Hardware)
+                            LOG.write('Important','Preparing Hardware: "%s"',obj.Hardware(i).Name)
+                            
+                            e = obj.Hardware(i).prepare;
 
-                        LOG.write(epsych.log.Verbosity.Verbose,'Creating Runtime Timer')
+                            if e
+                                LOG.write('Critical','Failed to prepare hardware: "%s"',obj.Hardware(i).Name)
+                                LOG.write('Error',obj.ErrorME);
+                                obj.State = epsych.enState.Error;
+                                return
+                            end
+                        end
+
+                        LOG.write('Verbose','Creating Runtime Timer')
                         obj.create_timer;
 
                         start(obj.Timer);
@@ -169,7 +179,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             ev = epsych.evProgramState(newState,prevState,timestamp);
             notify(obj,'PostStateChange',ev);
 
-            LOG.write(epsych.log.Verbosity.Verbose,'Runtime.State updated from "%s" to "%s"',prevState,newState);
+            LOG.write('Verbose','Runtime.State updated from "%s" to "%s"',prevState,newState);
         end % set.State
         
         

@@ -187,12 +187,12 @@ classdef Bitmask < matlab.mixin.Copyable
             b = false(1,16);
             b(d) = v;
         end
-        
-        
-        
-        
-        
+                
     end % methods
+    
+    
+    
+    
     
     methods (Access = private)
         function update(obj)
@@ -201,6 +201,10 @@ classdef Bitmask < matlab.mixin.Copyable
             obj.vals = structfun(@(a) a.Value,obj.Bits)';
         end
     end % methods (Access = private)
+    
+    
+    
+    
     
     methods (Static)
         
@@ -220,6 +224,6 @@ classdef Bitmask < matlab.mixin.Copyable
             bm = sum(2.^(digits-1));
         end
         
-    end
+    end % methods (Static)
 
 end

@@ -14,9 +14,9 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
     properties (Dependent)
         Status
     end
-    
-    properties (SetAccess = private,Transient)
-        handle              % handle to ActiveX
+
+    properties (Access = protected)
+        
     end
     
     properties (Access = private,Transient,Hidden)
@@ -46,9 +46,10 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
     end
 
     methods
-        prepare(obj);
+        e = prepare(obj);
+        e = runtime(obj);
 
-        write(obj,parameter,value);
+        e = write(obj,parameter,value);
         v = read(obj,parameter);
         e = trigger(obj,parameter);
 
@@ -61,26 +62,8 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
             obj.cleanup;
         end
 
-        function set.State(obj,newState)
-            if isempty(newState), return; end
-            switch newState
-                case epsych.enState.Prep
-                    obj.prepare;
-
-                case [epsych.enState.Run epsych.enState.Preview]
-                    obj.run;
-                    
-                case [epsych.enState.Pause epsych.enState.Resume]
-                    % nothing to do here
-                    
-                case epsych.enState.Halt
-                    obj.stop;
-
-            end
-            obj.State = newState;
-        end
-
-        function run(obj)
+        function e = start(obj)
+            e = false;
             for i = 1:length(obj.handle)
                 if obj.handle(i).Run
                     fprintf('running\n')
@@ -89,14 +72,15 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
                         'Ensure all modules are powered on and connections are secured'], ...
                         module),'Run Error','modal');
                     obj.cleanup;
+                    e = true;
                     return
                 end
             end
         end
         
-        function stop(obj)
+        function e = stop(obj)
             for i = 1:length(obj.handle)
-                obj.handle(i).Halt;
+                e(i) = obj.handle(i).Halt;
             end
             obj.cleanup;
         end
@@ -225,20 +209,21 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
             D = obj.TDTModulesTable.Data;
             UD = obj.TDTModulesTable.UserData;
             for i = 1:size(D,1)
-                m(i).Type  = epsych.hw.enTDTModules(D{i,1});
-                m(i).Index = D{i,2};
+                M(i).Type  = epsych.hw.enTDTModules(D{i,1});
+                M(i).Index = D{i,2};
                 Fs = D{i,3};
                 if isequal(Fs,'Dflt'), Fs = -1; end
-                m(i).Fs    = Fs;
-                m(i).Alias = D{i,4};
+                M(i).Fs    = Fs;
+                M(i).Alias = D{i,4};
                 if isempty(UD) || size(UD,1)<i
-                    m(i).RPvds = '';
+                    M(i).RPvds = '';
                 else
-                    m(i).RPvds = UD{i,5};
+                    M(i).RPvds = UD{i,5};
                 end
+                M(i).handle = []; % activex control handle (created in prepare)
             end
             
-            obj.Module = m;
+            obj.Module = M;
             
             % TODO: NEED SOME HARDWARE INDEX ID
             RUNTIME.Hardware = copy(obj);
