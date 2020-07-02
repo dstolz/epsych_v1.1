@@ -64,6 +64,8 @@ classdef OnlinePlot < gui.Helper & handle
             obj.TDTActiveX = TDTActiveX;
             obj.watchedParams = watchedParams;
             
+            obj.Buffers = []; % make sure buffers are clear on startup
+
             if isempty(ax)
                 obj.setup_figure;
             else
