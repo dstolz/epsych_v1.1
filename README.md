@@ -8,10 +8,10 @@ This Matlab toolbox (continually in development) aims to provide a useful framew
 
 Currently documentation is weak, but a brief introduction can be found in  Intro_to_ElectroPsych_Toolbox.ppt in the main directory.  A few RPvds circuit examples can be found in the .examples directory.
 
-A few labs have contributed to the development of this toolbox.  The UserFiles directory contains some of the work of these labs.  While all files in this toolbox are free to view and use for learning, please contact me (daniel.stolzberg@gmail.com) or the individual creators of the work before using these files for active research projects.
+While all files in this toolbox are free to view and use for learning, please contact me (daniel.stolzberg@gmail.com) if you have any questions on how to get started.
 
 **Requirements**
-* Matlab R2014b or newer (recommended 2018b)
+* Matlab R2014b or newer (recommended 2018b or later)
 * Software available for purchase from TDT http://www.tdt.com
 	* Behavior experiments (no electrophysiology):	*TDT ActiveX Controls*
 	* Electrophysiology experiments:  *TDT OpenEx* and *TDT OpenDeveloper Controls*
