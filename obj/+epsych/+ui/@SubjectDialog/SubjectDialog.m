@@ -60,6 +60,7 @@ classdef SubjectDialog < handle
                 uialert(obj.parent,'Invalid Entry', ...
                     'You entered an invalid value: %s',s);
             end
+            
         end
 
         function response_button(obj,hObj,event)
@@ -73,13 +74,17 @@ classdef SubjectDialog < handle
         function locate_file(obj,hObj,event)
             pn = getpref('epsych',[hObj.Tag 'Path'],epsych.Info.user_directory);
 
-            [fn,pn] = uigetfile(hObj.UserData{:},pn);
+            [fn,pn] = uigetfile(hObj.UserData.filterspec,hObj.UserData.title,pn);
 
             if isequal(fn,0), return; end
 
             setpref('epsych',[hObj.Tag 'Path'],pn);
             
-            obj.Subject.(hObj.Tag) = fullfile(pn,fn);
+            ev.Value = fullfile(pn,fn);
+            ev.PreviousValue = hObj.UserData.peer.Value;
+            obj.update_field(hObj.UserData.peer,ev);
+            
+            hObj.UserData.peer.Value = fn;
         end
     end % methods (Access = private)
 end

@@ -100,7 +100,9 @@ obj.LocateProtocolButton.Layout.Row = R;
 obj.LocateProtocolButton.Layout.Column = 3;
 obj.LocateProtocolButton.Text = '...';
 obj.LocateProtocolButton.ButtonPushedFcn = @obj.locate_file;
-obj.LocateProtocolButton.UserData = {{'*.eprot','EPsych Protocol'},'EPsych Protocol File'}; % uigetfile parameters
+obj.LocateProtocolButton.UserData.filterspec = {'*.prot','EPsych Protocol'};
+obj.LocateProtocolButton.UserData.title = 'EPsych Protocol File';
+obj.LocateProtocolButton.UserData.peer = obj.ProtocolFileEditField; % uigetfile parameters
 
 
 
@@ -123,7 +125,9 @@ obj.LocateBitmaskButton.Layout.Row = R;
 obj.LocateBitmaskButton.Layout.Column = 3;
 obj.LocateBitmaskButton.Text = '...';
 obj.LocateBitmaskButton.ButtonPushedFcn = @obj.locate_file;
-obj.LocateBitmaskButton.UserData = {{'*.ebm','EPsych Bitmask'},'EPsych Bitmask File'}; % uigetfile parameters
+obj.LocateBitmaskButton.UserData.filterspec = {'*.ebm','EPsych Bitmask'};
+obj.LocateBitmaskButton.UserData.title = 'EPsych Bitmask File';
+obj.LocateBitmaskButton.UserData.peer = obj.BitmaskFileEditField; % uigetfile parameters
 
 
 R = R + 1;

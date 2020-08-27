@@ -63,8 +63,10 @@ classdef SubjectSetup < handle
             ac = {obj.Subject.Active};
             nm = {obj.Subject.Name};
             id = {obj.Subject.ID};
-            fn = cellfun(@epsych.Tool.truncate_str,{obj.Subject.ProtocolFile},'uni',0);
-            bm = cellfun(@epsych.Tool.truncate_str,{obj.Subject.BitmaskFile},'uni',0);
+            %fn = cellfun(@epsych.Tool.truncate_str,{obj.Subject.ProtocolFile},'uni',0);
+            %bm = cellfun(@epsych.Tool.truncate_str,{obj.Subject.BitmaskFile},'uni',0);
+            [~,fn] = cellfun(@fileparts,{obj.Subject.ProtocolFile},'uni',0);
+            [~,bm] = cellfun(@fileparts,{obj.Subject.BitmaskFile},'uni',0);
             
             obj.SubjectTable.Data = [ac(:), nm(:), id(:), fn(:), bm(:)];
 
@@ -115,7 +117,6 @@ classdef SubjectSetup < handle
         function subject_table_select(obj,hObj,event)
             if isempty(event.Indices), obj.selIdx = []; return; end
             obj.selIdx = event.Indices(end,:);
-
         end
         
         function add_subject(obj,hObj,event)
