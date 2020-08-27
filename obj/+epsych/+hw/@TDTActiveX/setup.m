@@ -43,7 +43,7 @@ obj.RemoveModuleButton= h;
 
 % Create TDTModulesTable
 fs = arrayfun(@(a) sprintf('%.1f',a),epsych.hw.enTDTModules.sampling_rates/1000,'uni',0);
-fs = [{'Dflt'},fs];
+fs = [{'native'},fs];
 h = uitable(g);
 h.Layout.Column = [1 5];
 h.Layout.Row    = 2;
@@ -53,7 +53,7 @@ h.ColumnWidth = {70, 40, 65, 100, 250};
 h.ColumnFormat = {epsych.hw.enTDTModules.list,'numeric',fs,'char','char'};
 h.ColumnEditable = true;
 if isempty(obj.Module)
-    h.Data = {'RZ6',1,'Dflt','',''};
+    h.Data = {'RZ6',1,'native','',''};
 else
     m = obj.Module;
     D = cell(length(m),5);
@@ -61,7 +61,7 @@ else
         D{i,1} = char(m(i).Type);
         D{i,2} = m(i).Index;
         Fs = m(i).Fs;
-        if Fs == -1, Fs = 'Dflt'; end
+        if Fs == -1, Fs = 'native'; end
         D{i,3} = Fs;
         D{i,4} = m(i).Alias;
         D{i,5} = m(i).RPvds;
