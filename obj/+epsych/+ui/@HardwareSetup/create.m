@@ -16,6 +16,7 @@ g.ColumnWidth = {'1x',150,30,30};
 
 h = uibutton(g);
 h.Layout.Column = length(g.ColumnWidth)-1;
+h.Text = '';
 h.Tooltip = 'Add Hardware';
 h.Icon = epsych.Tool.icon('add');
 h.IconAlignment = 'left';
@@ -26,6 +27,7 @@ obj.AddHardwareButton = h;
 
 h = uibutton(g);
 h.Layout.Column = length(g.ColumnWidth);
+h.Text = '';
 h.Tooltip = 'Remove Hardware';
 h.Icon = epsych.Tool.icon('Remove');
 h.IconAlignment = 'left';
