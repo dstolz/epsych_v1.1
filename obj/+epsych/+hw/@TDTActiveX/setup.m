@@ -49,7 +49,7 @@ h.Layout.Column = [1 5];
 h.Layout.Row    = 2;
 h.RowName = {};
 h.ColumnName = {'Module', 'Index', 'Fs (kHz)', 'Alias', 'RPvds File'};
-h.ColumnWidth = {70, 40, 65, 100, 250};
+h.ColumnWidth = {70, 50, 65, 100, 270};
 h.ColumnFormat = {epsych.hw.enTDTModules.list,'numeric',fs,'char','char'};
 h.ColumnEditable = true;
 if isempty(obj.Module)

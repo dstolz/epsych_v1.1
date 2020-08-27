@@ -1,4 +1,3 @@
-
 function prepare(obj,varargin) % Psychtoolbox3
 global LOG
 

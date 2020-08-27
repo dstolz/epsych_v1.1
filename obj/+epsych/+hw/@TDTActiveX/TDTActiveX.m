@@ -7,16 +7,13 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         MaxNumInstances = 1;
     end
 
-    properties % define public abstract properties from superclass
-        State          
-    end
-
+    % define public abstract properties from superclass
     properties (Dependent)
         Status
     end
 
     properties (Access = protected)
-        
+        ErrorME
     end
     
     properties (Access = private,Transient,Hidden)
@@ -41,7 +38,11 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         FsIdx
     end
 
-    properties (Access = private)
+    properties (SetAccess = private,Transient)
+        handle % handle to ActiveX
+    end
+    
+    properties (Access = private,Transient)
         emptyFig % holds TDT ActiveX object which requires a figure
     end
 
@@ -131,7 +132,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
             idx = min(setdiff(1:100,[D{ismember(D(:,1),D(end,1)),2}]));
             n = D(end,:);
             n{2} = idx;
-            n{3} = 'Dflt';
+            n{3} = 'native';
             n{4} = '';
             obj.TDTModulesTable.Data(end+1,:) = n;
             obj.module_updated;
@@ -212,7 +213,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
                 M(i).Type  = epsych.hw.enTDTModules(D{i,1});
                 M(i).Index = D{i,2};
                 Fs = D{i,3};
-                if isequal(Fs,'Dflt'), Fs = -1; end
+                if isequal(Fs,'native'), Fs = -1; end
                 M(i).Fs    = Fs;
                 M(i).Alias = D{i,4};
                 if isempty(UD) || size(UD,1)<i
@@ -224,9 +225,9 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
             end
             
             obj.Module = M;
-            
-            % TODO: NEED SOME HARDWARE INDEX ID
-            RUNTIME.Hardware = copy(obj);
+%             
+%             % TODO: NEED SOME HARDWARE INDEX ID
+%             RUNTIME.Hardware = copy(obj);
         end
 
         function select_rpvds_file(obj,hObj,event)
@@ -242,6 +243,8 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
 
             epsych.Tool.figure_state(hObj,figState);
 
+            figure(ancestor(hObj,'figure'));
+            
             if isequal(fn,0), return; end
                         
             hObj.Data{row,5} = fn;

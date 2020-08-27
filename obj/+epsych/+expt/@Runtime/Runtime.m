@@ -233,7 +233,8 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             
             % Test whether Runtime is ready to begin
             h = false; s = false;
-            if ~isempty(obj.Hardware)
+            hw = obj.Hardware;
+            if ~isempty(hw)
                 h = cellfun(@(a) a.Status == epsych.hw.enStatus.Ready,obj.Hardware);
             end
             
