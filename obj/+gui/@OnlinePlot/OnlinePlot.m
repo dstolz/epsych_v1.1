@@ -48,11 +48,11 @@ classdef OnlinePlot < gui.Helper & handle
         function obj = OnlinePlot(RUNTIME,TDTActiveX,watchedParams,ax,BoxID)
             narginchk(2,5);
             
-            if nargin < 3, ax = []; end
-            if nargin < 4 || isempty(BoxID), BoxID = 1; end
+            if nargin < 4, ax = []; end
+            if nargin < 5 || isempty(BoxID), BoxID = 1; end
             
-            if nargin < 2 || isempty(watchedParams)
-                wp = RUNTIME.TRIALS.writeparams;
+            if nargin < 3 || isempty(watchedParams)
+                wp = RUNTIME.TRIALS(BoxID).writeparams;
                 tp = RUNTIME.TDT.triggers{1}'; % TO DO: design for multiple modules
                 p = [wp,tp];
                 [s,v] = listdlg('PromptString','Select parameters for plot', ...
@@ -64,8 +64,6 @@ classdef OnlinePlot < gui.Helper & handle
             obj.TDTActiveX = TDTActiveX;
             obj.watchedParams = watchedParams;
             
-            obj.Buffers = []; % make sure buffers are clear on startup
-
             if isempty(ax)
                 obj.setup_figure;
             else
@@ -81,7 +79,7 @@ classdef OnlinePlot < gui.Helper & handle
             obj.BoxID = BoxID;
             obj.trialParam = sprintf('#TrigState~%d',BoxID);
             
-            obj.Timer = ep_GenericGUITimer(obj.figH,'OnlinePlot');
+            obj.Timer = ep_GenericGUITimer(obj.figH,sprintf('OnlinePlot~%d',BoxID));
             obj.Timer.StartFcn = @obj.setup_plot; % THESE MIGHT NEED TO BE STATIC FUNCTIONS?!
             obj.Timer.TimerFcn = @obj.update;
             obj.Timer.ErrorFcn = @obj.error;
