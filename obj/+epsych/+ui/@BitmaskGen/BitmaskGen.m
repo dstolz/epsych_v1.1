@@ -35,7 +35,7 @@ classdef BitmaskGen < handle
     end
     
     properties (Access = private)
-        defaultVars = {'StimulusTrial','CatchTrial','Hit','Miss','CorrectReject','FalseAlarm','Reward','Punish','Timeout'};
+        defaultVars = {'Hit','Miss','CorrectReject','FalseAlarm','Reward','Punish','Timeout','StimulusTrial','CatchTrial'};
     end
     
     properties (SetAccess = immutable)
@@ -265,7 +265,8 @@ classdef BitmaskGen < handle
             D = cell(15,2);
             D(:,2) = {false};
             hV.Data = D;
-            hV.ColumnFormat   = {[{'< REMOVE >'}; obj.defaultVars(:)]','logical'};
+            %hV.ColumnFormat   = {[{'< REMOVE >'}; obj.defaultVars(:)]','logical'};
+            hV.ColumnFormat   = {'char','logical'};
             hV.CellEditCallback = @obj.variable_updated;
 
             % Load button
@@ -398,7 +399,9 @@ classdef BitmaskGen < handle
         end
         
         function select_data(obj,src,event)
-            if event.Indices(end,1) <= 4
+            if isempty(event.Indices)
+                % ignore                
+            elseif event.Indices(end,1) <= 4
                 obj.bmIdx = [];
                 obj.VarTable.Enable = 'off';
             else
@@ -477,6 +480,8 @@ classdef BitmaskGen < handle
                     d(1:4,1:size(data,2)) = data;
                     obj.DataTable.Data = d;
                     obj.VarTable.Data = vars;
+                    obj.defaultVars = vars(~cellfun(@isempty,vars(:,1)),1);
+                    obj.default_bitmask_data;
                     fprintf(' done\n')
             end
             setpref('epsych_BitmaskGen','expt',obj.ExptTypeDropdown.Value);
