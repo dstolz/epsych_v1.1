@@ -132,6 +132,7 @@ classdef Tool < handle
 
             if nargin < 2, state = []; end % toggle state
 
+            prevState = 0;
             try %#ok<TRYNC>
                 warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
                 

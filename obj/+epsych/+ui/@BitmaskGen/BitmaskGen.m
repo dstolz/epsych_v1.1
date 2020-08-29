@@ -93,7 +93,7 @@ classdef BitmaskGen < handle
             obj.ExptTypeDropdown.Value = Options.ExptType;
             fprintf(' done\n')
             
-            setpref('epsych_BitmaskGen','projectDir',pn);
+            setpref('epsych_BitmaskGen','projectDir',fileparts(obj.filename));
             
             figure(obj.parent);
             

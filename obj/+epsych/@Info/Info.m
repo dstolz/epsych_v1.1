@@ -11,7 +11,7 @@ classdef Info < handle
     properties (Constant)
         Version     = '2.0';
         DataVersion = '2.0';        
-        Author      = 'Daniel Stolzberg';
+        Author      = 'Daniel Stolzberg, PhD';
         AuthorEmail = 'daniel.stolzberg@gmail.com';
         License     = 'GNU General Public License v3.0';
     end
@@ -32,7 +32,6 @@ classdef Info < handle
             m.DataVersion = obj.DataVersion;
             m.Checksum    = obj.chksum;
             m.commitTimestamp = obj.commitTimestamp;
-            m.SmileyFace  = ':)';
             m.CurrentTimestamp = datestr(now);
         end
         
@@ -64,24 +63,6 @@ classdef Info < handle
             end
         end
         
-        function img = icon_img(obj,type)
-            d = dir(obj.iconPath);
-            d(ismember({d.name},{'.','..'})) = [];
-            
-            mustBeMember(type,{d.name})
-            
-            ffn = fullfile(obj.iconPath,type);
-            y = dir([ffn '*']);
-            ffn = fullfile(y(1).folder,y(1).name);
-            [img,map] = imread(ffn);
-            if isempty(map)
-                img = im2double(img);
-            else
-                img = ind2rgb(img,map);
-            end
-            img(img == 0) = nan;
-        end
-
         
     end % methods (public)
     
@@ -114,6 +95,18 @@ classdef Info < handle
                 datestr(datens,'ddd, mmm dd, yyyy'),datestr(datens,'HH:MM PM'));
         end
         
+        function p = print
+            e = epsych.Info;
+            m = e.meta;
+            
+            fn = fieldnames(m);
+            ml = max(cellfun(@length,fn));
+            p = '';
+            for i = 1:length(fn)
+                v = m.(fn{i});
+                p = sprintf('%s% *s: %s\n',p,ml,fn{i},v);
+            end
+        end
     end
     
     

@@ -1,8 +1,13 @@
 classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
 
+    properties
+        Alias = 'TDTx';
+    end
+    
     properties (Constant) % define constant abstract properties from superclass
         Name         = 'TDTActiveX';
         Type         = 'COM.RPco_x';
+        Vendor       = 'TDT';
         Description  = 'Standalone TDT ActiveX controls';
         MaxNumInstances = 1;
     end

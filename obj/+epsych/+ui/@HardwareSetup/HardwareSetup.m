@@ -1,43 +1,56 @@
 classdef HardwareSetup < handle
 
-    properties (Access = protected)
-        TabGroup                matlab.ui.container.TabGroup
-        
-        AddHardwareButton       matlab.ui.control.Button
-        RemoveHardwareButton    matlab.ui.control.Button
-    end
     
     properties
-        Hardware
+        Hardware    % epsych.hw.(Abstraction)
+    end
+    
+    properties (SetAccess = private)
+        HardwarePanel   matlab.ui.container.Panel
     end
     
     properties (SetAccess = immutable)
         parent
     end
 
+    events
+        HardwareUpdated
+    end
 
     methods
         create(obj,parent);
         
         function obj = HardwareSetup(parent)
-            global RUNTIME
-            
-            obj.create(parent);
             obj.parent = parent;
-
-            addlistener(RUNTIME,'PreStateChange',@obj.listener_PreStateChange);
-            addlistener(RUNTIME,'PostStateChange',@obj.listener_PostStateChange);
+            obj.create(parent);
+            obj.add_hardware;
+            
+            if isempty(obj.Hardware)
+                return
+            end
+            
+            h = findobj(parent,'tag','hardwareAlias');
+            h.Value = obj.Hardware.Alias;
         end
 
 
         function update_hardware(obj)
             global RUNTIME
 
-            RUNTIME.Hardware = obj.Hardware;
+            if isempty(RUNTIME.Hardware)
+                RUNTIME.Hardware = {obj.Hardware};
+            else
+                ind = cellfun(@(a) isequal(a.Name,obj.Hardware.Name),RUNTIME.Hardware);
+                if ~any(ind), ind = length(ind)+1; end
+                RUNTIME.Hardware{ind} = obj.Hardware;
+            end
+            
+            ev = epsych.evHardwareUpdated(obj,obj.Hardware);
+            notify(obj,'HardwareUpdated',ev);
         end
 
 
-        function add_hardware_callback(obj,hObj,event)
+        function add_hardware(obj,hObj,event)
             hwlist = epsych.hw.Hardware.available;
             hw = obj.Hardware;
             if ~isempty(hw)
@@ -51,7 +64,7 @@ classdef HardwareSetup < handle
                 return
             end
 
-            ots = epsych.Tool.figure_state(hObj,false);
+            ots = epsych.Tool.figure_state(obj.parent,false);
 
             [sel,ok] = listdlg( ...
                 'Name','Add Hardware', ...
@@ -59,94 +72,32 @@ classdef HardwareSetup < handle
                 'SelectionMode','single', ...
                 'ListString',hwlist);
                 
-            epsych.Tool.figure_state(hObj,ots);
+            epsych.Tool.figure_state(obj.parent,ots);
 
-            figure(ancestor(hObj,'figure'));
+            figure(ancestor(obj.parent,'figure'));
 
             if ~ok, return; end
             
-            obj.add_hardware_tab(hwlist(sel));
+            obj.Hardware = epsych.hw.(hwlist{sel});
+            obj.Hardware.setup(obj.HardwarePanel);
+            
             
             obj.update_hardware;
 
-%             setpref('interface_HardwareSetup','dfltHardware',hw);
         end
 
         
-        function add_hardware_tab(obj,hw)
-            ht = uitab(obj.TabGroup,'Scrollable','on');
-
-            if iscell(hw), hw = hw{1}; end
-            
-            if ischar(hw)
-                hw = epsych.hw.(hw);
-            end
-            
-            ht.UserData = hw;
-            
-            hw.setup(ht);
-            
-            n = sum(ismember(cellfun(@class,obj.Hardware,'uni',0),class(hw)));
-            ht.Title = sprintf('%s [%d]',hw.Name,n);
-
-            obj.TabGroup.SelectedTab = ht;    
-        end
         
-        function set.Hardware(obj,hw)
-            assert(iscell(hw),'epsych.ui.HardwareSetup','Hardware must be a cell array');
-            
-            delete(obj.TabGroup.Children);
-            
-            for i = 1:length(hw)
-                obj.add_hardware_tab(hw{i});
-            end
-        end
-        
-        function hw = get.Hardware(obj)
-            ch = obj.TabGroup.Children;
-            if isempty(ch)
-                hw = {};
-            else
-                hw = {ch.UserData};
-            end
-        end
-        
-        function remove_hardware_callback(obj,hObj,event)
-            delete(obj.TabGroup.SelectedTab);
-            obj.update_hardware;
-        end
     end % methods (Access = public)
 
     methods (Access = private)
-
-        function listener_PreStateChange(obj,hObj,event)
-            global LOG
-            
-            % update GUI component availability
-            if event.State == epsych.enState.Run
-                LOG.write('Debug','Disabling Hardware Setup interface');
-                
-                h = findobj(obj.TabGroup,'-property','Enable');
-                set(h,'Enable','off');
-                obj.AddHardwareButton.Enable = 'off';
-                obj.RemoveHardwareButton.Enable = 'off';
-            end
-        end
-
-        
-        function listener_PostStateChange(obj,hObj,event)
-            global LOG
-            
-            % update GUI component availability
-            if any(event.State == [epsych.enState.Prep epsych.enState.Halt epsych.enState.Error])
-                LOG.write('Debug','Enabling Hardware Setup interface');
-
-                h = findobj(obj.TabGroup,'-property','Enable');
-                set(h,'Enable','off');
-                obj.AddHardwareButton.Enable = 'on';
-                obj.RemoveHardwareButton.Enable = 'on';
-            end
+        function alias_changed(obj,hObj,evnt)
+            obj.Hardware.Alias = hObj.Value;
+            obj.update_hardware;
         end
     end % methods (Access = private)
 
 end
+
+
+

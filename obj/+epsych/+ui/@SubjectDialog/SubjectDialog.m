@@ -14,13 +14,16 @@ classdef SubjectDialog < handle
     properties (Access = protected)
         NameEditField           (1,1) matlab.ui.control.EditField
         IDEditField             (1,1) matlab.ui.control.EditField
+        ActiveSwitch            %(1,1) matlab.ui.control.Switch
         DOBDatePicker           (1,1) matlab.ui.control.DatePicker
         SexDropDown             (1,1) matlab.ui.control.DropDown
         BaselineWeightEditField (1,1) matlab.ui.control.NumericEditField
         ProtocolFileEditField   (1,1) matlab.ui.control.EditField
         LocateProtocolButton    (1,1) matlab.ui.control.Button
+        ViewProtocolButton      (1,1) matlab.ui.control.Button
         BitmaskFileEditField    (1,1) matlab.ui.control.EditField
         LocateBitmaskButton     (1,1) matlab.ui.control.Button
+        ViewBitmaskButton       (1,1) matlab.ui.control.Button
         NoteTextArea            (1,1) matlab.ui.control.TextArea
         OKButton                (1,1) matlab.ui.control.Button
         CancelButton            (1,1) matlab.ui.control.Button
@@ -31,6 +34,10 @@ classdef SubjectDialog < handle
         parent
     end
 
+    events
+        FieldUpdated
+    end
+    
     methods
         create(obj,parent)
 
@@ -45,7 +52,13 @@ classdef SubjectDialog < handle
         end
 
         function create_field(obj,hObj,event)
-            hObj.Value = obj.Subject.(hObj.Tag);
+            if contains(hObj.Tag,'File')
+                hObj.Tooltip = obj.Subject.(hObj.Tag);
+                [~,fn] = fileparts(obj.Subject.(hObj.Tag));
+                hObj.Value = fn;
+            else
+                hObj.Value = obj.Subject.(hObj.Tag);
+            end
         end
 
         function update_field(obj,hObj,event)
@@ -60,6 +73,8 @@ classdef SubjectDialog < handle
                     'You entered an invalid value: %s',s);
             end
             
+            ev = epsych.ui.evSubjectDialog(obj.Subject,hObj,event);
+            notify(obj,'FieldUpdated',ev);
         end
 
         function response_button(obj,hObj,event)
@@ -86,6 +101,31 @@ classdef SubjectDialog < handle
             obj.update_field(hObj.UserData.peer,ev);
             
             hObj.UserData.peer.Value = fn;
+            hObj.UserData.peer.Tooltip = ev.Value;
+        end
+        
+        function edit_file(obj,hObj,event)
+            f = ancestor(obj.parent,'figure');
+            f.Pointer = 'watch'; drawnow
+            try
+                ffn = hObj.UserData.peer.Tooltip;
+                switch hObj.Tag
+                    case 'ProtocolFile'
+                        ep_ExperimentDesign(ffn);
+                    case 'BitmaskFile'
+                        epsych.ui.BitmaskGen(ffn);
+                end
+            catch me
+                uialert(f, ...
+                    sprintf('Failed to edit "%s"',ffn), ...
+                    'Edit Subject');                
+            end
+            f.Pointer = 'arrow';
         end
     end % methods (Access = private)
 end
+
+
+
+
+

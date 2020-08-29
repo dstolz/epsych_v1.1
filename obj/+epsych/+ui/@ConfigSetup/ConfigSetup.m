@@ -7,14 +7,18 @@ classdef ConfigSetup < handle
 
     properties (SetAccess = immutable)
         parent
+        type
     end
 
     methods
-        create(obj,parent);
+        create(obj,parent,type);
 
-        function obj = ConfigSetup(parent)
-            obj.create(parent);
+        function obj = ConfigSetup(parent,type)
+            narginchk(2,2)
+            
+            obj.create(parent,type);
             obj.parent = parent;
+            obj.type = type;
         end
 
         function set.Config(obj,C)

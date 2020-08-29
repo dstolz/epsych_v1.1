@@ -1,43 +1,29 @@
 function create(obj,parent) % epsych.ui.HardwareSetup
-if isa(parent,'matlab.ui.Figure')
-    % Create parent
-    g = uigridlayout(parent);
-    g.RowHeight   = {'1x'};
-    g.ColumnWidth = {'1x'};
-    parent = uipanel(g);
-    parent.Title = 'Hardware Setup';
-    parent.FontWeight = 'bold';
-    parent.FontSize = 16;
-end
+
 
 g = uigridlayout(parent);
-g.RowHeight   = {30,'1x'};
-g.ColumnWidth = {'1x',150,30,30};
-
-h = uibutton(g);
-h.Layout.Column = length(g.ColumnWidth)-1;
-h.Text = '';
-h.Tooltip = 'Add Hardware';
-h.Icon = epsych.Tool.icon('add');
-h.IconAlignment = 'left';
-h.FontWeight = 'bold';
-h.ButtonPushedFcn = @obj.add_hardware_callback;
-obj.AddHardwareButton = h;
+g.RowHeight = {30,'1x'};
+g.ColumnWidth = {'1x','1x'};
 
 
-h = uibutton(g);
-h.Layout.Column = length(g.ColumnWidth);
-h.Text = '';
-h.Tooltip = 'Remove Hardware';
-h.Icon = epsych.Tool.icon('Remove');
-h.IconAlignment = 'left';
-h.FontWeight = 'bold';
-h.ButtonPushedFcn = @obj.remove_hardware_callback;
-obj.RemoveHardwareButton = h;
+h = uilabel(g);
+h.Layout.Row = 1;
+h.Layout.Column = 1;
+h.Text = 'Hardware Alias:';
+h.HorizontalAlignment = 'right';
+h.FontSize = 14;
+
+h = uieditfield(g);
+h.Layout.Row = 1;
+h.Layout.Column = 2;
+h.Tag = 'hardwareAlias';
+h.Value = '';
+h.ValueChangedFcn = @obj.alias_changed;
+h.FontSize = 14;
 
 
-obj.TabGroup = uitabgroup(g);
-obj.TabGroup.Layout.Row = 2;
-obj.TabGroup.Layout.Column = [1 length(g.ColumnWidth)];
-obj.TabGroup.TabLocation = 'top';
-
+h = uipanel(g);
+h.Layout.Row = 2;
+h.Layout.Column = [1 2];
+h.BorderType = 'none';
+obj.HardwarePanel = h;

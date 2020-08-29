@@ -1,32 +1,28 @@
 classdef ControlPanel < handle
     
-    properties (Access = protected)
-        parent           % any matlab.ui.container
-
-        TabGroup         matlab.ui.container.TabGroup
-        OverviewTab      matlab.ui.container.Tab
-        SubjectTab       matlab.ui.container.Tab
-        HardwareTab      matlab.ui.container.Tab
-        CustomizationTab matlab.ui.container.Tab
-        LogTab           matlab.ui.container.Tab
-        ShortcutsTab     matlab.ui.container.Tab
-        
-        RuntimePanel     matlab.ui.container.Panel
-        ToolbarPanel     matlab.ui.container.Panel
-
-        LoadButton       matlab.ui.control.Button
-        SaveButton       matlab.ui.control.Button
-        BitmaskDesignButton matlab.ui.control.Button
-        ParameterizeButton  matlab.ui.control.Button
-        
-        AlwaysOnTopCheckbox     % epsych.ui.FigOnTop
-
+    properties        
         OverviewObj             % epsych.ui.OverviewSetup
         RuntimeControlObj       % epsych.ui.RuntimeControl
         SubjectSetupObj         % epsych.ui.SubjectSetup
         HardwareSetupObj        % epsych.ui.HardwareSetup
         RuntimeConfigSetupObj   % epsych.ui.ConfigSetup
         ShortcutsObj            % epsych.ui.Shortcuts
+    end
+    
+    properties (Access = protected)
+        RuntimePanel        matlab.ui.container.Panel
+        ToolbarPanel        matlab.ui.container.Panel
+
+        LoadButton          matlab.ui.control.Button
+        SaveButton          matlab.ui.control.Button
+        BitmaskDesignButton matlab.ui.control.Button
+        ParameterizeButton  matlab.ui.control.Button
+        
+        AlwaysOnTopCheckbox     % epsych.ui.FigOnTop
+    end
+    
+    properties (SetAccess = private)
+        parent              % any matlab.ui.container
     end
     
     methods
@@ -261,11 +257,8 @@ classdef ControlPanel < handle
 
         function listener_RuntimeConfigChange(obj,hObj,event)
             if isempty(obj.SaveButton), return; end % may not be instantiated yet
-            if hObj.ConfigIsSaved
-                obj.SaveButton.Enable = 'off';
-            else
-                obj.SaveButton.Enable = 'on';
-            end
+            
+            obj.SaveButton.Enable = 'on';
             
             if  hObj.State == epsych.enState.Prep && hObj.ReadyToBegin
                 hObj.State = epsych.enState.Ready;

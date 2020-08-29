@@ -19,10 +19,15 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
 
 
     % vvvvvvvv ABSTRACT PROPERTIES AND METHODS vvvvvvvv
+    properties (Abstract)
+        Alias           % user-supplied identifier
+    end
+    
     properties (Abstract,Constant)
         Name            % name for the control
         Type            % typically the class name
         Description     % detailed information
+        Vendor          % who made it
         MaxNumInstances % determines max number of instances of this hardware can be used at once
     end
     

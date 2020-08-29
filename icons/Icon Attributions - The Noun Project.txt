@@ -2,7 +2,7 @@ Icon attributes:
 equaliser by Danishicon from the Noun Project
 Folder by Astoe Design from the Noun Project
 Save by Gregor Cresnar from the Noun Project
-binary by Eucalyp from the Noun Project
+binary file by Mohamed Mbarki from the Noun Project
 play by projecthayat from the Noun Project
 interface by Gamma Designs from the Noun Project
 Stop by Trisula from the Noun Project
@@ -18,3 +18,11 @@ config by DinosoftLab from the Noun Project
 Ready to Run by Gan Khoon Lay from the Noun Project
 play pause by ibrandify from the Noun Project
 Thinking by Luiz Carvalho from the Noun Project
+Check Mark by iejank from the Noun Project
+X by Fardan from the Noun Project
+Mouse by Symbolon from the Noun Project
+hardware by Chameleon Design from the Noun Project
+search file by ProSymbols from the Noun Project
+Search Folder by Xinh Studio from the Noun Project
+Time by Seung Hwan from the Noun Project
+miscellaneous by Fauzan Adiima from the Noun Project
