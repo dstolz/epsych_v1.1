@@ -40,7 +40,6 @@ classdef SubjectDialog < handle
             if nargin < 2, parent = []; end
 
             obj.create(parent);
-
             
             epsych.Tool.figure_state(obj.parent,true);
         end
@@ -65,7 +64,9 @@ classdef SubjectDialog < handle
 
         function response_button(obj,hObj,event)
             obj.UserResponse = hObj.Tag;
-            close(obj.parent);
+            if isequal(class(obj.parent),'matlab.ui.container.Figure')
+                close(obj.parent);
+            end
         end
 
     end % methods (Access = public)

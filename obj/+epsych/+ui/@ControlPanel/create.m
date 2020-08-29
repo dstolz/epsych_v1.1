@@ -20,44 +20,49 @@ if nargin == 1 || isempty(parent)
 end
 
 g = uigridlayout(obj.parent);
+
 g.RowHeight   = {30,'.3x','.6x',25};
 g.ColumnWidth = {'1x',100};
 
+hp = uipanel(g);
+hp.Layout.Row = [2 3];
+hp.Layout.Column = 1;
+epsych.ui.OverviewSetup(hp);
 
-% Create TabGroup
-obj.TabGroup = uitabgroup(g);
-obj.TabGroup.Layout.Row    = [2 3];
-obj.TabGroup.Layout.Column = 1;
-
-% Create OverviewTab
-obj.OverviewTab = uitab(obj.TabGroup);
-obj.OverviewTab.Title = 'Overview';
-obj.OverviewObj = epsych.ui.OverviewSetup(obj.OverviewTab);
-
-% % Create ShortcutsTab
-% obj.ShortcutsTab = uitab(obj.TabGroup);
-% obj.ShortcutsTab.Title = 'Shortcuts';
-% obj.ShortcutsObj = epsych.ui.Shortcuts(obj.ShortcutsTab);
-
-% Create SubjectTab
-obj.SubjectTab = uitab(obj.TabGroup);
-obj.SubjectTab.Title = 'Subject';
-obj.SubjectSetupObj = epsych.ui.SubjectSetup(obj.SubjectTab);
-
-% Create HardwareTab
-obj.HardwareTab = uitab(obj.TabGroup);
-obj.HardwareTab.Title = 'Hardware';
-obj.HardwareSetupObj = epsych.ui.HardwareSetup(obj.HardwareTab);
-
-% Create CustomizationTab
-obj.CustomizationTab = uitab(obj.TabGroup);
-obj.CustomizationTab.Title = 'Customize';
-obj.RuntimeConfigSetupObj = epsych.ui.ConfigSetup(obj.CustomizationTab);
-
-% Create LogTab
-obj.LogTab = uitab(obj.TabGroup);
-obj.LogTab.Title = 'Log';
-LOG.create_gui(obj.LogTab);
+% % Create TabGroup
+% obj.TabGroup = uitabgroup(g);
+% obj.TabGroup.Layout.Row    = [2 3];
+% obj.TabGroup.Layout.Column = 1;
+% 
+% % Create OverviewTab
+% obj.OverviewTab = uitab(obj.TabGroup);
+% obj.OverviewTab.Title = 'Overview';
+% obj.OverviewObj = epsych.ui.OverviewSetup(obj.OverviewTab);
+% 
+% % % Create ShortcutsTab
+% % obj.ShortcutsTab = uitab(obj.TabGroup);
+% % obj.ShortcutsTab.Title = 'Shortcuts';
+% % obj.ShortcutsObj = epsych.ui.Shortcuts(obj.ShortcutsTab);
+% 
+% % Create SubjectTab
+% obj.SubjectTab = uitab(obj.TabGroup);
+% obj.SubjectTab.Title = 'Subject';
+% obj.SubjectSetupObj = epsych.ui.SubjectSetup(obj.SubjectTab);
+% 
+% % Create HardwareTab
+% obj.HardwareTab = uitab(obj.TabGroup);
+% obj.HardwareTab.Title = 'Hardware';
+% obj.HardwareSetupObj = epsych.ui.HardwareSetup(obj.HardwareTab);
+% 
+% % Create CustomizationTab
+% obj.CustomizationTab = uitab(obj.TabGroup);
+% obj.CustomizationTab.Title = 'Customize';
+% obj.RuntimeConfigSetupObj = epsych.ui.ConfigSetup(obj.CustomizationTab);
+% 
+% % Create LogTab
+% obj.LogTab = uitab(obj.TabGroup);
+% obj.LogTab.Title = 'Log';
+% LOG.create_gui(obj.LogTab);
 
 
 

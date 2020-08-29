@@ -136,10 +136,11 @@ classdef ControlPanel < handle
             end
             
             if isempty(ffn)
+                pn = getpref('epsych_Config','configPath',cd);
                 [fn,pn] = uiputfile( ...
                     {'*.epcf', 'EPsych Configuration File'}, ...
                     'Select Configuration File', ...
-                    RUNTIME.Config.UserDirectory);
+                    pn);
                 
                 if isequal(fn,0), return; end
                 
@@ -150,6 +151,9 @@ classdef ControlPanel < handle
             
             save(ffn,'RUNTIME','-mat');
 
+            [pn,~] = fileparts(ffn);
+            setpref('epsych_Config','configPath',pn);
+            
             figure(obj.parent);
             epsych.Tool.figure_state(obj.parent,prevState);
         end
@@ -184,10 +188,11 @@ classdef ControlPanel < handle
             end
             
             if isempty(ffn)
+                pn = getpref('epsych_Config','configPath',cd);
                 [fn,pn] = uigetfile( ...
                     {'*.epcf', 'EPsych Configuration File'}, ...
                     'Select Configuration File', ...
-                    RUNTIME.Config.UserDirectory);
+                    pn);
                 
                 if isequal(fn,0), return; end
                 
@@ -203,16 +208,28 @@ classdef ControlPanel < handle
                 fprintf(2,'Unable to load the configuration: "%s"\n',ffn);
                 return
             end
+            
+            hl = RUNTIME.AutoListeners__; % undocumented
 
             load(ffn,'-mat','RUNTIME');
 
-            addlistener(RUNTIME,'RuntimeConfigChange',@obj.listener_RuntimeConfigChange);
-            addlistener(RUNTIME,'PreStateChange',@obj.listener_PreStateChange);
-            addlistener(RUNTIME,'PostStateChange',@obj.listener_PostStateChange);
+            for i = 1:length(hl)
+                if isequal(class(hl{i}),'event.proplistener')
+                    addlistener(RUNTIME,hl{1}.Source{1}.Name,hl{i}.EventName,hl{i}.Callback);
+                else
+                    addlistener(RUNTIME,hl{i}.EventName,hl{i}.Callback);
+                end
+            end
+            
             
             LOG.write('Verbose','Loaded Runtime Config file: %s',ffn)
 
+            [pn,~] = fileparts(ffn);
+            setpref('epsych_Config','configPath',pn);
+            
             obj.reset_ui_objects;
+            
+            notify(RUNTIME,'RuntimeConfigChange');
             
             figure(obj.parent); % unhide gui
         end

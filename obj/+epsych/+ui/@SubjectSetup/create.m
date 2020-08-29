@@ -26,6 +26,7 @@ obj.SubjectTable.CellSelectionCallback = @obj.subject_table_select;
 obj.SubjectTable.Layout.Column = [1 length(g.ColumnWidth)];
 obj.SubjectTable.Layout.Row    = 2;
 
+
 % Create AddButton
 obj.AddButton = uibutton(g, 'push');
 obj.AddButton.FontSize = 16;

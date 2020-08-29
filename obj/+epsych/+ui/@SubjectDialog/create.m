@@ -12,8 +12,9 @@ end
 obj.parent = parent;
 
 g = uigridlayout(parent);
-g.ColumnWidth = {100,'1x',25};
+g.ColumnWidth = {150,'1x',50};
 g.RowHeight   = {25,25,25,25,25,25,25,70,'1x',30};
+g.Scrollable = 'on';
 
 R = 1;
 
@@ -140,25 +141,25 @@ obj.NoteTextArea.ValueChangedFcn = @obj.update_field;
 
 
 
-
-R = length(g.RowHeight);
-
-p = uipanel(g);
-p.Layout.Row = R;
-p.Layout.Column = [1 2];
-p.BorderType = 'none';
-
-obj.OKButton = uibutton(p,'Tag','OK');
-obj.OKButton.Position = [100 2 50 25];
-obj.OKButton.Text = 'OK';
-obj.OKButton.ButtonPushedFcn = @obj.response_button;
-
-obj.CancelButton = uibutton(p,'Tag','Cancel');
-obj.CancelButton.Position = [160 2 50 25];
-obj.CancelButton.Text = 'Cancel';
-obj.CancelButton.ButtonPushedFcn = @obj.response_button;
-
-
+if isequal(class(obj.parent),'matlab.ui.container.Figure')
+    R = length(g.RowHeight);
+    
+    p = uipanel(g);
+    p.Layout.Row = R;
+    p.Layout.Column = [1 2];
+    p.BorderType = 'none';
+    
+    obj.OKButton = uibutton(p,'Tag','OK');
+    obj.OKButton.Position = [100 2 50 25];
+    obj.OKButton.Text = 'OK';
+    obj.OKButton.ButtonPushedFcn = @obj.response_button;
+    
+    obj.CancelButton = uibutton(p,'Tag','Cancel');
+    obj.CancelButton.Position = [160 2 50 25];
+    obj.CancelButton.Text = 'Cancel';
+    obj.CancelButton.ButtonPushedFcn = @obj.response_button;
+    
+end
 
 h = findobj(parent,'Type','uilabel');
 set(h,'HorizontalAlignment','right');
