@@ -12,6 +12,8 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
         TimerFcn    (1,1) = @epsych.expt.Runtime.timerFcn;
         StopFcn     (1,1) = @epsych.expt.Runtime.stopFcn;
         ErrorFcn    (1,1) = @epsych.expt.Runtime.errorFcn;
+        
+        TimerPeriod     (1,1) double {mustBePositive,mustBeFinite} = .01;
 
         AutoSaveRuntimeConfig (1,1) logical = true;
         AutoLoadRuntimeConfig (1,1) logical = true;

@@ -13,7 +13,6 @@ h = uitreenode(obj.tree,'Text','Config','Tag','parConfig');
 
 h.Icon = epsych.Tool.icon('config');
 
-
 obj.treeConfigNodes = uitreenode(h,'Text','Behavior','Tag','ConfigBehavior');
 obj.treeConfigNodes.Icon = epsych.Tool.icon('search_folder');
 

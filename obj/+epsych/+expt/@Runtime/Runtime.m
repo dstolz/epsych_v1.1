@@ -104,7 +104,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
         function call_ErrorFcn(obj,varargin)
             global RUNTIME LOG
 
-            LOG.write(epsych.log.Verbosity.Debug,'Calling Runtime.ErrorFcn: "%s"',func2str(obj.Config.ErrorFcn));
+            LOG.write(epsych.log.Verbosity.Important,'Calling Runtime.ErrorFcn: "%s"',func2str(obj.Config.ErrorFcn));
 
             feval(obj.Config.ErrorFcn,obj)
             
@@ -214,7 +214,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             T.BusyMode = 'queue';
             T.ExecutionMode = 'fixedRate';
             T.TasksToExecute = inf;
-            T.Period = 0.01;
+            T.Period = obj.Config.TimerPeriod;
             T.TimerFcn = @obj.call_TimerFcn;
             T.StartFcn = @obj.call_StartFcn;
             T.StopFcn  = @obj.call_StopFcn;

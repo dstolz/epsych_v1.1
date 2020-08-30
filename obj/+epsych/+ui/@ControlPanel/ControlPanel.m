@@ -256,6 +256,8 @@ classdef ControlPanel < handle
         create(obj,parent,reset);
 
         function listener_RuntimeConfigChange(obj,hObj,event)
+            global LOG
+
             if isempty(obj.SaveButton), return; end % may not be instantiated yet
             
             obj.SaveButton.Enable = 'on';
@@ -263,6 +265,8 @@ classdef ControlPanel < handle
             if  hObj.State == epsych.enState.Prep && hObj.ReadyToBegin
                 hObj.State = epsych.enState.Ready;
             end
+
+            LOG.write('Verbose','RUNTIME Config updated')
         end
 
 

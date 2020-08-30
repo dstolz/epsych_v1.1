@@ -93,6 +93,35 @@ classdef ConfigSetup < handle
             RUNTIME.Config = copy(obj.Config);
         end
 
+        function locate_file(obj,hObj,event,ext)
+            global RUNTIME
+            
+            pn = getpref('epsych_ConfigSetup','locateFilePath',epsych.Info.user_directory);
+            
+            [fn,pn] = uigetfile(ext,'Locate file',pn);
+            
+            if isequal(fn,0), return; end
+                        
+            w = which(fn);
+            
+            setpref('epsych_ConfigSetup','locateFilePath',pn);
+            
+            if isempty(w)
+                str = sprintf('File not found on Matlab''s path: "%s"',fn);
+                uialert(ancestor(hObj,'figure'),str,'obj.Tag');
+                return
+            end
+            
+            fn = fn(1:end-2);
+            
+            RUNTIME.Config.(hObj.Tag) = str2func(fn);
+            
+            peer = findobj(hObj.Parent,'Tag',hObj.Tag,'-and','Type','uieditfield');
+            peer.Value = fn;
+            peer.Tooltip = pn;
+            
+        end
+        
         function locate_directory(obj,hObj,event)
             global RUNTIME
             d = uigetdir(obj.Config.(hObj.Tag),'Choose a Directory');

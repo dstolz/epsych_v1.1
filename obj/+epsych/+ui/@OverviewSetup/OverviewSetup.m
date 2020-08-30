@@ -53,7 +53,6 @@ classdef OverviewSetup < handle
             fig = ancestor(obj.parent,'figure');
             fig.Pointer = 'watch'; drawnow
             
-            
             node = obj.tree.SelectedNodes;
             
             delete(get(obj.panel,'children'));

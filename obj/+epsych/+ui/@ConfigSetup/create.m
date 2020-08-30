@@ -66,8 +66,10 @@ switch lower(type)
     case 'timer'
         % TIMER
         g = uigridlayout(parent);
-        g.ColumnWidth = {'.3x','.7x'};
-        g.RowHeight = {25,25,25,25};
+        g.ColumnWidth = {'.3x','.4x',30};
+        g.RowHeight = repmat({25},1,6);
+        
+        
         
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 1;
@@ -80,6 +82,16 @@ switch lower(type)
         h.Layout.Column = 2;
         h.ValueChangedFcn = @obj.update_function;
         
+        h = uibutton(g,'Tag','StartFcn');
+        h.Layout.Row = 1;
+        h.Layout.Column = 3;
+        h.Text = '';
+        h.Icon = epsych.Tool.icon('search_file');
+        h.ButtonPushedFcn = {@obj.locate_file,'*.m'};
+        
+        
+        
+        
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 2;
         h.Layout.Column = 1;
@@ -90,6 +102,16 @@ switch lower(type)
         h.Layout.Row = 2;
         h.Layout.Column = 2;
         h.ValueChangedFcn = @obj.update_function;
+        
+        h = uibutton(g,'Tag','TimerFcn');
+        h.Layout.Row = 2;
+        h.Layout.Column = 3;
+        h.Text = '';
+        h.Icon = epsych.Tool.icon('search_file');
+        h.ButtonPushedFcn = {@obj.locate_file,'*.m'};
+        
+        
+        
         
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 3;
@@ -102,6 +124,16 @@ switch lower(type)
         h.Layout.Column = 2;
         h.ValueChangedFcn = @obj.update_function;
         
+        h = uibutton(g,'Tag','StopFcn');
+        h.Layout.Row = 3;
+        h.Layout.Column = 3;
+        h.Text = '';
+        h.Icon = epsych.Tool.icon('search_file');
+        h.ButtonPushedFcn = {@obj.locate_file,'*.m'};
+        
+        
+        
+        
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 4;
         h.Layout.Column = 1;
@@ -111,6 +143,28 @@ switch lower(type)
         h = uieditfield(g,'Tag','ErrorFcn','CreateFcn',@obj.create_field);
         h.Layout.Row = 4;
         h.Layout.Column = 2;
+        h.ValueChangedFcn = @obj.update_function;
+        
+        h = uibutton(g,'Tag','ErrorFcn');
+        h.Layout.Row = 4;
+        h.Layout.Column = 3;
+        h.Text = '';
+        h.Icon = epsych.Tool.icon('search_file');
+        h.ButtonPushedFcn = {@obj.locate_file,'*.m'};
+        
+        
+        
+        h = uilabel(g,'HorizontalAlignment','right');
+        h.Layout.Row = 6;
+        h.Layout.Column = 1;
+        h.Text = 'Timer Period:';
+        h.HorizontalAlignment = 'right';
+                 
+        h = uieditfield(g,'numeric','Tag','TimerPeriod','CreateFcn',@obj.create_field);
+        h.Layout.Row = 6;
+        h.Layout.Column = 2;
+        h.Limits = [1e-3 1];
+        h.ValueDisplayFormat = '%.3f seconds';
         h.ValueChangedFcn = @obj.update_function;
         
     case 'miscellaneous'
