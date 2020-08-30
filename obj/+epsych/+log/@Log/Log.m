@@ -18,8 +18,8 @@ classdef Log < handle
     properties
         Verbosity       (1,1) epsych.log.Verbosity = epsych.log.Verbosity.Important;
         
-        hEchoTextArea           matlab.ui.control.TextArea
-        LogFilenameLabel        matlab.ui.control.Label
+        hEchoTextArea           %matlab.ui.control.TextArea
+        LogFilenameButton       matlab.ui.control.Button
         LogVerbosityDropDown    matlab.ui.control.DropDown
         
         LogFilename     (1,:) char
@@ -193,6 +193,7 @@ classdef Log < handle
                         fprintf(msgTs)
                     else
                         obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
+                        %obj.hEchoTextArea.Text = [{msgTs}; obj.hEchoTextArea.Text];
                     end
                     
                 case epsych.log.Verbosity.Error
@@ -201,6 +202,7 @@ classdef Log < handle
                         fprintf(2,msgTs); % red text
                     else
                         obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
+                        %obj.hEchoTextArea.Text = [{msgTs}; obj.hEchoTextArea.Text];
                     end
                     
                 otherwise
@@ -210,6 +212,7 @@ classdef Log < handle
                             fprintf(msgTs)
                         else
                             obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
+                            %obj.hEchoTextArea.Text = [{msgTs}; obj.hEchoTextArea.Text];
                         end
                         
                     elseif alwaysLog
@@ -227,7 +230,7 @@ classdef Log < handle
             
         end
         
-        function open(obj)
+        function open(obj,~,~)
             h = actxserver('WScript.Shell');
             
             try

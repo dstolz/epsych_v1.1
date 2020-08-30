@@ -23,6 +23,9 @@ obj.treeConfigNodes.Icon = epsych.Tool.icon('time');
 obj.treeConfigNodes = uitreenode(h,'Text','Miscellaneous','Tag','ConfigMiscellaneous');
 obj.treeConfigNodes.Icon = epsych.Tool.icon('miscellaneous');
 
+obj.treeConfigNodes = uitreenode(h,'Text','Info','Tag','ConfigInfo');
+obj.treeConfigNodes.Icon = epsych.Tool.icon('info');
+
 obj.treeConfig = h;
 
 
@@ -52,8 +55,13 @@ obj.treeHardwareNodes.Icon = epsych.Tool.icon('add');
 obj.treeHardwareNodes(2) = uitreenode(h,'Text','< LOAD >','Tag','LoadHardware');
 obj.treeHardwareNodes(2).Icon = epsych.Tool.icon('search_file');
 
-
 obj.treeHardware = h;
+
+
+% obj.treeLog
+h = uitreenode(obj.tree,'Text','Log','Tag','ProgramLog');
+
+h.Icon = epsych.Tool.icon('notebook');
 
 
 

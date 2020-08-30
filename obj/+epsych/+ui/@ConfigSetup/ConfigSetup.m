@@ -51,9 +51,9 @@ classdef ConfigSetup < handle
         
         function update_function(obj,hObj,event)
             global RUNTIME LOG
-            hObj.Value = obj.check_function(event);
+            hObj.Value = epsych.Tool.check_function(event);
             obj.Config.(hObj.Tag) = str2func(hObj.Value);
-            LOG.write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %s',hObj.Tag,hObj.Value)
+            LOG.write('Verbose','Updated value of "%s" to %s',hObj.Tag,hObj.Value)
 
             RUNTIME.Config = copy(obj.Config);
         end
@@ -111,17 +111,6 @@ classdef ConfigSetup < handle
 
 
     methods (Static)
-        function r = check_function(e)
-            r = e.Value;
-            if exist(e.Value,'file') == 2
-                e.Source.BackgroundColor = [1 1 1];
-                e.Source.FontColor = [0 0 0];
-            else
-                e.Source.BackgroundColor = [1 0.4 0.4];
-                e.Source.FontColor = [1 1 1];
-                msg = sprintf('The function "%s" was not found on Matlab''s path.',e.Value);
-                uialert(ancestor(e.Source,'figure'),msg,'Invalid Entry','icon','warning');
-            end
-        end
+        
     end % methods (Static)
 end

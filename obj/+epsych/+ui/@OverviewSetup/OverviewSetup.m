@@ -48,7 +48,7 @@ classdef OverviewSetup < handle
     methods (Access = private)
         
         function selection_changed(obj,src,event)
-            global RUNTIME
+            global RUNTIME LOG
             
             fig = ancestor(obj.parent,'figure');
             fig.Pointer = 'watch'; drawnow
@@ -58,20 +58,25 @@ classdef OverviewSetup < handle
             
             delete(get(obj.panel,'children'));
             
+            LOG.write('Debug','Selecting display "%s" [%s]',node.Text,node.Tag)
             
             switch node.Tag(1:4)
                 case 'parC' % parConfig
-                    g = uigridlayout(obj.panel);
-                    g.RowHeight = {'1x'};
-                    g.ColumnWidth = {'1x'};
-                    h = uilabel(g,'Text',epsych.Info.print);
-                    h.FontName = 'Consolas';
-                    h.FontSize = 14;
-                    h.VerticalAlignment = 'top';
                     
                 case 'Conf'
-                    h = epsych.ui.ConfigSetup(obj.panel,node.Tag(7:end));
-                    notify(RUNTIME,'RuntimeConfigChange');
+                    if endsWith(node.Tag,'Info')
+                        g = uigridlayout(obj.panel);
+                        g.RowHeight = {'1x'};
+                        g.ColumnWidth = {'1x'};
+                        h = uilabel(g,'Text',epsych.Info.print);
+                        h.FontName = 'Consolas';
+                        h.FontSize = 14;
+                        h.VerticalAlignment = 'top';
+                    else
+                        h = epsych.ui.ConfigSetup(obj.panel,node.Tag(7:end));
+                        %notify(RUNTIME,'RuntimeConfigChange');
+                    end
+                    
                 
                 case 'parS' % parSubjects
                     % TODO: Assign subjects to boxes
@@ -165,6 +170,9 @@ classdef OverviewSetup < handle
                     
                 case 'Load'
                     obj.load_node;
+                    
+                case 'Prog'
+                    LOG.create_gui(obj.panel);
             end
             fig.Pointer = 'arrow';
         end
