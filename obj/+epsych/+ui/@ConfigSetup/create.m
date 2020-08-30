@@ -19,11 +19,10 @@ switch lower(type)
         g.RowHeight = {25,25,25,25};
         
         
-        h = uilabel(g);
+        h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 1;
         h.Layout.Column = 1;
         h.Text = 'Behavior GUI Fcn:';
-        h.HorizontalAlignment = 'right';
         
         h = uieditfield(g,'Tag','UserInterface','CreateFcn',@obj.create_field);
         h.Layout.Row = 1;
@@ -32,7 +31,7 @@ switch lower(type)
         
         
         
-        h = uilabel(g);
+        h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 2;
         h.Layout.Column = 1;
         h.Text = 'Save Function Fcn:';
@@ -45,7 +44,7 @@ switch lower(type)
         
         
         
-        h = uilabel(g);
+        h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 3;
         h.Layout.Column = 1;
         h.Text = 'Data Directory';
@@ -70,7 +69,7 @@ switch lower(type)
         g.ColumnWidth = {'.3x','.7x'};
         g.RowHeight = {25,25,25,25};
         
-        h = uilabel(g);
+        h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 1;
         h.Layout.Column = 1;
         h.Text = 'Start Function:';
@@ -81,7 +80,7 @@ switch lower(type)
         h.Layout.Column = 2;
         h.ValueChangedFcn = @obj.update_function;
         
-        h = uilabel(g);
+        h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 2;
         h.Layout.Column = 1;
         h.Text = 'Timer Function:';
@@ -92,7 +91,7 @@ switch lower(type)
         h.Layout.Column = 2;
         h.ValueChangedFcn = @obj.update_function;
         
-        h = uilabel(g);
+        h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 3;
         h.Layout.Column = 1;
         h.Text = 'Stop Function:';
@@ -103,7 +102,7 @@ switch lower(type)
         h.Layout.Column = 2;
         h.ValueChangedFcn = @obj.update_function;
         
-        h = uilabel(g);
+        h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 4;
         h.Layout.Column = 1;
         h.Text = 'Error Function:';
@@ -120,7 +119,7 @@ switch lower(type)
         g.ColumnWidth = {'.3x','.7x',50};
         g.RowHeight = {25,25,25,25};
         
-        h = uilabel(g);
+        h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 1;
         h.Layout.Column = 1;
         h.Text = 'Log Directory';
@@ -152,6 +151,16 @@ switch lower(type)
         
         h = findobj(parent,'Type','uilabel');
         set(h,'FontSize',14,'HorizontalAlignment','right');
+        
+    case 'info'
+        g = uigridlayout(parent);
+        g.RowHeight = {'1x'};
+        g.ColumnWidth = {'1x'};
+        h = uitextarea(g,'Value',epsych.Info.print);
+        h.FontName = 'Consolas';
+        h.FontSize = 14;
+        h.BackgroundColor = [1 1 1];
+        h.Editable = 'off';
 end
 
 g.Scrollable = 'on';

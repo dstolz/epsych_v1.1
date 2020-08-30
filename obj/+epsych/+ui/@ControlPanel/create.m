@@ -24,8 +24,10 @@ g = uigridlayout(obj.parent);
 g.RowHeight   = {30,'.3x','.6x',25};
 g.ColumnWidth = {'1x',100};
 
+
+% Create "Sidepanel"
 hp = uipanel(g);
-hp.Layout.Row = [2 3];
+hp.Layout.Row = [2 4];
 hp.Layout.Column = 1;
 hp.BorderType = 'none';
 epsych.ui.OverviewSetup(hp);
@@ -77,13 +79,12 @@ h.Enable = 'on';
 h.ButtonPushedFcn = @obj.launch_exptparameterization;
 obj.ParameterizeButton = h;
 
+
 % Create RuntimePanel
 obj.RuntimePanel = uipanel(g);
 obj.RuntimePanel.Layout.Row = [2 3];
 obj.RuntimePanel.Layout.Column = 2;
 obj.RuntimeControlObj = epsych.ui.RuntimeControl(obj.RuntimePanel,'vertical');
-
-
 
 
 % Create AlwaysOnTop

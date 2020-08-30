@@ -64,20 +64,8 @@ classdef OverviewSetup < handle
                 case 'parC' % parConfig
                     
                 case 'Conf'
-                    if endsWith(node.Tag,'Info')
-                        g = uigridlayout(obj.panel);
-                        g.RowHeight = {'1x'};
-                        g.ColumnWidth = {'1x'};
-                        h = uilabel(g,'Text',epsych.Info.print);
-                        h.FontName = 'Consolas';
-                        h.FontSize = 14;
-                        h.VerticalAlignment = 'top';
-                    else
-                        h = epsych.ui.ConfigSetup(obj.panel,node.Tag(7:end));
-                        %notify(RUNTIME,'RuntimeConfigChange');
-                    end
+                    epsych.ui.ConfigSetup(obj.panel,node.Tag(7:end));
                     
-                
                 case 'parS' % parSubjects
                     % TODO: Assign subjects to boxes
                     
@@ -132,9 +120,13 @@ classdef OverviewSetup < handle
                     
                     node.NodeData = sdh;
                     
-                    
-                case 'AddH'                    
+                case 'AddH'
                     hw = epsych.ui.HardwareSetup(obj.panel);
+                    if isempty(hw.Hardware) % user cancelled
+                        obj.tree.SelectedNodes = obj.treeHardware;
+                        obj.selection_changed(src,event);
+                        return
+                    end
                     
                     h = node.Parent.Children;
                     sind = ismember({h.Tag},'AddHardware');
@@ -159,19 +151,24 @@ classdef OverviewSetup < handle
                     end
                     
                     obj.add_contextmenu(h);
-
+                    
                     obj.tree.SelectedNodes = h;
                     
                     addlistener(hw,'HardwareUpdated',@obj.hardware_updated);
-                                        
+                    
+                    
                 case 'parH'
                     % TODO: List summary of hardware being used
                     
+                case 'Hard'
+                    ind = cellfun(@(a) startsWith(node.Text,a.Alias),RUNTIME.Hardware);
+                    hardware = RUNTIME.Hardware{ind};
+                    epsych.ui.HardwareSetup(obj.panel,hardware);
                     
                 case 'Load'
                     obj.load_node;
                     
-                case 'Prog'
+                case 'Prog' % ProgramLog
                     LOG.create_gui(obj.panel);
             end
             fig.Pointer = 'arrow';
@@ -277,7 +274,7 @@ classdef OverviewSetup < handle
         
         
         function subject_updated(obj,hObj,event)
-            global RUNTIME
+            global RUNTIME LOG
             
             node = obj.tree.SelectedNodes;
             
@@ -289,6 +286,8 @@ classdef OverviewSetup < handle
             else
                 node.Icon = epsych.Tool.icon('mouse_grey');
             end
+           
+            LOG.write('Verbose','Subject "%s" updated',RUNTIME.Subject(ind).Name);
             
             notify(RUNTIME,'RuntimeConfigChange');
         end
@@ -296,6 +295,8 @@ classdef OverviewSetup < handle
         function hardware_updated(obj,hObj,event)            
             node = obj.tree.SelectedNodes;
             node.Text = strcat(event.Hardware.Alias,' [',event.Hardware.Name,']');
+            
+            LOG.write('Verbose','Hardware "%s" updated',node.Text);
             
             notify(RUNTIME,'RuntimeConfigChange');
         end

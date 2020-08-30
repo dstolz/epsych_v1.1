@@ -33,6 +33,7 @@ classdef FigOnTop < handle
                 obj.usePref = true;
                 state = getpref(obj.prefGroup,obj.prefVar,state);
                 obj.handle.Value = state;
+                drawnow
             end
             
             obj.State = state;

@@ -20,14 +20,25 @@ classdef HardwareSetup < handle
     methods
         create(obj,parent);
         
-        function obj = HardwareSetup(parent)
+        function obj = HardwareSetup(parent,Hardware)
+            if nargin < 2, Hardware = []; end
+            
             obj.parent = parent;
             obj.create(parent);
-            obj.add_hardware;
+            
+            if isempty(Hardware)
+                obj.add_hardware;
+            else
+                obj.Hardware = Hardware;
+            end
             
             if isempty(obj.Hardware)
                 return
             end
+            
+            obj.Hardware.setup(obj.HardwarePanel);
+            
+            obj.update_hardware;
             
             h = findobj(parent,'tag','hardwareAlias');
             h.Value = obj.Hardware.Alias;
@@ -79,10 +90,7 @@ classdef HardwareSetup < handle
             if ~ok, return; end
             
             obj.Hardware = epsych.hw.(hwlist{sel});
-            obj.Hardware.setup(obj.HardwarePanel);
             
-            
-            obj.update_hardware;
 
         end
 

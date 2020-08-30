@@ -78,8 +78,8 @@ classdef Log < handle
                 return
             end
             
-            if ~isempty(obj.LogFilenameLabel) && isvalid(obj.LogFilenameLabel)
-                obj.LogFilenameLabel.Text = obj.LogFilename;
+            if ~isempty(obj.LogFilenameButton) && isvalid(obj.LogFilenameButton)
+                obj.LogFilenameButton.Text = obj.LogFilename;
             end
             
             % rffn = strrep(ffn,'\','\\');
@@ -190,29 +190,26 @@ classdef Log < handle
                     
                 case epsych.log.Verbosity.ScreenOnly
                     if noEchoTextArea
-                        fprintf(msgTs)
+                        %fprintf(msgTs)
                     else
                         obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
-                        %obj.hEchoTextArea.Text = [{msgTs}; obj.hEchoTextArea.Text];
                     end
                     
                 case epsych.log.Verbosity.Error
                     if ~noFile, fprintf(obj.fid,msgLog); end
                     if noEchoTextArea
-                        fprintf(2,msgTs); % red text
+                        %fprintf(2,msgTs); % red text
                     else
                         obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
-                        %obj.hEchoTextArea.Text = [{msgTs}; obj.hEchoTextArea.Text];
                     end
                     
                 otherwise
                     if v <= obj.Verbosity
                         if ~noFile, fprintf(obj.fid,msgLog); end
                         if noEchoTextArea
-                            fprintf(msgTs)
+                            %fprintf(msgTs)
                         else
                             obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
-                            %obj.hEchoTextArea.Text = [{msgTs}; obj.hEchoTextArea.Text];
                         end
                         
                     elseif alwaysLog
