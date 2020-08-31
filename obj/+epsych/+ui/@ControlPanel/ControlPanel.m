@@ -142,7 +142,7 @@ classdef ControlPanel < handle
 
             log_write(epsych.log.Verbosity.Verbose,'Saving EPsych Runtime Config as "%s"',ffn);
             
-            save(ffn,'obj.Runtime','-mat');
+            save(ffn,'RUNTIME','-mat');
 
             [pn,~] = fileparts(ffn);
             setpref('epsych_Config','configPath',pn);
@@ -193,7 +193,7 @@ classdef ControlPanel < handle
             end
             
             warning('off','MATLAB:class:mustReturnObject');
-            x = who('-file',ffn,'obj.Runtime');
+            x = who('-file',ffn,'RUNTIME');
             warning('on','MATLAB:class:mustReturnObject');
             
             if isempty(x)
@@ -204,7 +204,7 @@ classdef ControlPanel < handle
             
             hl = obj.Runtime.AutoListeners__; % undocumented
 
-            load(ffn,'-mat','obj.Runtime');
+            load(ffn,'-mat','RUNTIME');
 
             for i = 1:length(hl)
                 if isequal(class(hl{i}),'event.proplistener')
