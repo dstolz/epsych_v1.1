@@ -82,7 +82,7 @@ classdef OverviewSetup < handle
                     if isequal(event.EventName,'LoadedSubject')
                         S = event.LoadedData;
                     else
-                        S = epsych.Subject;
+                        S = epsych.expt.Subject;
                         S.Name = str;
                     end
                     

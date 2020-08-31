@@ -1,7 +1,7 @@
 classdef SubjectSetup < handle
 
     properties
-        Subject     (:,1) epsych.Subject
+        Subject     (:,1) epsych.expt.Subject
     end
 
     % Properties that correspond to obj components

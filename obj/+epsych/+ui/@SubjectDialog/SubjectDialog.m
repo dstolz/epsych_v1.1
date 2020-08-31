@@ -8,7 +8,7 @@ classdef SubjectDialog < handle
     % Subject data is in h.Subject
 
     properties
-        Subject    (1,1) epsych.Subject
+        Subject    (1,1) epsych.expt.Subject
     end
 
     properties (Access = protected)
@@ -42,7 +42,7 @@ classdef SubjectDialog < handle
         create(obj,parent)
 
         function obj = SubjectDialog(Subject,parent)
-            if nargin == 0, obj.Subject = epsych.Subject; end
+            if nargin == 0, obj.Subject = epsych.expt.Subject; end
             if nargin > 0 && ~isempty(Subject), obj.Subject = Subject; end
             if nargin < 2, parent = []; end
 
