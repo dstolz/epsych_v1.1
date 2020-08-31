@@ -9,7 +9,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         Type         = 'COM.RPco_x';
         Vendor       = 'TDT';
         Description  = 'Standalone TDT ActiveX controls';
-        MaxNumInstances = 2;
+        MaxNumInstances = 1;
     end
 
     % define public abstract properties from superclass
