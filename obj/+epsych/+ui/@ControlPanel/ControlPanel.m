@@ -142,6 +142,7 @@ classdef ControlPanel < handle
 
             log_write(epsych.log.Verbosity.Verbose,'Saving EPsych Runtime Config as "%s"',ffn);
             
+            RUNTIME = obj.Runtime;
             save(ffn,'RUNTIME','-mat');
 
             [pn,~] = fileparts(ffn);
