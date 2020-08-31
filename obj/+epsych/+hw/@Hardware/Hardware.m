@@ -86,8 +86,17 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
             c(ismember(c,'Hardware')) = [];
             ind = false(size(c));
             for i = 1:length(c)
+                e = false;
+                try
+                    hw = epsych.hw.(c{i});
+                catch
+                    e = true;
+                end
                 s = superclasses(['epsych.hw.' c{i}]);
-                ind(i) = isempty(s) || ~ismember('epsych.hw.Hardware',s);
+                ind(i) = isempty(s) ...
+                        || ~ismember('epsych.hw.Hardware',s) ...
+                        || e;
+                
             end
             c(ind) = [];
         end
