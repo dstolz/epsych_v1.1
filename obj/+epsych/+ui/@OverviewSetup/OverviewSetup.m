@@ -160,15 +160,32 @@ classdef OverviewSetup < handle
                 case 'parH'
                     % TODO: List summary of hardware being used
                     
-%                     p = '';
-%                     for h = 1:length(RUNTIME.Hardware)
-%                         m = metaclass(RUNTIME.Hardware{h});
-%                         ml = max(cellfun(@length,fn));
-%                         for i = 1:length(fn)
-%                             v = m.(fn{i});
-%                             p = sprintf('%s% *s: %s\n',p,ml,fn{i},v);
-%                         end
-%                     end
+                    %m = metaclass('epsych.hw.Hardware'); % doesn't work??
+                    fn = {'Name','Type','Description','Vendor','MaxNumInstances','Status'};
+                    ml = max(cellfun(@length,fn))+1;
+                    
+                    ahw = epsych.hw.Hardware.available;
+                    
+                    p = sprintf('Available Hardware Modules:\n\n');
+                    for h = 1:length(ahw)
+                        for i = 1:length(fn)
+                            hw = epsych.hw.(ahw{h});
+                            v = hw.(fn{i});
+                            if isnumeric(v), v = mat2str(v); end
+                            p = sprintf('%s% *s: %s\n',p,ml,fn{i},v);
+                        end
+                        p = sprintf('%s%s\n',p,repmat('-',1,50));
+                    end
+                    
+                    g = uigridlayout(obj.panel);
+                    g.RowHeight = {'1x'};
+                    g.ColumnWidth = {'1x'};
+                    h = uitextarea(g);
+                    h.Value = p;
+                    h.FontName = 'Consolas';
+                    h.FontSize = 16;
+                    h.BackgroundColor = [1 1 1];
+                    h.Editable = 'off';
                     
                 case 'Hard'
                     ind = cellfun(@(a) startsWith(node.Text,a.Alias),RUNTIME.Hardware);
