@@ -1,8 +1,8 @@
 function stop(obj,varargin)
 
-global LOG
+global RUNTIME
 
-LOG.write('Critical','Stopping Psychtoolbox');
+log_write('Critical','Stopping Psychtoolbox');
 
 
 Screen('CloseAll');

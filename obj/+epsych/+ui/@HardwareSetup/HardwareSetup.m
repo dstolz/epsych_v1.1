@@ -21,6 +21,8 @@ classdef HardwareSetup < handle
         create(obj,parent);
         
         function obj = HardwareSetup(parent,Hardware)
+            global RUNTIME
+            
             if nargin < 2, Hardware = []; end
             
             obj.parent = parent;
@@ -41,7 +43,12 @@ classdef HardwareSetup < handle
             obj.update_hardware;
             
             h = findobj(parent,'tag','hardwareAlias');
-            h.Value = obj.Hardware.Alias;
+            
+            % TODO: make unique aliases
+            ua = cellfun(@(a) a.Alias,RUNTIME.Hardware,'uni',0);
+            ua = matlab.lang.makeUniqueStrings(ua);
+            RUNTIME.Hardware{end}.Alias = ua{end};
+            h.Value = ua{end};
         end
 
 
@@ -51,9 +58,7 @@ classdef HardwareSetup < handle
             if isempty(RUNTIME.Hardware)
                 RUNTIME.Hardware = {obj.Hardware};
             else
-                ind = cellfun(@(a) isequal(a.Name,obj.Hardware.Name),RUNTIME.Hardware);
-                if ~any(ind), ind = length(ind)+1; end
-                RUNTIME.Hardware{ind} = obj.Hardware;
+                RUNTIME.Hardware{end+1} = obj.Hardware;
             end
             
             ev = epsych.evHardwareUpdated(obj,obj.Hardware);
@@ -62,7 +67,27 @@ classdef HardwareSetup < handle
 
 
         function add_hardware(obj,hObj,event)
+            global RUNTIME
+            
             hwlist = epsych.hw.Hardware.available;
+            
+            if ~isempty(RUNTIME.Hardware)
+                rhn = cellfun(@(a) a.Name,RUNTIME.Hardware,'uni',0);
+                mni = cellfun(@(a) a.MaxNumInstances,RUNTIME.Hardware);
+                
+                u = unique(rhn);
+                cni = cellfun(@(a) sum(strcmp(a,rhn)),u);
+                ind = arrayfun(@(a) any(a == cni),mni);
+                hwlist(ismember(hwlist,rhn(ind))) = [];
+            end
+            
+            if isempty(hwlist)
+                uialert(ancestor(obj.parent,'figure'), ...
+                    'No more hardware is available.', ...
+                    'EPsych');
+                return
+            end
+            
             hw = obj.Hardware;
             if ~isempty(hw)
                 hwlist = setdiff(hwlist,cellfun(@(a) a.Name,hw,'uni',0));
@@ -91,7 +116,6 @@ classdef HardwareSetup < handle
             
             obj.Hardware = epsych.hw.(hwlist{sel});
             
-
         end
 
         

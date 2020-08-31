@@ -50,16 +50,16 @@ classdef ConfigSetup < handle
         end
         
         function update_function(obj,hObj,event)
-            global RUNTIME LOG
+            global RUNTIME
             hObj.Value = epsych.Tool.check_function(event);
             obj.Config.(hObj.Tag) = str2func(hObj.Value);
-            LOG.write('Verbose','Updated value of "%s" to %s',hObj.Tag,hObj.Value)
+            log_write('Verbose','Updated value of "%s" to %s',hObj.Tag,hObj.Value)
 
             RUNTIME.Config = copy(obj.Config);
         end
 
         function update_directory(obj,hObj,event)
-            global RUNTIME LOG
+            global RUNTIME
             if ~isfolder(event.Value)
                 sel = uiconfirm(ancestor(obj.parent,'figure'), ...
                     sprintf('Directory does not exist: "%s"\n\nWould you like to create it?',event.Value), ...
@@ -77,13 +77,13 @@ classdef ConfigSetup < handle
 
             RUNTIME.Config = copy(obj.Config);
 
-            LOG.write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %s',hObj.Tag,event.Value)
+            log_write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %s',hObj.Tag,event.Value)
         end
 
         function update_checkbox(obj,hObj,event)
-            global RUNTIME LOG
+            global RUNTIME
             obj.Config.(hObj.Tag) = event.Value;
-            LOG.write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %d',hObj.Tag,event.Value)
+            log_write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %d',hObj.Tag,event.Value)
 
             % one-off
             if isequal(hObj.Tag,'AutoLoadRuntimeConfig')

@@ -7,6 +7,8 @@ classdef ControlPanel < handle
         HardwareSetupObj        % epsych.ui.HardwareSetup
         RuntimeConfigSetupObj   % epsych.ui.ConfigSetup
         ShortcutsObj            % epsych.ui.Shortcuts
+        
+        Runtime % handle to epsych.expt.Runtime
     end
     
     properties (Access = protected)
@@ -28,7 +30,7 @@ classdef ControlPanel < handle
     methods
         % Constructor
         function obj = ControlPanel(parent)
-            global RUNTIME LOG
+            global RUNTIME
             
             if nargin == 0, parent = []; end
 
@@ -42,15 +44,17 @@ classdef ControlPanel < handle
             end
             
             % INITIALIZE SESSION LOG
-            if isempty(LOG) || ~isvalid(LOG)
+            if isempty(RUNTIME.Log) || ~isvalid(RUNTIME.Log)
                 fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
-                LOG = epsych.log.Log(fullfile(RUNTIME.Config.LogDirectory,fn));
+                RUNTIME.Log = epsych.log.Log(fullfile(RUNTIME.Config.LogDirectory,fn));
             end
 
+            obj.Runtime = RUNTIME;
+            
             % permit only one instance at a time
             f = epsych.Tool.find_epsych_controlpanel;
             if isempty(f)
-                LOG.write('Important','Launching EPsych GUI')
+                log_write('Important','Launching EPsych GUI')
                 obj.create(parent);
 
                 drawnow
@@ -65,37 +69,32 @@ classdef ControlPanel < handle
                 figure(f);
             end
             
+                       
             if nargout == 0, clear obj; end
         end
         
 
         % Destructor
         function delete(obj)
-            global RUNTIME LOG
-            
-            LOG.write('Important','ControlPanel closing.')
+            log_write('Important','ControlPanel closing.')
             
             drawnow
-            
-            delete(RUNTIME);
-
-            delete(LOG);
+                        
+            delete(obj.Runtime);
         end
         
         function closereq(obj,hObj,event)
-            global RUNTIME LOG
+            log_write(epsych.log.Verbosity.Important,'ControlPanel close requested.')
             
-            LOG.write(epsych.log.Verbosity.Important,'ControlPanel close requested.')
-            
-            if RUNTIME.isRunning
+            if obj.Runtime.isRunning
                 uialert(ancestor(obj.parent,'figure'), ...
                     'Please Halt the experiment before closing the Control Panel.','Close', ...
                     'Icon','warning');
                 return
             end
             
-            if ~RUNTIME.ConfigIsSaved
-                if RUNTIME.Config.AutoSaveRuntimeConfig
+            if ~obj.Runtime.ConfigIsSaved
+                if obj.Runtime.Config.AutoSaveRuntimeConfig
                     obj.save_config('default');
                     
                 else
@@ -111,7 +110,7 @@ classdef ControlPanel < handle
                             return
                             
                         case 'Continue'
-                            LOG.write('Insanity','User chose to not save Runtime config on close')
+                            log_write('Insanity','User chose to not save Runtime config on close')
                     end
                 end
             end
@@ -120,13 +119,11 @@ classdef ControlPanel < handle
             delete(obj);
         end
         
-        function save_config(obj,ffn,~,~)
-            global RUNTIME LOG
-            
+        function save_config(obj,ffn,~,~)            
             prevState = epsych.Tool.figure_state(obj.parent,false);
             
             if nargin == 1 || isequal(ffn,'default')
-                ffn = fullfile(RUNTIME.Config.UserDirectory,'EPsychRuntimeConfig.mat');
+                ffn = fullfile(obj.Runtime.Config.UserDirectory,'EPsychRuntimeConfig.mat');
             elseif ishandle(ffn) % coming from callback
                 ffn = [];
             end
@@ -143,9 +140,9 @@ classdef ControlPanel < handle
                 ffn = fullfile(pn,fn);
             end
 
-            LOG.write(epsych.log.Verbosity.Verbose,'Saving EPsych Runtime Config as "%s"',ffn);
+            log_write(epsych.log.Verbosity.Verbose,'Saving EPsych Runtime Config as "%s"',ffn);
             
-            save(ffn,'RUNTIME','-mat');
+            save(ffn,'obj.Runtime','-mat');
 
             [pn,~] = fileparts(ffn);
             setpref('epsych_Config','configPath',pn);
@@ -156,9 +153,9 @@ classdef ControlPanel < handle
         
         
         function load_config(obj,ffn,~,~)
-            global RUNTIME LOG
+            
 
-            if ~RUNTIME.ConfigIsSaved
+            if ~obj.Runtime.ConfigIsSaved
                 r = uiconfirm(obj.parent,'There have been changes made to the current configuration.  Would you like to first save the current configuration?', ...
                     'Load Config','Icon','question', ...
                     'Options',{'Save','Continue','Cancel'}, ...
@@ -171,12 +168,12 @@ classdef ControlPanel < handle
                         return
 
                     case 'Continue'
-                        LOG.write(epsych.log.Verbosity.Verbose,'User chose to not save the current configuration.')
+                        log_write(epsych.log.Verbosity.Verbose,'User chose to not save the current configuration.')
                 end
             end
             
             if nargin == 1 || isequal(ffn,'default')
-                ffn = fullfile(RUNTIME.Config.UserDirectory,'EPsychRuntimeConfig.mat');
+                ffn = fullfile(obj.Runtime.Config.UserDirectory,'EPsychRuntimeConfig.mat');
                 if ~isfile(ffn), ffn = []; end
 
             elseif ishandle(ffn) % coming from callback
@@ -196,54 +193,52 @@ classdef ControlPanel < handle
             end
             
             warning('off','MATLAB:class:mustReturnObject');
-            x = who('-file',ffn,'RUNTIME');
+            x = who('-file',ffn,'obj.Runtime');
             warning('on','MATLAB:class:mustReturnObject');
             
             if isempty(x)
-                LOG.write('Verbose','Invalid Config file: %s',ffn)
+                log_write('Verbose','Invalid Config file: %s',ffn)
                 fprintf(2,'Unable to load the configuration: "%s"\n',ffn);
                 return
             end
             
-            hl = RUNTIME.AutoListeners__; % undocumented
+            hl = obj.Runtime.AutoListeners__; % undocumented
 
-            load(ffn,'-mat','RUNTIME');
+            load(ffn,'-mat','obj.Runtime');
 
             for i = 1:length(hl)
                 if isequal(class(hl{i}),'event.proplistener')
-                    addlistener(RUNTIME,hl{1}.Source{1}.Name,hl{i}.EventName,hl{i}.Callback);
+                    addlistener(obj.Runtime,hl{1}.Source{1}.Name,hl{i}.EventName,hl{i}.Callback);
                 else
-                    addlistener(RUNTIME,hl{i}.EventName,hl{i}.Callback);
+                    addlistener(obj.Runtime,hl{i}.EventName,hl{i}.Callback);
                 end
             end
             
             
-            LOG.write('Verbose','Loaded Runtime Config file: %s',ffn)
+            log_write('Verbose','Loaded Runtime Config file: %s',ffn)
 
             [pn,~] = fileparts(ffn);
             setpref('epsych_Config','configPath',pn);
             
             obj.reset_ui_objects;
             
-            notify(RUNTIME,'RuntimeConfigChange');
+            notify(obj.Runtime,'RuntimeConfigChange');
             
             figure(obj.parent); % unhide gui
         end
         
         
         function reset_ui_objects(obj)
-            global RUNTIME
-
-            if ~isempty(RUNTIME.Config)
-                obj.RuntimeConfigSetupObj.Config = RUNTIME.Config;
+            if ~isempty(obj.Runtime.Config)
+                obj.RuntimeConfigSetupObj.Config = obj.Runtime.Config;
             end
 
-            if ~isempty(RUNTIME.Subject)
-                obj.SubjectSetupObj.Subject = RUNTIME.Subject;
+            if ~isempty(obj.Runtime.Subject)
+                obj.SubjectSetupObj.Subject = obj.Runtime.Subject;
             end
 
-            if ~isempty(RUNTIME.Hardware)
-                obj.HardwareSetupObj.Hardware = RUNTIME.Hardware;
+            if ~isempty(obj.Runtime.Hardware)
+                obj.HardwareSetupObj.Hardware = obj.Runtime.Hardware;
             end
             
             
@@ -256,8 +251,6 @@ classdef ControlPanel < handle
         create(obj,parent,reset);
 
         function listener_RuntimeConfigChange(obj,hObj,event)
-            global LOG
-
             if isempty(obj.SaveButton), return; end % may not be instantiated yet
             
             obj.SaveButton.Enable = 'on';
@@ -266,16 +259,14 @@ classdef ControlPanel < handle
                 hObj.State = epsych.enState.Ready;
             end
 
-            LOG.write('Verbose','RUNTIME Config updated')
+            log_write('Verbose','obj.Runtime Config updated')
         end
 
 
-        function listener_PreStateChange(obj,hObj,event)
-            global LOG
-            
+        function listener_PreStateChange(obj,hObj,event)           
             % update GUI component availability
             if event.State == epsych.enState.Run
-                LOG.write('Debug','Disabling ControlPanel interface');
+                log_write('Debug','Disabling ControlPanel interface');
                 
                 obj.LoadButton.Enable = 'off';
                 obj.SaveButton.Enable = 'off';
@@ -283,12 +274,10 @@ classdef ControlPanel < handle
         end
 
         
-        function listener_PostStateChange(obj,hObj,event)
-            global LOG
-            
+        function listener_PostStateChange(obj,hObj,event)            
             % update GUI component availability
             if any(event.State == [epsych.enState.Prep epsych.enState.Halt epsych.enState.Error])
-                LOG.write('Debug','Enabling ControlPanel interface');
+                log_write('Debug','Enabling ControlPanel interface');
 
                 obj.LoadButton.Enable = 'on';
             end
@@ -296,15 +285,13 @@ classdef ControlPanel < handle
 
 
         function launch_bitmaskgen(obj,hObj,event)
-            global LOG
-            LOG.write('Debug','Launching epsych.ui.BitmaskGen')
+            log_write('Debug','Launching epsych.ui.BitmaskGen')
 
             epsych.ui.BitmaskGen;
         end
 
         function launch_exptparameterization(obj,hObj,event)
-            global LOG
-            LOG.write('Debug','Launching epsych.ui.BitmaskGen')
+            log_write('Debug','Launching epsych.ui.BitmaskGen')
 
             ep_ExperimentDesign;
         end

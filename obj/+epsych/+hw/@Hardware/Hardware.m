@@ -56,7 +56,7 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
 
 
     properties (Dependent)
-        isReady (1,1) logical = false;
+        isReady (1,1) logical
     end
 
     properties (Access = protected, Transient)

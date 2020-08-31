@@ -1,6 +1,6 @@
 function run(obj,varargin) % Psychtoolbox3
-global LOG
+global RUNTIME
 
-LOG.write('Critical','Running GratingDemo test');
+log_write('Critical','Running GratingDemo test');
 
 GratingDemo;

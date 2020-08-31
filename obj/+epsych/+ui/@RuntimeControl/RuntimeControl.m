@@ -1,12 +1,9 @@
 classdef RuntimeControl < handle
     
-    properties
-        
-    end
 
     properties (Access = protected)
-        % StateLabel   matlab.ui.control.Label
-        % StateLamp    matlab.ui.control.Lamp
+        StateLabel   matlab.ui.control.Label
+        StateLamp    matlab.ui.control.Lamp
         StateIcon    matlab.ui.control.UIAxes
         PauseButton  matlab.ui.control.Button
         RunButton    matlab.ui.control.Button
@@ -40,32 +37,32 @@ classdef RuntimeControl < handle
         end
         
         function update_state(obj,hObj,event,btn)
-            global RUNTIME LOG
+            global RUNTIME
 
             switch btn
                 case 'Run|Halt'
                     switch RUNTIME.State
                         case epsych.enState.Ready
-                            LOG.write('Verbose','Updating State: Prep -> Run');
+                            log_write('Verbose','Updating State: Prep -> Run');
                             RUNTIME.State = epsych.enState.Run;
 
                         case {epsych.enState.Run, epsych.enState.Preview, epsych.enState.Pause, epsych.enState.Resume}
-                            LOG.write('Verbose','Updating State: %s -> Halt',char(RUNTIME.State));
+                            log_write('Verbose','Updating State: %s -> Halt',char(RUNTIME.State));
                             RUNTIME.State = epsych.enState.Halt;
 
                         case epsych.enState.Halt
-                            LOG.write('Verbose','Updating State: Halt -> Run');
+                            log_write('Verbose','Updating State: Halt -> Run');
                             RUNTIME.State = epsych.enState.Run;
                     end
 
                 case 'Pause'
                     switch RUNTIME.State
                         case epsych.enState.Pause
-                            LOG.write('Verbose','Updating State: Pause -> Resume');
+                            log_write('Verbose','Updating State: Pause -> Resume');
                             RUNTIME.State = epsych.enState.Resume;
 
                         case {epsych.enState.Run, epsych.enState.Preview, epsych.enState.Resume}
-                            LOG.write('Verbose','Updating State: %s -> Pause',char(RUNTIME.State));
+                            log_write('Verbose','Updating State: %s -> Pause',char(RUNTIME.State));
                             RUNTIME.State = epsych.enState.Pause;
                     end
             end
@@ -74,6 +71,9 @@ classdef RuntimeControl < handle
         
     end % methods (Access = public)
 
+    
+    
+    
     methods (Access = private)
         function listener_PreStateChange(obj,hObj,event)
             % update GUI component availability
@@ -86,9 +86,8 @@ classdef RuntimeControl < handle
             drawnow
             
         end
-        
 
-        function listener_PostStateChange(obj,hObj,event)            
+        function listener_PostStateChange(obj,hObj,event)
             % update GUI component availability
             
             

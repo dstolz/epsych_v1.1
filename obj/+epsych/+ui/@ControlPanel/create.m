@@ -1,5 +1,5 @@
 function create(obj,parent,reset)
-global LOG % for setting up the Log tab
+global RUNTIME % for setting up the Log tab
 
 if nargin == 3 && reset
     switch class(obj.parent)
@@ -21,14 +21,14 @@ end
 
 g = uigridlayout(obj.parent);
 
-g.RowHeight   = {30,'.3x','.6x',25};
-g.ColumnWidth = {'1x',100};
+g.RowHeight   = {30,175,'1x'};
+g.ColumnWidth = {250,'1x',100};
 
 
 % Create "Sidepanel"
 hp = uipanel(g);
 hp.Layout.Row = [2 4];
-hp.Layout.Column = 1;
+hp.Layout.Column = [1 2];
 hp.BorderType = 'none';
 epsych.ui.OverviewSetup(hp);
 
@@ -83,14 +83,14 @@ obj.ParameterizeButton = h;
 % Create RuntimePanel
 obj.RuntimePanel = uipanel(g);
 obj.RuntimePanel.Layout.Row = [2 3];
-obj.RuntimePanel.Layout.Column = 2;
+obj.RuntimePanel.Layout.Column = 3;
 obj.RuntimeControlObj = epsych.ui.RuntimeControl(obj.RuntimePanel,'vertical');
 
 
 % Create AlwaysOnTop
 obj.AlwaysOnTopCheckbox = epsych.ui.FigOnTop(g,0,'epsych_ControlPanel');
-obj.AlwaysOnTopCheckbox.handle.Layout.Column = 2;
-obj.AlwaysOnTopCheckbox.handle.Layout.Row    = 4;
+obj.AlwaysOnTopCheckbox.handle.Layout.Column = 3;
+obj.AlwaysOnTopCheckbox.handle.Layout.Row    = 1;
 
 
 

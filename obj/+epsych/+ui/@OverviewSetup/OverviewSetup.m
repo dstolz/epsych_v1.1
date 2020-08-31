@@ -48,7 +48,7 @@ classdef OverviewSetup < handle
     methods (Access = private)
         
         function selection_changed(obj,src,event)
-            global RUNTIME LOG
+            global RUNTIME
             
             fig = ancestor(obj.parent,'figure');
             fig.Pointer = 'watch'; drawnow
@@ -57,7 +57,7 @@ classdef OverviewSetup < handle
             
             delete(get(obj.panel,'children'));
             
-            LOG.write('Debug','Selecting display "%s" [%s]',node.Text,node.Tag)
+            log_write('Debug','Selecting display "%s" [%s]',node.Text,node.Tag)
             
             switch node.Tag(1:4)
                 case 'parC' % parConfig
@@ -111,7 +111,6 @@ classdef OverviewSetup < handle
                     
                 case 'Subj'
                     ind = ismember({RUNTIME.Subject.Name},event.SelectedNodes.Text);
-                    ind = find(ind,1);
                     S = RUNTIME.Subject(ind);
                     sdh = epsych.ui.SubjectDialog(S,obj.panel);
                     
@@ -143,15 +142,17 @@ classdef OverviewSetup < handle
                     h.NodeData = hw;
                     
                     ic = epsych.Tool.icon(hw.Hardware.Vendor);
-                    if isempty(ic)
-                        h.Icon = epsych.Tool.icon('hardware');
-                    else
+                    if exist(ic,'file')
                         h.Icon = ic;
+                    else
+                        h.Icon = epsych.Tool.icon('hardware');                        
                     end
                     
                     obj.add_contextmenu(h);
                     
                     obj.tree.SelectedNodes = h;
+                    
+                    log_write('Verbose','Added Hardware: "%s"',str);
                     
                     addlistener(hw,'HardwareUpdated',@obj.hardware_updated);
                     
@@ -168,7 +169,7 @@ classdef OverviewSetup < handle
                     obj.load_node;
                     
                 case 'Prog' % ProgramLog
-                    LOG.create_gui(obj.panel);
+                    RUNTIME.Log.create_gui(obj.panel);
             end
             fig.Pointer = 'arrow';
         end
@@ -190,10 +191,27 @@ classdef OverviewSetup < handle
         
         
         function remove_node(obj,hObj,event)
+            global RUNTIME
+            
             node = obj.tree.SelectedNodes;
+            n = node.Text;
             nodeParent = node.Parent;
             delete(node);
             obj.tree.SelectedNodes = nodeParent;
+            
+            log_write('Verbose','Removed %s node: "%s"',nodeParent.Text,n);
+            
+            switch nodeParent.Text
+                case 'Subjects'
+                    ind = ismember({RUNTIME.Subject.Name},n);
+                    RUNTIME.Subject(ind) = [];
+                    
+                case 'Hardware'
+                    ind = cellfun(@(a) startsWith(n,a.Alias),RUNTIME.Hardware);
+                    RUNTIME.Hardware(ind) = [];
+            end
+            
+            notify(RUNTIME,'RuntimeConfigChange');
             
             ev.Source = hObj;
             ev.EventName = 'RemovedNode';
@@ -202,8 +220,7 @@ classdef OverviewSetup < handle
         
         
         
-        function load_node(obj,hObj,event)
-
+        function load_node(obj,hObj,event)            
             node = obj.tree.SelectedNodes;
             
             switch node.Tag(5:7)
@@ -234,8 +251,10 @@ classdef OverviewSetup < handle
             eval(sprintf('ev.LoadedData = %s;',extType));
             obj.tree.SelectedNodes = obj.(sprintf('tree%sNodes',extType))(end-1);
             obj.selection_changed([],ev);
-            vprintf('Verbose','Loaded %s: "%s"',extType,ffn)
             
+            notify(RUNTIME,'RuntimeConfigChange');
+            
+            log_write('Verbose','Loaded %s: "%s"',extType,ffn)
         end
         
         
@@ -273,7 +292,7 @@ classdef OverviewSetup < handle
         
         
         function subject_updated(obj,hObj,event)
-            global RUNTIME LOG
+            global RUNTIME
             
             node = obj.tree.SelectedNodes;
             
@@ -286,16 +305,18 @@ classdef OverviewSetup < handle
                 node.Icon = epsych.Tool.icon('mouse_grey');
             end
            
-            LOG.write('Verbose','Subject "%s" updated',RUNTIME.Subject(ind).Name);
+            log_write('Verbose','Subject "%s" updated',RUNTIME.Subject(ind).Name);
             
             notify(RUNTIME,'RuntimeConfigChange');
         end
         
-        function hardware_updated(obj,hObj,event)            
+        function hardware_updated(obj,hObj,event)
+            global RUNTIME
+            
             node = obj.tree.SelectedNodes;
             node.Text = strcat(event.Hardware.Alias,' [',event.Hardware.Name,']');
             
-            LOG.write('Verbose','Hardware "%s" updated',node.Text);
+            log_write('Verbose','Hardware "%s" updated',node.Text);
             
             notify(RUNTIME,'RuntimeConfigChange');
         end

@@ -3,12 +3,12 @@ function e = prepare(obj) % TDTActiveX
 %
 % Returns e=true if an error occured and updates obj.ErrorME with a MException
 
-global LOG
+global RUNTIME
 
 
 
 if obj.enStatus == epsych.hw.enStatus.Running
-    LOG.write('Verbose','RPco.X already connected, loaded, and running.\n')
+    log_write('Verbose','RPco.X already connected, loaded, and running.\n')
     return
 end
 
@@ -43,7 +43,7 @@ for i = 1:length(obj.Module)
         return
     end
     
-    LOG.write('Verbose','%s_%d connected',char(M.Type),M.Index)
+    log_write('Verbose','%s_%d connected',char(M.Type),M.Index)
     M.handle.ClearCOF;
     
     if M.Fs >= 0

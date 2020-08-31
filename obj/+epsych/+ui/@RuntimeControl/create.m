@@ -17,15 +17,15 @@ else
     g.ColumnWidth = {55,'1x','1x'};
 end
 
-% % Create StateLabel
-% obj.StateLabel = uilabel(g);
-% obj.StateLabel.HorizontalAlignment = 'right';
-% obj.StateLabel.Text = '';
-% obj.StateLabel.FontSize = 14;
+% Create StateLabel
+obj.StateLabel = uilabel(g);
+obj.StateLabel.HorizontalAlignment = 'right';
+obj.StateLabel.Text = '';
+obj.StateLabel.FontSize = 14;
 
-% % Create StateLamp
-% obj.StateLamp = uilamp(g);
-% obj.StateLamp.Color = [0.8 0.8 0.8];
+% Create StateLamp
+obj.StateLamp = uilamp(g);
+obj.StateLamp.Color = [0.8 0.8 0.8];
 
 % Create StateIcon
 h = uiaxes(g);

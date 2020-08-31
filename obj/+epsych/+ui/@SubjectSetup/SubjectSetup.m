@@ -50,13 +50,13 @@ classdef SubjectSetup < handle
 
         function set.Subject(obj,S)
             % update table
-            global RUNTIME LOG
+            global RUNTIME
 
             obj.Subject = S;
             
             if isempty(obj.Subject)
                 obj.SubjectTable.Data = [];
-                LOG.write('Verbose','Updated Subjects Table');
+                log_write('Verbose','Updated Subjects Table');
                 return
             end
 
@@ -72,7 +72,7 @@ classdef SubjectSetup < handle
 
             RUNTIME.Subject = copy(obj.Subject);
 
-            LOG.write('Verbose','Updated Subjects Table');
+            log_write('Verbose','Updated Subjects Table');
 
         end
 
@@ -120,7 +120,7 @@ classdef SubjectSetup < handle
         end
         
         function add_subject(obj,hObj,event)
-            global RUNTIME LOG
+            global RUNTIME
 
             h = epsych.ui.SubjectDialog;
             waitfor(h.parent);
@@ -133,7 +133,7 @@ classdef SubjectSetup < handle
                 return
             end
 
-            LOG.write('Verbose','Adding subject %s "%s"',h.Subject.ID,h.Subject.Name);
+            log_write('Verbose','Adding subject %s "%s"',h.Subject.ID,h.Subject.Name);
 
             obj.Subject(end+1) = h.Subject;
             
@@ -143,13 +143,13 @@ classdef SubjectSetup < handle
         end
 
         function remove_subject(obj,hObj,event)
-            global RUNTIME LOG
+            global RUNTIME
 
             if isempty(obj.Subject) || isempty(obj.selIdx), return; end
                         
             if obj.selIdx(1) == 0, obj.selIdx = 1; end
 
-            LOG.write('Verbose','Removing subject %s "%s"', ...
+            log_write('Verbose','Removing subject %s "%s"', ...
                 obj.Subject(obj.selIdx(1)).ID,obj.Subject(obj.selIdx(1)).Name);
 
             obj.SubjectTable.Data(obj.selIdx(1),:) = [];
@@ -160,11 +160,11 @@ classdef SubjectSetup < handle
         end
         
         function listener_PreStateChange(obj,hObj,event)
-            global LOG
+            global RUNTIME
             
             % update GUI component availability
             if event.State == epsych.enState.Run
-                LOG.write('Debug','Disabling Subject Setup interface');
+                log_write('Debug','Disabling Subject Setup interface');
                 
                 obj.AddButton.Enable = 'off';
                 obj.ModifyButton.Enable = 'off';
@@ -174,11 +174,11 @@ classdef SubjectSetup < handle
 
         
         function listener_PostStateChange(obj,hObj,event)
-            global LOG
+            global RUNTIME
             
             % update GUI component availability
             if any(event.State == [epsych.enState.Prep epsych.enState.Halt epsych.enState.Error])
-                LOG.write('Debug','Enabling Subject Setup interface');
+                log_write('Debug','Enabling Subject Setup interface');
 
                 obj.AddButton.Enable = 'on';
                 obj.ModifyButton.Enable = 'on';

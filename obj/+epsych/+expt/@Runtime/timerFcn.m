@@ -1,12 +1,12 @@
 function timerFcn(obj) % epsych.expt.Runtime
 
-global LOG
+global RUNTIME
 
-doTheDebug = LOG.Verbosity == epsych.log.Verbosity.Debug;
+doTheDebug = RUNTIME.Log.Verbosity == epsych.log.Verbosity.Debug;
 
 if doTheDebug
     if mod(obj.Timer.TasksExecuted,100) == 0
-        LOG.write('Debug','AvgPeriod = %.3f ms ; InstantPeriod = %.3f ms', ...
+        RUNTIME.Log.write('Debug','AvgPeriod = %.3f ms ; InstantPeriod = %.3f ms', ...
             1000*obj.Timer.AveragePeriod,1000*obj.Timer.InstantPeriod)
     end
 end

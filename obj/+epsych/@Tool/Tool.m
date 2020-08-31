@@ -182,7 +182,11 @@ classdef Tool < handle
         end
 
         function varargout = get_icon(name)
-            [~,~,im] = imread(epsych.Tool.icon(name));
+            fn = epsych.Tool.icon(name);
+            if isempty(fn)
+                fn = epsych.Tool.icon('not_found');
+            end
+            [~,~,im] = imread(fn);
             alpha = single(im ~= 0);
             varargout{1} = alpha;
             varargout{2} = im;
