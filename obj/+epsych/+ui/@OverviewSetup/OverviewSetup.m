@@ -160,6 +160,16 @@ classdef OverviewSetup < handle
                 case 'parH'
                     % TODO: List summary of hardware being used
                     
+%                     p = '';
+%                     for h = 1:length(RUNTIME.Hardware)
+%                         m = metaclass(RUNTIME.Hardware{h});
+%                         ml = max(cellfun(@length,fn));
+%                         for i = 1:length(fn)
+%                             v = m.(fn{i});
+%                             p = sprintf('%s% *s: %s\n',p,ml,fn{i},v);
+%                         end
+%                     end
+                    
                 case 'Hard'
                     ind = cellfun(@(a) startsWith(node.Text,a.Alias),RUNTIME.Hardware);
                     hardware = RUNTIME.Hardware{ind};

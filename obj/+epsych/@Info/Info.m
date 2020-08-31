@@ -14,6 +14,7 @@ classdef Info < handle
         Author      = 'Daniel Stolzberg, PhD';
         AuthorEmail = 'daniel.stolzberg@gmail.com';
         License     = 'GNU General Public License v3.0';
+        Website     = 'https://github.com/dstolz/epsych_v1.1';
     end
     
     methods
@@ -30,6 +31,7 @@ classdef Info < handle
             m.License     = obj.License;
             m.Version     = obj.Version;
             m.DataVersion = obj.DataVersion;
+            m.Website     = obj.Website;
             m.Checksum    = obj.chksum;
             m.commitTimestamp = obj.commitTimestamp;
             m.CurrentTimestamp = datestr(now);
