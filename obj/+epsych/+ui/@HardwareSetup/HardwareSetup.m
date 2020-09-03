@@ -48,6 +48,7 @@ classdef HardwareSetup < handle
             ua = cellfun(@(a) a.Alias,RUNTIME.Hardware,'uni',0);
             ua = matlab.lang.makeUniqueStrings(ua);
             RUNTIME.Hardware{end}.Alias = ua{end};
+            obj.Hardware = RUNTIME.Hardware{end};
             h.Value = ua{end};
         end
 
