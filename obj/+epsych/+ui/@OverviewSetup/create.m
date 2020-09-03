@@ -5,7 +5,7 @@ g.RowHeight   = {'1x'};
 g.ColumnWidth = {200,'1x'};
 
 
-obj.tree = uitree(g,'FontSize',14);
+obj.tree = uitree(g,'FontSize',16);
 obj.tree.SelectionChangedFcn = @obj.selection_changed;
 
 % obj.treeConfig  
