@@ -12,6 +12,26 @@ end
 % TODO: This probably should all be setup from reading a JSON file
 
 switch lower(type)
+    case 'logo'
+        g = uigridlayout(parent);
+        g.ColumnWidth = {'1x'};
+        g.RowHeight = {'1x'};
+        cm = sprintf(['_________________                     ______  \n', ...
+                      '___  ____/__  __ \\___________  __________  /_ \n', ...
+                      '__  __/  __  /_/ /_  ___/_  / / /  ___/_  __ \\\n', ...
+                      '_  /___  _  ____/_(__  )_  /_/ // /__ _  / / /\n', ...
+                      '/_____/  /_/     /____/ _\\__, / \\___/ /_/ /_/ \n', ...
+                      '                     /____/             ']); 
+
+        h = uilabel(g);
+        h.Layout.Row    = 1;
+        h.Layout.Column = 1;
+        h.Text = cm;
+        h.HorizontalAlignment = 'center';
+        h.VerticalAlignment = 'top';
+        h.FontSize = 18;
+        h.FontName = 'Consolas';
+
     case 'behavior'
         % USER INTERFACE
         g = uigridlayout(parent);

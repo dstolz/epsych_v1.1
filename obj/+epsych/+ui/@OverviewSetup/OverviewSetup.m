@@ -61,7 +61,8 @@ classdef OverviewSetup < handle
             
             switch node.Tag(1:4)
                 case 'parC' % parConfig
-                    
+                    epsych.ui.ConfigSetup(obj.panel,'logo');
+
                 case 'Conf'
                     epsych.ui.ConfigSetup(obj.panel,node.Tag(7:end));
                     
