@@ -1,8 +1,10 @@
 classdef Verbosity < int8
 
     enumeration
-        PrintOnly       (-2)
-        ScreenOnly      (-1)
+        GUIerror        (-4)
+        GUIwarning      (-3)
+        GUIinfo         (-2)
+        GUIsuccess      (-1)
         Error           (0)
         Critical        (1)
         Important       (2)

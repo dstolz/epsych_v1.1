@@ -180,43 +180,42 @@ classdef Log < handle
                 end
             end
             
-            if isempty(msg), v = epsych.log.Verbosity.PrintOnly; end % prints a blank line w/ timestamp, function, and line number
+            %if isempty(msg), v = epsych.log.Verbosity.PrintOnly; end % prints a blank line w/ timestamp, function, and line number
             
             noEchoTextArea = isempty(obj.hEchoTextArea) || ~isvalid(obj.hEchoTextArea);
             
-            switch v
-                case epsych.log.Verbosity.PrintOnly
-                    if ~noFile, fprintf(obj.fid,msgLog); end
-                    
-                case epsych.log.Verbosity.ScreenOnly
-                    if noEchoTextArea
-                        %fprintf(msgTs)
-                    else
-                        obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
-                    end
-                    
-                case epsych.log.Verbosity.Error
-                    if ~noFile, fprintf(obj.fid,msgLog); end
-                    if noEchoTextArea
-                        %fprintf(2,msgTs); % red text
-                    else
-                        obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
-                    end
-                    
-                otherwise
-                    if v <= obj.Verbosity
+            if v < 0
+                type = char(v);
+                type(1:3) = []; % rem GUI
+                epsych.log.Log.create_dialog(type,msg);
+            else
+                switch v
+%                     case epsych.log.Verbosity.PrintOnly
+%                         if ~noFile, fprintf(obj.fid,msgLog); end
+%                        
+                        
+                    case epsych.log.Verbosity.Error
                         if ~noFile, fprintf(obj.fid,msgLog); end
                         if noEchoTextArea
-                            %fprintf(msgTs)
+                            %fprintf(2,msgTs); % red text
                         else
                             obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
                         end
                         
-                    elseif alwaysLog
-                        if ~noFile, fprintf(obj.fid,msgLog); end
-                    end
+                    otherwise
+                        if v <= obj.Verbosity
+                            if ~noFile, fprintf(obj.fid,msgLog); end
+                            if noEchoTextArea
+                                %fprintf(msgTs)
+                            else
+                                obj.hEchoTextArea.Value = [{msgTs}; obj.hEchoTextArea.Value];
+                            end
+                            
+                        elseif alwaysLog
+                            if ~noFile, fprintf(obj.fid,msgLog); end
+                        end
+                end
             end
-            
             
             
             if nargout == 1
@@ -259,6 +258,8 @@ classdef Log < handle
             obj.Verbosity = event.Value;
             setpref('epsych_Log','logVerbosity',event.Value);
         end
+        
+        
     end
     
     
@@ -282,6 +283,9 @@ classdef Log < handle
             s = sprintf('%s,%d',st(1).name,st(1).line);
         end
         
+        function create_dialog(type,msg)
+            uialert(epsych.Tool.find_epsych_controlpanel,msg,'EPsych','Icon',type);
+        end
     end
     
 end
