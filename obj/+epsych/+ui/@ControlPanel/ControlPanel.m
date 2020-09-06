@@ -29,11 +29,25 @@ classdef ControlPanel < handle
     
     methods
         % Constructor
-        function obj = ControlPanel(parent)
+        function obj = ControlPanel(varargin)
             global RUNTIME
             
-            if nargin == 0, parent = []; end
-
+            parent = [];
+            filename = '';
+            
+            for i = 1:length(varargin)
+                v = varargin{i};
+                if isstring(v) || ischar(v)
+                    filename = char(v);
+                elseif contains(class(v),'container','IgnoreCase',false) || endsWith(class(v),'Figure','IgnoreCase',false)
+                    parent = v;
+                else
+                    error('epsych:ui:ControlPanel:InvalidInput','Inputs to epsych.ui.ControlPanel may be filename and/or parent container')
+                    clear obj
+                    return
+                end
+            end
+            
             % INITIALIZE RUNTIME OBJECT
             if isempty(RUNTIME) || ~isvalid(RUNTIME)
                 RUNTIME = epsych.expt.Runtime;
@@ -69,6 +83,9 @@ classdef ControlPanel < handle
                 figure(f);
             end
             
+            if ~isempty(filename)
+                obj.load_config(filename);
+            end
                        
             if nargout == 0, clear obj; end
         end
@@ -154,8 +171,6 @@ classdef ControlPanel < handle
         
         
         function load_config(obj,ffn,~,~)
-            
-
             if ~obj.Runtime.ConfigIsSaved
                 r = uiconfirm(obj.parent,'There have been changes made to the current configuration.  Would you like to first save the current configuration?', ...
                     'Load Config','Icon','question', ...
@@ -256,11 +271,13 @@ classdef ControlPanel < handle
             
             obj.SaveButton.Enable = 'on';
             
+            obj.Runtime.runtime_updated;
+
             if  hObj.State == epsych.enState.Prep && hObj.ReadyToBegin
                 hObj.State = epsych.enState.Ready;
             end
 
-            log_write('Verbose','obj.Runtime Config updated')
+            log_write('Verbose','obj.Runtime Config updated')            
         end
 
 

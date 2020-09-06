@@ -1,5 +1,4 @@
 function create(obj,parent,reset)
-global RUNTIME % for setting up the Log tab
 
 if nargin == 3 && reset
     switch class(obj.parent)

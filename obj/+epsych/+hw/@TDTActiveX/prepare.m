@@ -3,10 +3,6 @@ function e = prepare(obj) % TDTActiveX
 %
 % Returns e=true if an error occured and updates obj.ErrorME with a MException
 
-global RUNTIME
-
-
-
 if obj.enStatus == epsych.hw.enStatus.Running
     log_write('Verbose','RPco.X already connected, loaded, and running.\n')
     return

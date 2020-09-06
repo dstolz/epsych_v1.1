@@ -20,7 +20,7 @@ elseif isa(parameter,'epsych.param.Group')
 
 else
     if startsWith(epsych.param.Name,'SoftTrg~')
-        e = obj.handle(idx).SoftTrg(str2double(epsych.param.Name(end));
+        e = obj.handle(idx).SoftTrg(str2double(epsych.param.Name(end)));
     else
         e1 = obj.handle(idx).SetTagVal(parameter,~invert);
         e2 = obj.handle(idx).SetTagVal(parameter,invert);

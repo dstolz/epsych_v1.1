@@ -39,6 +39,10 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
         ErrorME         % MException error message object
     end
 
+    properties (Abstract, SetAccess = private)
+        hwSetup
+    end
+    
     methods (Abstract)
         h = setup(obj,parent);      % minimal gui to set custom parameters
         e = prepare(obj,varargin);  % complete any required tasks before runtime
@@ -89,8 +93,10 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
                 e = false;
                 try
                     hw = epsych.hw.(c{i});
-                catch
+                catch me
                     e = true;
+                    log_write('Error','An error occurred when testing epsych.hw.%s',c{i})
+                    log_write('Error',me.message)
                 end
                 s = superclasses(['epsych.hw.' c{i}]);
                 ind(i) = isempty(s) ...

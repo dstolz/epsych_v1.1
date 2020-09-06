@@ -38,13 +38,13 @@ classdef HardwareSetup < handle
                 return
             end
             
-            obj.Hardware.setup(obj.HardwarePanel);
-            
             obj.update_hardware;
             
+            obj.Hardware.setup(obj.HardwarePanel);
+                        
             h = findobj(parent,'tag','hardwareAlias');
             
-            % TODO: make unique aliases
+            % suggest unique aliases % TODO: enforce unique aliases
             ua = cellfun(@(a) a.Alias,RUNTIME.Hardware,'uni',0);
             ua = matlab.lang.makeUniqueStrings(ua);
             RUNTIME.Hardware{end}.Alias = ua{end};
@@ -53,13 +53,17 @@ classdef HardwareSetup < handle
         end
 
 
-        function update_hardware(obj)
+        function update_hardware(obj,hObj)
             global RUNTIME
+            
+            if nargin < 2, hObj = []; end
 
             if isempty(RUNTIME.Hardware)
-                RUNTIME.Hardware = {obj.Hardware};
+                RUNTIME.Hardware = {obj.Hardware};                
             else
-                RUNTIME.Hardware{end+1} = obj.Hardware;
+                ind = cellfun(@(a) isequal(a,hObj),RUNTIME.Hardware);
+                if ~any(ind), ind = numel(RUNTIME.Hardware)+1; end
+                RUNTIME.Hardware{ind} = obj.Hardware;
             end
             
             ev = epsych.evHardwareUpdated(obj,obj.Hardware);
@@ -115,7 +119,7 @@ classdef HardwareSetup < handle
 
             if ~ok, return; end
             
-            obj.Hardware = epsych.hw.(hwlist{sel});
+            obj.Hardware = epsych.hw.(hwlist{sel})(obj);
             
         end
 

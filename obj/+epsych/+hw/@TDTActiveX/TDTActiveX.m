@@ -1,5 +1,5 @@
 classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
-
+    % vvvvvvvvvv Define abstract properties from superclass vvvvvvvv
     properties
         Alias = 'TDTx';
     end
@@ -12,7 +12,6 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         MaxNumInstances = 1;
     end
 
-    % define public abstract properties from superclass
     properties (Dependent)
         Status
     end
@@ -21,6 +20,11 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         ErrorME
     end
     
+    properties (SetAccess = private)
+        hwSetup
+    end
+    
+    % vvvvvvvvv Define module specific properties vvvvvvvvvvv
     properties (Access = private,Transient,Hidden)
         InterfaceParent     % matlab.ui.container
     
@@ -59,9 +63,13 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         v = read(obj,parameter);
         e = trigger(obj,parameter);
 
-        function obj = TDTActiveX
+        function obj = TDTActiveX(hwSetup)
+            if nargin == 0, hwSetup = []; end
+            
             % call superclass constructor
-            obj = obj@epsych.hw.Hardware;           
+            obj = obj@epsych.hw.Hardware; 
+            
+            obj.hwSetup = hwSetup;
         end
 
         function delete(obj)
@@ -210,7 +218,6 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
     methods (Access = private)
 
         function module_updated(obj)
-            global RUNTIME
             
             D = obj.TDTModulesTable.Data;
             UD = obj.TDTModulesTable.UserData;
@@ -233,6 +240,8 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
 %             
 %             % TODO: NEED SOME HARDWARE INDEX ID
 %             RUNTIME.Hardware = copy(obj);
+
+            obj.hwSetup.update_hardware(obj);
         end
 
         function select_rpvds_file(obj,hObj,event)
