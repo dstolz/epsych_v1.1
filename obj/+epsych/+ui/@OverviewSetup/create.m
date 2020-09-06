@@ -64,11 +64,19 @@ h.Icon = epsych.Tool.icon('notebook');
 
 
 
-% obj.panel
-obj.panel = uipanel(g);
-obj.panel.Scrollable = 'on';
-obj.panel.BorderType = 'none';
+% obj.mainPanel
+obj.mainPanel = uipanel(g);
+obj.mainPanel.Layout.Column = 2;
+obj.mainPanel.Layout.Row = 1;
+obj.mainPanel.Scrollable = 'on';
+obj.mainPanel.BorderType = 'none';
 
+% obj.logPanel
+obj.logPanel = uipanel(g);
+obj.logPanel.Layout.Column = 2;
+obj.logPanel.Layout.Row = 1;
+obj.logPanel.BorderType = 'none';
+obj.logPanel.Visible = 'off';
 
 
 

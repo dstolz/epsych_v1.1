@@ -10,7 +10,8 @@ classdef OverviewSetup < handle
         treeSubject         matlab.ui.container.TreeNode
         treeSubjectNodes    matlab.ui.container.TreeNode
         
-        panel               matlab.ui.container.Panel
+        mainPanel           matlab.ui.container.Panel
+        logPanel            matlab.ui.container.Panel
     end
     
     properties (SetAccess = immutable)
@@ -55,19 +56,43 @@ classdef OverviewSetup < handle
             
             node = obj.tree.SelectedNodes;
             
-            delete(get(obj.panel,'children'));
+            delete(get(obj.mainPanel,'children'));
+            
+            if ~isequal(node.Tag,'ProgramLog')
+                obj.logPanel.Visible = 'off';                
+            end
+            
             
             log_write('Debug','Selecting display "%s" [%s]',node.Text,node.Tag)
             
+            
             switch node.Tag(1:4)
                 case 'parC' % parConfig
-                    epsych.ui.ConfigSetup(obj.panel,'logo');
+                    epsych.ui.ConfigSetup(obj.mainPanel,'logo');
+                    expand(node);
 
                 case 'Conf'
-                    epsych.ui.ConfigSetup(obj.panel,node.Tag(7:end));
+                    epsych.ui.ConfigSetup(obj.mainPanel,node.Tag(7:end));
                     
                 case 'parS' % parSubjects
                     % TODO: Assign subjects to boxes
+                    
+                    if isempty(RUNTIME.Subject)
+                        str = 'You must add at least one subject';
+                    else
+                        str = {RUNTIME.Subject.Name};
+                    end
+                    
+                    g = uigridlayout(obj.mainPanel);
+                    g.ColumnWidth = {'1x'};
+                    g.RowHeight = {'1x'};
+                    h = uitextarea(g);
+                    h.Editable = 'off';
+                    h.Value = str;
+                    h.FontSize = 16;
+                    h.FontName = 'Consolas';
+                    
+                    expand(node);
                     
                 case 'AddS'
                     h = node.Parent.Children;
@@ -113,17 +138,18 @@ classdef OverviewSetup < handle
                 case 'Subj'
                     ind = ismember({RUNTIME.Subject.Name},event.SelectedNodes.Text);
                     S = RUNTIME.Subject(ind);
-                    sdh = epsych.ui.SubjectDialog(S,obj.panel);
+                    sdh = epsych.ui.SubjectDialog(S,obj.mainPanel);
                     
                     addlistener(sdh,'FieldUpdated',@obj.subject_updated);
                     
                     node.NodeData = sdh;
                     
                 case 'AddH'
-                    hw = epsych.ui.HardwareSetup(obj.panel);
+                    hw = epsych.ui.HardwareSetup(obj.mainPanel);
                     if isempty(hw.Hardware) % user cancelled
                         obj.tree.SelectedNodes = obj.treeHardware;
                         obj.selection_changed(src,event);
+                        log_write('Verbose','No more hardware is available.')
                         return
                     end
                     
@@ -158,9 +184,7 @@ classdef OverviewSetup < handle
                     addlistener(hw,'HardwareUpdated',@obj.hardware_updated);
                     
                     
-                case 'parH'
-                    % TODO: List summary of hardware being used
-                    
+                case 'parH'                   
                     %m = metaclass('epsych.hw.Hardware'); % doesn't work??
                     fn = {'Name','Type','Description','Vendor','MaxNumInstances','Status'};
                     ml = max(cellfun(@length,fn))+1;
@@ -178,7 +202,7 @@ classdef OverviewSetup < handle
                         p = sprintf('%s%s\n',p,repmat('-',1,50));
                     end
                     
-                    g = uigridlayout(obj.panel);
+                    g = uigridlayout(obj.mainPanel);
                     g.RowHeight = {'1x'};
                     g.ColumnWidth = {'1x'};
                     h = uitextarea(g);
@@ -188,16 +212,21 @@ classdef OverviewSetup < handle
                     h.BackgroundColor = [1 1 1];
                     h.Editable = 'off';
                     
+                    expand(node);
+                    
                 case 'Hard'
                     ind = cellfun(@(a) startsWith(node.Text,a.Alias),RUNTIME.Hardware);
                     hardware = RUNTIME.Hardware{ind};
-                    epsych.ui.HardwareSetup(obj.panel,hardware);
+                    epsych.ui.HardwareSetup(obj.mainPanel,hardware);
                     
                 case 'Load'
                     obj.load_node;
                     
                 case 'Prog' % ProgramLog
-                    RUNTIME.Log.create_gui(obj.panel);
+                    if isempty(obj.logPanel.Children)
+                        RUNTIME.Log.create_gui(obj.logPanel);
+                    end
+                    obj.logPanel.Visible = 'on';
             end
             fig.Pointer = 'arrow';
         end
@@ -249,6 +278,8 @@ classdef OverviewSetup < handle
         
         
         function load_node(obj,hObj,event)            
+            global RUNTIME
+
             node = obj.tree.SelectedNodes;
             
             switch node.Tag(5:7)

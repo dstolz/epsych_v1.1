@@ -275,6 +275,9 @@ classdef Log < handle
         function s = get_stack_string
             s = '';
             st = dbstack(2);
+            if isequal(st(1).name,'log_write')
+                st = dbstack(3);
+            end
             if isempty(st), return; end
             s = sprintf('%s,%d',st(1).name,st(1).line);
         end
