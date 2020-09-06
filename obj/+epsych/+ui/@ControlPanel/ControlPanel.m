@@ -214,7 +214,7 @@ classdef ControlPanel < handle
             
             if isempty(x)
                 log_write('Verbose','Invalid Config file: %s',ffn)
-                fprintf(2,'Unable to load the configuration: "%s"\n',ffn);
+                log_write('Error','Unable to load the configuration: "%s"',ffn);
                 return
             end
             

@@ -186,14 +186,14 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
                         ind = ismember(D(:,1),D(row,1));
                         if sum(ind) > 1
                             hObj.Data{row,col} = event.PreviousData;
-                            fprintf(2,'Must have unique index for each module of a type')
+                            log_write('Error','Must have unique index for each module of a type')
                         end
                     end
                 case 3 % Fs
                 case 4 % Alias
                     ua = unique(D(:,col));
                     if length(ua) < size(D,1)
-                        fprintf(2,'Invalid Entry: "%s"',event.NewData)
+                        log_write('Error','Invalid Entry: "%s"',event.NewData)
                         hObj.Data{row,col} = '';
                     end
                 case 5 % RPvds File
