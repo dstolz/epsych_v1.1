@@ -222,9 +222,9 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
             end
             
             if obj.ReadyToBegin
-                obj.Log.write('Important','Runtime is ready to begin');
+                obj.Log.write('Verbose','Runtime is ready to begin');
             else
-                obj.Log.write('Important','Runtime is not ready to begin');
+                obj.Log.write('Verbose','Runtime is not ready to begin');
             end
             
             if nargin < 3

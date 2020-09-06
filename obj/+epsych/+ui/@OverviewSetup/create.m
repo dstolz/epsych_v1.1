@@ -1,4 +1,5 @@
 function create(obj,parent) % epsych.ui.OverviewSetup
+global RUNTIME
 
 g = uigridlayout(parent);
 g.RowHeight   = {'1x'};
@@ -77,7 +78,7 @@ obj.logPanel.Layout.Column = 2;
 obj.logPanel.Layout.Row = 1;
 obj.logPanel.BorderType = 'none';
 obj.logPanel.Visible = 'off';
-
+RUNTIME.Log.create_gui(obj.logPanel);
 
 
 

@@ -71,7 +71,7 @@ classdef OverviewSetup < handle
                     epsych.ui.ConfigSetup(obj.mainPanel,'logo');
                     expand(node);
 
-                case 'Conf'
+                case 'Conf' % Config
                     epsych.ui.ConfigSetup(obj.mainPanel,node.Tag(7:end));
                     
                 case 'parS' % parSubjects
@@ -94,7 +94,7 @@ classdef OverviewSetup < handle
                     
                     expand(node);
                     
-                case 'AddS'
+                case 'AddS' % AddSubject
                     h = node.Parent.Children;
                     sind = ismember({h.Tag},'AddSubject');
                     h(sind) = [];
@@ -135,7 +135,7 @@ classdef OverviewSetup < handle
                     
                     notify(RUNTIME,'RuntimeConfigChange');
                     
-                case 'Subj'
+                case 'Subj' % Subject_#
                     ind = ismember({RUNTIME.Subject.Name},event.SelectedNodes.Text);
                     S = RUNTIME.Subject(ind);
                     sdh = epsych.ui.SubjectDialog(S,obj.mainPanel);
@@ -144,7 +144,7 @@ classdef OverviewSetup < handle
                     
                     node.NodeData = sdh;
                     
-                case 'AddH'
+                case 'AddH' % AddHardware
                     hw = epsych.ui.HardwareSetup(obj.mainPanel);
                     if isempty(hw.Hardware) % user cancelled
                         obj.tree.SelectedNodes = obj.treeHardware;
@@ -184,7 +184,7 @@ classdef OverviewSetup < handle
                     addlistener(hw,'HardwareUpdated',@obj.hardware_updated);
                     
                     
-                case 'parH'                   
+                case 'parH' % parHardware
                     %m = metaclass('epsych.hw.Hardware'); % doesn't work??
                     fn = {'Name','Type','Description','Vendor','MaxNumInstances','Status'};
                     ml = max(cellfun(@length,fn))+1;
@@ -214,18 +214,15 @@ classdef OverviewSetup < handle
                     
                     expand(node);
                     
-                case 'Hard'
+                case 'Hard' % Hardware
                     ind = cellfun(@(a) startsWith(node.Text,a.Alias),RUNTIME.Hardware);
                     hardware = RUNTIME.Hardware{ind};
                     epsych.ui.HardwareSetup(obj.mainPanel,hardware);
                     
-                case 'Load'
+                case 'Load' % Load
                     obj.load_node;
                     
                 case 'Prog' % ProgramLog
-                    if isempty(obj.logPanel.Children)
-                        RUNTIME.Log.create_gui(obj.logPanel);
-                    end
                     obj.logPanel.Visible = 'on';
             end
             fig.Pointer = 'arrow';
