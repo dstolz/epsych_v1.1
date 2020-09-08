@@ -36,7 +36,7 @@ classdef ControlPanel < handle
                     parent = v;
                 else
                     error('epsych:ui:ControlPanel:InvalidInput','Inputs to epsych.ui.ControlPanel may be filename and/or parent container')
-                    clear obj
+                    clear obj %#ok<UNRCH>
                     return
                 end
             end
@@ -86,11 +86,15 @@ classdef ControlPanel < handle
 
         % Destructor
         function delete(obj)
+            global RUNTIME %#ok<NUSED>
+            
             log_write('Important','ControlPanel closing.')
             
             drawnow
                         
             delete(obj.Runtime);
+            
+            clear global RUNTIME
         end
         
         function closereq(obj,hObj,event)
