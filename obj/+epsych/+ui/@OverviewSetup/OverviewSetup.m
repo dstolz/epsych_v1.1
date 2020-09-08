@@ -176,7 +176,12 @@ classdef OverviewSetup < handle
                     expand(node);
                    
                 case 'AddH' % AddHardware
-                    hw = epsych.ui.HardwareSetup(obj.mainPanel);
+                    if isequal(event.EventName,'LoadedHardware')
+                        hw = epsych.ui.HardwareSetup(obj.mainPanel,event.LoadedData);
+                    else
+                        hw = epsych.ui.HardwareSetup(obj.mainPanel);
+                    end
+                    
                     if isempty(hw.Hardware) % user cancelled
                         obj.tree.SelectedNodes = obj.treeHardware;
                         obj.selection_changed(src,event);
@@ -287,7 +292,7 @@ classdef OverviewSetup < handle
                     extType = 'Subject';
                     
                 case 'Har'
-                    ext = '.ehar';
+                    ext = '.ehwr';
                     extType = 'Hardware';
             end
             
@@ -326,7 +331,7 @@ classdef OverviewSetup < handle
                     extType = 'Subject';
                     
                 case 'Har'
-                    ext = '.ehar';
+                    ext = '.ehwr';
                     extType = 'Hardware';
             end
             
