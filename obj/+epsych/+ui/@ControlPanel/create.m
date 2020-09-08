@@ -36,12 +36,13 @@ epsych.ui.NavigationSetup(hp);
 obj.ToolbarPanel = uipanel(g);
 obj.ToolbarPanel.Layout.Row = 1;
 obj.ToolbarPanel.Layout.Column = 1;
-obj.ToolbarPanel.BorderType = 'line';
+obj.ToolbarPanel.BorderType = 'none';
 
 gc = uigridlayout(obj.ToolbarPanel);
 gc.Padding = [0 0 0 0];
 gc.RowHeight = {'1x'};
-gc.ColumnWidth = {50,50,50,50,50,'1x',100};
+cw = 50;
+gc.ColumnWidth = repmat({cw},1,4);
 
 h = uibutton(gc);
 h.Text = '';
