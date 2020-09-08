@@ -51,6 +51,15 @@ switch lower(type)
         h.Layout.Column = 2;
         h.ValueChangedFcn = @obj.update_function;
         
+        h = uibutton(g,'Tag','UserInterface');
+        h.Layout.Row = 1;
+        h.Layout.Column = 3;
+        h.Text = '';
+        h.Tooltip = 'Locate a Matlab file';
+        h.Icon = epsych.Tool.icon('search_file');
+        h.ButtonPushedFcn = {@obj.locate_file,'*.m'};
+        
+        
         
         
         h = uilabel(g,'HorizontalAlignment','right');
@@ -63,6 +72,15 @@ switch lower(type)
         h.Layout.Row = 2;
         h.Layout.Column = 2;
         h.ValueChangedFcn = @obj.update_function;
+        
+        h = uibutton(g,'Tag','SaveFcn');
+        h.Layout.Row = 2;
+        h.Layout.Column = 3;
+        h.Text = '';
+        h.Tooltip = 'Locate a Matlab file';
+        h.Icon = epsych.Tool.icon('search_file');
+        h.ButtonPushedFcn = {@obj.locate_file,'*.m'};
+        
         
         
         
@@ -81,6 +99,7 @@ switch lower(type)
         h.Layout.Row = 3;
         h.Layout.Column = 3;
         h.Text = '';
+        h.Tooltip = 'Locate a directory';
         h.Icon = epsych.Tool.icon('search_folder');
         h.ButtonPushedFcn = @obj.locate_directory;
         
@@ -108,6 +127,7 @@ switch lower(type)
         h.Layout.Row = 1;
         h.Layout.Column = 3;
         h.Text = '';
+        h.Tooltip = 'Locate a Matlab file';
         h.Icon = epsych.Tool.icon('search_file');
         h.ButtonPushedFcn = {@obj.locate_file,'*.m'};
         
@@ -129,6 +149,7 @@ switch lower(type)
         h.Layout.Row = 2;
         h.Layout.Column = 3;
         h.Text = '';
+        h.Tooltip = 'Locate a Matlab file';
         h.Icon = epsych.Tool.icon('search_file');
         h.ButtonPushedFcn = {@obj.locate_file,'*.m'};
         
@@ -150,6 +171,7 @@ switch lower(type)
         h.Layout.Row = 3;
         h.Layout.Column = 3;
         h.Text = '';
+        h.Tooltip = 'Locate a Matlab file';
         h.Icon = epsych.Tool.icon('search_file');
         h.ButtonPushedFcn = {@obj.locate_file,'*.m'};
         
@@ -171,6 +193,7 @@ switch lower(type)
         h.Layout.Row = 4;
         h.Layout.Column = 3;
         h.Text = '';
+        h.Tooltip = 'Locate a Matlab file';
         h.Icon = epsych.Tool.icon('search_file');
         h.ButtonPushedFcn = {@obj.locate_file,'*.m'};
         
@@ -209,6 +232,7 @@ switch lower(type)
         h.Layout.Row = 1;
         h.Layout.Column = 3;
         h.Text = '';
+        h.Tooltip = 'Locate a directory';
         h.Icon = epsych.Tool.icon('search_folder');
         h.ButtonPushedFcn = @obj.locate_directory;
         
