@@ -248,6 +248,8 @@ classdef OverviewSetup < handle
             global RUNTIME
             
             node = obj.tree.SelectedNodes;
+            if ~isempty(node.Children), return; end
+            
             n = node.Text;
             nodeParent = node.Parent;
             delete(node);
