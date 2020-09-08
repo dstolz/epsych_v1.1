@@ -201,7 +201,7 @@ classdef NavigationSetup < handle
                     end
                     
                     h = node.Parent.Children;
-                    sind = ismember({h.Tag},'AddHardware');
+                    sind = ismember({h.Tag},{'AddHardware','LoadHardware'});
                     h(sind) = [];
                     if isempty(h)
                         str = hw.Hardware.Alias;
@@ -406,24 +406,54 @@ classdef NavigationSetup < handle
             
             obj.create(obj.parent);
             
-                        
-            ev.SelectedNodes = obj.treeSubject;
-            ev.EventName = 'LoadedSubject';
-            ind = arrayfun(@(a) isequal(a.Text,'< ADD >'),obj.treeSubjectNodes);
-            obj.tree.SelectedNodes = obj.treeSubjectNodes(ind);
+            node = obj.treeSubjectNodes(1);
             for i = 1:length(RUNTIME.Subject)
-                ev.LoadedData = RUNTIME.Subject(i);
-                obj.selection_changed([],ev);
+                h = uitreenode(obj.treeSubject,node, ...
+                    'Text',RUNTIME.Subject(i).Name, ...
+                    'Tag',sprintf('Subject_%d',i));
+                if RUNTIME.Subject(i).Active
+                    h.Icon = epsych.Tool.icon('mouse');
+                else
+                    h.Icon = epsych.Tool.icon('mouse_grey');
+                end
+                obj.add_contextmenu(h);
+                move(h,node,'before');
             end
             
-            ev.SelectedNodes = obj.treeHardware;
-            ev.EventName = 'LoadedHardware';
-            ind = arrayfun(@(a) isequal(a.Text,'< ADD >'),obj.treeHardwareNodes);
-            obj.tree.SelectedNodes = obj.treeHardwareNodes(ind);
+            node = obj.treeHardwareNodes(1);
             for i = 1:length(RUNTIME.Hardware)
-                ev.LoadedData = RUNTIME.Hardware{i};
-                obj.selection_changed([],ev);
+                h = uitreenode(obj.treeHardware,node, ...
+                    'Text',RUNTIME.Hardware{i}.Alias, ...
+                    'Tag',sprintf('Hardware_%d',i));
+                
+                ic = epsych.Tool.icon(RUNTIME.Hardware{i}.Vendor);
+                if exist(ic,'file')
+                    h.Icon = ic;
+                else
+                    h.Icon = epsych.Tool.icon('hardware');
+                end
+                
+                obj.add_contextmenu(h);
+                move(h,node,'before');
             end
+                        
+%             ev.SelectedNodes = obj.treeSubject;
+%             ev.EventName = 'LoadedSubject';
+%             ind = arrayfun(@(a) isequal(a.Text,'< ADD >'),obj.treeSubjectNodes);
+%             obj.tree.SelectedNodes = obj.treeSubjectNodes(ind);
+%             for i = 1:length(RUNTIME.Subject)
+%                 ev.LoadedData = RUNTIME.Subject(i);
+%                 obj.selection_changed([],ev);
+%             end
+%             
+%             ev.SelectedNodes = obj.treeHardware;
+%             ev.EventName = 'LoadedHardware';
+%             ind = arrayfun(@(a) isequal(a.Text,'< ADD >'),obj.treeHardwareNodes);
+%             obj.tree.SelectedNodes = obj.treeHardwareNodes(ind);
+%             for i = 1:length(RUNTIME.Hardware)
+%                 ev.LoadedData = RUNTIME.Hardware{i};
+%                 obj.selection_changed([],ev);
+%             end
             
             expand(obj.tree,'all');
         end
