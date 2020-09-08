@@ -21,15 +21,15 @@ switch lower(type)
                        '__  __/  __  /_/ /_  ___/_  / / /  ___/_  __ \\\n', ...
                        '_  /___  _  ____/_(__  )_  /_/ // /__ _  / / /\n', ...
                        '/_____/  /_/     /____/ _\\__, / \\___/ /_/ /_/ \n', ...
-                       '                        /____/                ']); 
+                       '                        /____/ ']); 
         info = epsych.Info;
-        str = sprintf('%s\nVersion %s',str,info.Version);
+        str = sprintf('%s  version %s',str,info.Version);
 
         h = uilabel(g);
         h.Layout.Row    = 1;
         h.Layout.Column = 1;
         h.Text = str;
-        h.HorizontalAlignment = 'right';
+        h.HorizontalAlignment = 'left';
         h.VerticalAlignment = 'top';
         h.FontSize = 18;
         h.FontName = 'Consolas';

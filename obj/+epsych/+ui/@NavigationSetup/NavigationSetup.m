@@ -38,7 +38,7 @@ classdef NavigationSetup < handle
             ev.EventName = 'Initialize';
             obj.selection_changed([],ev);
             
-            addlistener(RUNTIME,'RuntimeConfigChange',@obj.reset);
+            addlistener(RUNTIME,'RuntimeConfigLoaded',@obj.reset);
             
             if nargout == 0, clear obj; end
         end
@@ -51,6 +51,8 @@ classdef NavigationSetup < handle
         
         function selection_changed(obj,src,event)
             global RUNTIME
+            
+            loadFlag = startsWith(event.EventName,'Load');
             
             fig = ancestor(obj.parent,'figure');
             fig.Pointer = 'watch'; drawnow
@@ -97,7 +99,7 @@ classdef NavigationSetup < handle
                     
                 case 'AddS' % AddSubject
                     h = node.Parent.Children;
-                    sind = ismember({h.Tag},'AddSubject');
+                    sind = ismember({h.Tag},{'AddSubject','LoadSubject'});
                     h(sind) = [];
                     if isempty(h)
                         str = 'Unnamed Subject';
@@ -106,7 +108,7 @@ classdef NavigationSetup < handle
                         str = str{end};
                     end
                    
-                    if isequal(event.EventName,'LoadedSubject')
+                    if loadFlag
                         S = event.LoadedData;
                     else
                         S = epsych.expt.Subject;
@@ -118,10 +120,16 @@ classdef NavigationSetup < handle
                     
                     obj.tree.SelectedNodes = h;
                     
+                    
                     if isempty(RUNTIME.Subject)
                         RUNTIME.Subject = S;
                     else
-                        RUNTIME.Subject(end+1) = S;
+                        ind = ismember({RUNTIME.Subject.ID},S.ID);
+                        if any(ind)
+                            RUNTIME.Subject(ind) = S;
+                        else
+                            RUNTIME.Subject(end+1) = S;
+                        end
                     end
                     
                     h.Icon = epsych.Tool.icon('mouse');
@@ -134,7 +142,9 @@ classdef NavigationSetup < handle
                     ev.EventName = 'SubjectAdded';
                     obj.selection_changed(src,ev);
                     
-                    notify(RUNTIME,'RuntimeConfigChange');
+                    if ~loadFlag
+                        notify(RUNTIME,'RuntimeConfigChange');
+                    end
                     
                 case 'Subj' % Subject_#
                     ind = ismember({RUNTIME.Subject.Name},event.SelectedNodes.Text);
@@ -177,7 +187,7 @@ classdef NavigationSetup < handle
                     expand(node);
                    
                 case 'AddH' % AddHardware
-                    if isequal(event.EventName,'LoadedHardware')
+                    if loadFlag
                         hw = epsych.ui.HardwareSetup(obj.mainPanel,event.LoadedData);
                     else
                         hw = epsych.ui.HardwareSetup(obj.mainPanel);
@@ -387,11 +397,39 @@ classdef NavigationSetup < handle
         
         
         function reset(obj,hObj,event)
+            global RUNTIME
+            
             log_write('Debug','Resetting Navigation Panel')
 
+%             ind = ismember({obj.treeSubjectNodes.Text},{'< ADD >','< LOAD >'});
+%             obj.treeSubjectNodes(~ind) = [];
+%             
+%             ind = ismember({obj.treeHardwareNodes.Text},{'< ADD >','< LOAD >'});
+%             obj.treeHardwareNodes(~ind) = [];
+            
             delete(obj.tree);
+            delete([obj.mainPanel obj.logPanel]);
             
             obj.create(obj.parent);
+            
+                        
+            ev.SelectedNodes = obj.treeSubject;
+            ev.EventName = 'LoadedSubject';
+            ind = arrayfun(@(a) isequal(a.Text,'< ADD >'),obj.treeSubjectNodes);
+            obj.tree.SelectedNodes = obj.treeSubjectNodes(ind);
+            for i = 1:length(RUNTIME.Subject)
+                ev.LoadedData = RUNTIME.Subject(i);
+                obj.selection_changed([],ev);
+            end
+            
+            ev.SelectedNodes = obj.treeHardware;
+            ev.EventName = 'LoadedHardware';
+            ind = arrayfun(@(a) isequal(a.Text,'< ADD >'),obj.treeHardwareNodes);
+            obj.tree.SelectedNodes = obj.treeHardwareNodes(ind);
+            for i = 1:length(RUNTIME.Hardware)
+                ev.LoadedData = RUNTIME.Hardware{i};
+                obj.selection_changed([],ev);
+            end
             
             expand(obj.tree,'all');
         end

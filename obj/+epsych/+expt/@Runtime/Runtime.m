@@ -1,6 +1,6 @@
-classdef (ConstructOnLoad) Runtime < handle & dynamicprops
+classdef Runtime < handle & dynamicprops
     
-    properties
+    properties (Transient)
         Log             % epsych.log.Log
         ErrorMException (:,1) MException
     end
@@ -39,6 +39,7 @@ classdef (ConstructOnLoad) Runtime < handle & dynamicprops
     
     events
         RuntimeConfigChange
+        RuntimeConfigLoaded
         PreStateChange
         PostStateChange
     end

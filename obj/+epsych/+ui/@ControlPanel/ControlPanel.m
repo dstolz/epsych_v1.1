@@ -136,14 +136,14 @@ classdef ControlPanel < handle
         function save_config(obj,ffn,~,~)            
             prevState = epsych.Tool.figure_state(obj.parent,false);
             
+            pn = getpref('epsych_Config','configPath',obj.Runtime.Config.UserDirectory);
             if nargin == 1 || isequal(ffn,'default')
-                ffn = fullfile(obj.Runtime.Config.UserDirectory,'EPsychRuntimeConfig.mat');
+                ffn = fullfile(pn,'EPsychRuntimeConfig.mat');
             elseif ishandle(ffn) % coming from callback
                 ffn = [];
             end
             
             if isempty(ffn)
-                pn = getpref('epsych_Config','configPath',cd);
                 [fn,pn] = uiputfile( ...
                     {'*.epcf', 'EPsych Configuration File'}, ...
                     'Select Configuration File', ...
@@ -168,6 +168,8 @@ classdef ControlPanel < handle
         
         
         function load_config(obj,ffn,~,~)
+            global RUNTIME
+            
             if ~obj.Runtime.ConfigIsSaved
                 r = uiconfirm(obj.parent,'There have been changes made to the current configuration.  Would you like to first save the current configuration?', ...
                     'Load Config','Icon','question', ...
@@ -204,6 +206,13 @@ classdef ControlPanel < handle
                 
                 ffn = fullfile(pn,fn);
             end
+
+                        
+            hl = obj.Runtime.AutoListeners__; % undocumented
+            hl(cellfun(@(a) isequal(class(a),'event.proplistener'),hl)) = [];
+
+            log_write('Debug','Disabling %d listeners',length(hl))
+            for i = 1:length(hl), hl{i}.Enabled = 0; end
             
             warning('off','MATLAB:class:mustReturnObject');
             x = who('-file',ffn,'RUNTIME');
@@ -212,50 +221,33 @@ classdef ControlPanel < handle
             if isempty(x)
                 log_write('Verbose','Invalid Config file: %s',ffn)
                 log_write('Error','Unable to load the configuration: "%s"',ffn);
+                log_write('GUIerror','Unable to load the configuration:\n\n"%s"',ffn);
                 return
             end
             
-            hl = obj.Runtime.AutoListeners__; % undocumented
-
+            
+            log = RUNTIME.Log;
+            
             load(ffn,'-mat','RUNTIME');
+            
+            RUNTIME.Log = copy(log);
+            obj.Runtime = RUNTIME;
 
             for i = 1:length(hl)
-                if isequal(class(hl{i}),'event.proplistener')
-                    addlistener(obj.Runtime,hl{1}.Source{1}.Name,hl{i}.EventName,hl{i}.Callback);
-                else
-                    addlistener(obj.Runtime,hl{i}.EventName,hl{i}.Callback);
-                end
+                addlistener(obj.Runtime,hl{i}.EventName,hl{i}.Callback);
             end
-            
+
+            log_write('Debug','notify "RuntimeConfigChange" after load config')
+            notify(obj.Runtime,'RuntimeConfigLoaded');
             
             log_write('Verbose','Loaded Runtime Config file: %s',ffn)
 
             [pn,~] = fileparts(ffn);
             setpref('epsych_Config','configPath',pn);
             
-%             obj.reset_ui_objects;
-            
-            notify(obj.Runtime,'RuntimeConfigChange');
-            
             figure(obj.parent); % unhide gui
+            
         end
-        
-        
-%         function reset_ui_objects(obj)
-%             if ~isempty(obj.Runtime.Config)
-%                 obj.RuntimeConfigSetupObj.Config = obj.Runtime.Config;
-%             end
-% 
-%             if ~isempty(obj.Runtime.Subject)
-%                 obj.SubjectSetupObj.Subject = obj.Runtime.Subject;
-%             end
-% 
-%             if ~isempty(obj.Runtime.Hardware)
-%                 obj.HardwareSetupObj.Hardware = obj.Runtime.Hardware;
-%             end
-%             
-%             
-%         end
         
 
     end

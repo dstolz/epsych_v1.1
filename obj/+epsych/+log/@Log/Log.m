@@ -1,4 +1,4 @@
-classdef Log < handle
+classdef Log < handle & matlab.mixin.Copyable
     % L = epsych.log.Log([logFilename],[parent]);
     %
     % Verbosity controlled message logging.
