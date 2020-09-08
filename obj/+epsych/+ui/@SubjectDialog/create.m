@@ -168,9 +168,10 @@ R = R + 1;
 obj.NoteTextArea = uitextarea(g,'Tag','Note','CreateFcn',@obj.create_field);
 obj.NoteTextArea.Layout.Row = R;
 obj.NoteTextArea.Layout.Column = [1 2];
-obj.NoteTextArea.Value = '< Notes >';
 obj.NoteTextArea.ValueChangedFcn = @obj.update_field;
-
+if isempty(obj.NoteTextArea.Value)
+    obj.NoteTextArea.Value = '< Subject Notes >';
+end
 
 
 if isequal(class(obj.parent),'matlab.ui.container.Figure')
