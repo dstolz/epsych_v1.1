@@ -3,7 +3,7 @@ classdef RuntimeControl < handle
 
     properties (Access = protected)
         StateLabel   matlab.ui.control.Label
-        StateLamp    matlab.ui.control.Lamp
+        %StateLamp    matlab.ui.control.Lamp
         StateIcon    matlab.ui.control.UIAxes
         PauseButton  matlab.ui.control.Button
         RunButton    matlab.ui.control.Button
@@ -24,7 +24,7 @@ classdef RuntimeControl < handle
             
             if nargin == 2, obj.Orientation = Orientation; end
             
-            create(obj,parent)
+            obj.create(parent)
             
             obj.parent = parent;
 
