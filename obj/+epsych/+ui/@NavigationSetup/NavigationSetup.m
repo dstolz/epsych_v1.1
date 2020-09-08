@@ -400,12 +400,6 @@ classdef NavigationSetup < handle
             global RUNTIME
             
             log_write('Debug','Resetting Navigation Panel')
-
-%             ind = ismember({obj.treeSubjectNodes.Text},{'< ADD >','< LOAD >'});
-%             obj.treeSubjectNodes(~ind) = [];
-%             
-%             ind = ismember({obj.treeHardwareNodes.Text},{'< ADD >','< LOAD >'});
-%             obj.treeHardwareNodes(~ind) = [];
             
             delete(obj.tree);
             delete([obj.mainPanel obj.logPanel]);
