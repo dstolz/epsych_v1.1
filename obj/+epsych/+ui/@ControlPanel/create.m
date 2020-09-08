@@ -29,7 +29,7 @@ hp = uipanel(g);
 hp.Layout.Row = [2 4];
 hp.Layout.Column = [1 2];
 hp.BorderType = 'none';
-epsych.ui.OverviewSetup(hp);
+epsych.ui.NavigationSetup(hp);
 
 
 % Create "Toolbar"

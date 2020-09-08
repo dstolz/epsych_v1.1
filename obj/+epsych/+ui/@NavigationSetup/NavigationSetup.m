@@ -1,4 +1,4 @@
-classdef OverviewSetup < handle
+classdef NavigationSetup < handle
     
     
     properties (Access = protected)
@@ -22,10 +22,12 @@ classdef OverviewSetup < handle
         create(obj,parent);
         
         % Constructor
-        function obj = OverviewSetup(parent)
+        function obj = NavigationSetup(parent)
+            global RUNTIME
+            
             narginchk(1,1)
             
-            create(obj,parent)
+            obj.create(parent)
             
             obj.parent = parent;
             
@@ -36,12 +38,11 @@ classdef OverviewSetup < handle
             ev.EventName = 'Initialize';
             obj.selection_changed([],ev);
             
+            addlistener(RUNTIME,'RuntimeConfigChange',@obj.reset);
+            
             if nargout == 0, clear obj; end
         end
         
-        function delete(obj)
-            delete(obj.parent)
-        end
         
         
     end % methods (Access = public)
@@ -280,8 +281,7 @@ classdef OverviewSetup < handle
         end
         
         
-        
-        function load_node(obj,hObj,event)            
+        function load_node(obj,hObj,event)
             global RUNTIME
 
             node = obj.tree.SelectedNodes;
@@ -373,6 +373,7 @@ classdef OverviewSetup < handle
             notify(RUNTIME,'RuntimeConfigChange');
         end
         
+        
         function hardware_updated(obj,hObj,event)
             global RUNTIME
             
@@ -384,6 +385,16 @@ classdef OverviewSetup < handle
             notify(RUNTIME,'RuntimeConfigChange');
         end
         
+        
+        function reset(obj,hObj,event)
+            log_write('Debug','Resetting Navigation Panel')
+
+            delete(obj.tree);
+            
+            obj.create(obj.parent);
+            
+            expand(obj.tree,'all');
+        end
         
     end % methods (Access = private)
     
