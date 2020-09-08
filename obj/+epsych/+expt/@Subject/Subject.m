@@ -4,7 +4,7 @@ classdef Subject < handle & dynamicprops & matlab.mixin.Copyable
         Name            (1,:) char {mustBeNonempty} = 'NO NAME';
         DOB             (1,1) datetime = datetime('today');
         ID              (1,:) char
-        Sex             (1,:) char {mustBeMember(Sex,{'male','female','unknown'})} = 'unknown';
+        Sex             (1,:) char {mustBeMember(Sex,{'male','female'})} = 'female';
         BaselineWeight  (1,1) double {mustBePositive,mustBeFinite} = 1;
         ProtocolFile    (1,:) char
         BitmaskFile     (1,:) char    
