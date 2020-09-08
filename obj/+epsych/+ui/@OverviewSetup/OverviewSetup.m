@@ -144,6 +144,37 @@ classdef OverviewSetup < handle
                     
                     node.NodeData = sdh;
                     
+                    
+                case 'parH' % parHardware
+                    %m = metaclass('epsych.hw.Hardware'); % doesn't work??
+                    fn = {'Name','Type','Description','Vendor','MaxNumInstances','Status'};
+                    ml = max(cellfun(@length,fn))+1;
+                    
+                    ahw = epsych.hw.Hardware.available;
+                    
+                    p = sprintf('Available Hardware Modules:\n\n');
+                    for h = 1:length(ahw)
+                        for i = 1:length(fn)
+                            hw = epsych.hw.(ahw{h});
+                            v = hw.(fn{i});
+                            if isnumeric(v), v = mat2str(v); end
+                            p = sprintf('%s% *s: %s\n',p,ml,fn{i},v);
+                        end
+                        p = sprintf('%s%s\n',p,repmat('-',1,50));
+                    end
+                    
+                    g = uigridlayout(obj.mainPanel);
+                    g.RowHeight = {'1x'};
+                    g.ColumnWidth = {'1x'};
+                    h = uitextarea(g);
+                    h.Value = p;
+                    h.FontName = 'Consolas';
+                    h.FontSize = 16;
+                    h.BackgroundColor = [1 1 1];
+                    h.Editable = 'off';
+                    
+                    expand(node);
+                   
                 case 'AddH' % AddHardware
                     hw = epsych.ui.HardwareSetup(obj.mainPanel);
                     if isempty(hw.Hardware) % user cancelled
@@ -182,38 +213,7 @@ classdef OverviewSetup < handle
                     log_write('Verbose','Added Hardware: "%s"',str);
                     
                     addlistener(hw,'HardwareUpdated',@obj.hardware_updated);
-                    
-                    
-                case 'parH' % parHardware
-                    %m = metaclass('epsych.hw.Hardware'); % doesn't work??
-                    fn = {'Name','Type','Description','Vendor','MaxNumInstances','Status'};
-                    ml = max(cellfun(@length,fn))+1;
-                    
-                    ahw = epsych.hw.Hardware.available;
-                    
-                    p = sprintf('Available Hardware Modules:\n\n');
-                    for h = 1:length(ahw)
-                        for i = 1:length(fn)
-                            hw = epsych.hw.(ahw{h});
-                            v = hw.(fn{i});
-                            if isnumeric(v), v = mat2str(v); end
-                            p = sprintf('%s% *s: %s\n',p,ml,fn{i},v);
-                        end
-                        p = sprintf('%s%s\n',p,repmat('-',1,50));
-                    end
-                    
-                    g = uigridlayout(obj.mainPanel);
-                    g.RowHeight = {'1x'};
-                    g.ColumnWidth = {'1x'};
-                    h = uitextarea(g);
-                    h.Value = p;
-                    h.FontName = 'Consolas';
-                    h.FontSize = 16;
-                    h.BackgroundColor = [1 1 1];
-                    h.Editable = 'off';
-                    
-                    expand(node);
-                    
+                     
                 case 'Hard' % Hardware
                     ind = cellfun(@(a) startsWith(node.Text,a.Alias),RUNTIME.Hardware);
                     hardware = RUNTIME.Hardware{ind};
