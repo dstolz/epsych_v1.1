@@ -1,13 +1,6 @@
 classdef ControlPanel < handle
     
-    properties        
-        OverviewObj             % epsych.ui.OverviewSetup
-        RuntimeControlObj       % epsych.ui.RuntimeControl
-        SubjectSetupObj         % epsych.ui.SubjectSetup
-        HardwareSetupObj        % epsych.ui.HardwareSetup
-        RuntimeConfigSetupObj   % epsych.ui.ConfigSetup
-        ShortcutsObj            % epsych.ui.Shortcuts
-        
+    properties
         Runtime % handle to epsych.expt.Runtime
     end
     
@@ -23,7 +16,7 @@ classdef ControlPanel < handle
         AlwaysOnTopCheckbox     % epsych.ui.FigOnTop
     end
     
-    properties (SetAccess = private)
+    properties (SetAccess = private, Hidden)
         parent              % any matlab.ui.container
     end
     
@@ -236,7 +229,7 @@ classdef ControlPanel < handle
             [pn,~] = fileparts(ffn);
             setpref('epsych_Config','configPath',pn);
             
-            obj.reset_ui_objects;
+%             obj.reset_ui_objects;
             
             notify(obj.Runtime,'RuntimeConfigChange');
             
@@ -244,21 +237,21 @@ classdef ControlPanel < handle
         end
         
         
-        function reset_ui_objects(obj)
-            if ~isempty(obj.Runtime.Config)
-                obj.RuntimeConfigSetupObj.Config = obj.Runtime.Config;
-            end
-
-            if ~isempty(obj.Runtime.Subject)
-                obj.SubjectSetupObj.Subject = obj.Runtime.Subject;
-            end
-
-            if ~isempty(obj.Runtime.Hardware)
-                obj.HardwareSetupObj.Hardware = obj.Runtime.Hardware;
-            end
-            
-            
-        end
+%         function reset_ui_objects(obj)
+%             if ~isempty(obj.Runtime.Config)
+%                 obj.RuntimeConfigSetupObj.Config = obj.Runtime.Config;
+%             end
+% 
+%             if ~isempty(obj.Runtime.Subject)
+%                 obj.SubjectSetupObj.Subject = obj.Runtime.Subject;
+%             end
+% 
+%             if ~isempty(obj.Runtime.Hardware)
+%                 obj.HardwareSetupObj.Hardware = obj.Runtime.Hardware;
+%             end
+%             
+%             
+%         end
         
 
     end

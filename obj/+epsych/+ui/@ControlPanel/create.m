@@ -83,7 +83,7 @@ obj.ParameterizeButton = h;
 obj.RuntimePanel = uipanel(g);
 obj.RuntimePanel.Layout.Row = [2 3];
 obj.RuntimePanel.Layout.Column = 3;
-obj.RuntimeControlObj = epsych.ui.RuntimeControl(obj.RuntimePanel,'vertical');
+epsych.ui.RuntimeControl(obj.RuntimePanel,'vertical');
 
 
 % Create AlwaysOnTop
