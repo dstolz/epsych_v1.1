@@ -437,23 +437,12 @@ classdef NavigationSetup < handle
                 move(h,node,'before');
             end
                         
-%             ev.SelectedNodes = obj.treeSubject;
-%             ev.EventName = 'LoadedSubject';
-%             ind = arrayfun(@(a) isequal(a.Text,'< ADD >'),obj.treeSubjectNodes);
-%             obj.tree.SelectedNodes = obj.treeSubjectNodes(ind);
-%             for i = 1:length(RUNTIME.Subject)
-%                 ev.LoadedData = RUNTIME.Subject(i);
-%                 obj.selection_changed([],ev);
-%             end
-%             
-%             ev.SelectedNodes = obj.treeHardware;
-%             ev.EventName = 'LoadedHardware';
-%             ind = arrayfun(@(a) isequal(a.Text,'< ADD >'),obj.treeHardwareNodes);
-%             obj.tree.SelectedNodes = obj.treeHardwareNodes(ind);
-%             for i = 1:length(RUNTIME.Hardware)
-%                 ev.LoadedData = RUNTIME.Hardware{i};
-%                 obj.selection_changed([],ev);
-%             end
+            obj.tree.SelectedNodes = obj.treeConfig;
+            ev.SelectedNodes = obj.treeConfig;
+            ev.PreviousSelectedNodes = [];
+            ev.Source = [];
+            ev.EventName = 'Initialize';
+            obj.selection_changed([],ev);
             
             expand(obj.tree,'all');
         end
