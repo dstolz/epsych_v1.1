@@ -52,7 +52,7 @@ classdef SubjectDialog < handle
         end
 
         function create_field(obj,hObj,event)
-            if contains(hObj.Tag,'File')
+            if endsWith(hObj.Tag,'File')
                 hObj.Tooltip = obj.Subject.(hObj.Tag);
                 [~,fn] = fileparts(obj.Subject.(hObj.Tag));
                 hObj.Value = fn;

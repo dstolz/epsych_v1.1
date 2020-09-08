@@ -71,10 +71,9 @@ h.Layout.Row = R;
 h.Layout.Column = 1;
 h.HorizontalAlignment = 'right';
 
-obj.SexDropDown = uidropdown(g,'Tag','Sex','Items',{'male','female','unknown'},'CreateFcn',@obj.create_field);
+obj.SexDropDown = uidropdown(g,'Tag','Sex','Items',{'male','female'},'CreateFcn',@obj.create_field);
 obj.SexDropDown.Layout.Row = R;
 obj.SexDropDown.Layout.Column = 2;
-obj.SexDropDown.Value = 'unknown';
 obj.SexDropDown.ValueChangedFcn = @obj.update_field;
 
 
