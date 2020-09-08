@@ -38,7 +38,7 @@ classdef HardwareSetup < handle
                 return
             end
             
-            obj.update_hardware;
+            obj.update_hardware(obj.Hardware);
             
             obj.Hardware.setup(obj.HardwarePanel);
                         
