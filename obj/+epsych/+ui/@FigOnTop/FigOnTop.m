@@ -29,6 +29,7 @@ classdef FigOnTop < handle
             end
 
             if nargin >= 3 && ~isempty(prefGroup)
+                drawnow
                 obj.prefGroup = prefGroup;
                 obj.usePref = true;
                 state = getpref(obj.prefGroup,obj.prefVar,state);
