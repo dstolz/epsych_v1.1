@@ -207,7 +207,9 @@ classdef ControlPanel < handle
                 ffn = fullfile(pn,fn);
             end
 
-                        
+            fig = ancestor(obj.parent,'figure');
+            fig.Pointer = 'watch'; drawnow
+            
             hl = obj.Runtime.AutoListeners__; % undocumented
             hl(cellfun(@(a) isequal(class(a),'event.proplistener'),hl)) = [];
 
@@ -245,8 +247,8 @@ classdef ControlPanel < handle
             [pn,~] = fileparts(ffn);
             setpref('epsych_Config','configPath',pn);
             
-            figure(obj.parent); % unhide gui
-            
+            figure(fig); % unhide gui
+            fig.Pointer = 'arrow';
         end
         
 
