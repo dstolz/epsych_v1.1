@@ -131,13 +131,13 @@ classdef Runtime < handle & dynamicprops
                         
                     case {epsych.enState.Run, epsych.enState.Preview}
                         for i = 1:numel(obj.Hardware)
-                            obj.Log.write('Important','Preparing Hardware: "%s"',obj.Hardware(i).Name)
+                            obj.Log.write('Important','Preparing Hardware: "%s"',obj.Hardware{i}.Name)
                             
-                            e = obj.Hardware(i).prepare;
+                            e = obj.Hardware{i}.prepare;
                             
                             if e
-                                obj.Log.write('Critical','Failed to prepare hardware: "%s"',obj.Hardware(i).Name)
-                                obj.Log.write('Error',obj.ErrorME);
+                                obj.Log.write('Critical','Failed to prepare hardware: "%s"',obj.Hardware{i}.Name)
+                                obj.Log.write('Error',obj.Hardware{i}.ErrorME);
                                 obj.State = epsych.enState.Error;
                                 return
                             end
