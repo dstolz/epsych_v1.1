@@ -3,19 +3,10 @@ function e = prepare(obj) % TDTActiveX
 %
 % Returns e=true if an error occured and updates obj.ErrorME with a MException
 
-if obj.enStatus == epsych.hw.enStatus.Running
+if obj.Status == epsych.hw.enStatus.Running
     log_write('Verbose','RPco.X already connected, loaded, and running.\n')
     return
 end
-
-e = ~exist(obj.RPvdsFile,'file');
-
-if ~e
-    obj.ErrorME = MException('epsych:TDTActiveX:prepare:fileNotFound', ...
-        'File does not exist: "%s"',obj.RPvdsFile);
-    return
-end
-
 
 if isempty(obj.emptyFig)
     obj.emptyFig = figure('Visible','off','Name','RPfig');
@@ -24,6 +15,15 @@ end
 for i = 1:length(obj.Module)
 
     M = obj.Module(i);
+    
+    e = exist(M.RPvds,'file') == 2;
+    
+    if ~e
+        obj.ErrorME = MException('epsych:TDTActiveX:prepare:fileNotFound', ...
+            'File does not exist: "%s"',M.RPvds);
+        return
+    end
+    
 
     M.handle = actxcontrol('RPco.x','parent',obj.emptyFig);
     
@@ -43,9 +43,9 @@ for i = 1:length(obj.Module)
     M.handle.ClearCOF;
     
     if M.Fs >= 0
-        e = M.handle.LoadCOFsf(M.RPvds,M.Fs);
+        e = ~M.handle.LoadCOFsf(M.RPvds,M.Fs);
     else
-        e = M.handle.LoadCOF(M.RPvds);
+        e = ~M.handle.LoadCOF(M.RPvds);
     end
     
     if e
