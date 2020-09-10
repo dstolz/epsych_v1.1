@@ -1,8 +1,8 @@
 function obj = epsych(varargin)
 
-w = which('epsych.expt.Runtime');
-if isequal(w,'Not on MATLAB path')
-    epsych_startup(fileparts(mfilename));
+w = which('log_write');
+if isempty(w)
+    epsych_startup(fileparts(which(mfilename)));
 end
 
 obj = epsych.ui.ControlPanel(varargin{:});
