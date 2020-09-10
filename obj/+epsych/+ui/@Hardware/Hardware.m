@@ -2,7 +2,7 @@ classdef Hardware < handle
 
     
     properties
-        Hardware    % epsych.hw.(Abstraction)
+        HardwareObj    % epsych.hw.(Abstraction)
     end
     
     properties (SetAccess = private)
@@ -20,27 +20,27 @@ classdef Hardware < handle
     methods
         create(obj,parent);
         
-        function obj = Hardware(parent,Hardware)
+        function obj = Hardware(parent,HardwareObj)
             global RUNTIME
             
-            if nargin < 2, Hardware = []; end
+            if nargin < 2, HardwareObj = []; end
             
             obj.parent = parent;
             obj.create(parent);
             
-            if isempty(Hardware)
+            if isempty(HardwareObj)
                 obj.add_hardware;
             else
-                obj.Hardware = Hardware;
+                obj.HardwareObj = HardwareObj;
             end
             
-            if isempty(obj.Hardware)
+            if isempty(obj.HardwareObj)
                 return
             end
             
-            obj.update_hardware(obj.Hardware);
+            obj.update_hardware(obj.HardwareObj);
             
-            obj.Hardware.setup(obj.HardwarePanel);
+            obj.HardwareObj.setup(obj.HardwarePanel);
                         
             h = findobj(parent,'tag','hardwareAlias');
             
@@ -48,7 +48,7 @@ classdef Hardware < handle
             ua = cellfun(@(a) a.Alias,RUNTIME.Hardware,'uni',0);
             ua = matlab.lang.makeUniqueStrings(ua);
             RUNTIME.Hardware{end}.Alias = ua{end};
-            obj.Hardware = RUNTIME.Hardware{end};
+            obj.HardwareObj = RUNTIME.Hardware{end};
             h.Value = ua{end};
         end
 
@@ -59,14 +59,14 @@ classdef Hardware < handle
             if nargin < 2, hObj = []; end
 
             if isempty(RUNTIME.Hardware)
-                RUNTIME.Hardware = {obj.Hardware};                
+                RUNTIME.Hardware = {obj.HardwareObj};                
             else
                 ind = cellfun(@(a) isequal(a,hObj),RUNTIME.Hardware);
                 if ~any(ind), ind = numel(RUNTIME.Hardware)+1; end
-                RUNTIME.Hardware{ind} = obj.Hardware;
+                RUNTIME.Hardware{ind} = obj.HardwareObj;
             end
             
-            ev = epsych.evHardwareUpdated(obj,obj.Hardware);
+            ev = epsych.evHardwareUpdated(obj,obj.HardwareObj);
             notify(obj,'HardwareUpdated',ev);
         end
 
@@ -93,7 +93,7 @@ classdef Hardware < handle
                 return
             end
             
-            hw = obj.Hardware;
+            hw = obj.HardwareObj;
             if ~isempty(hw)
                 hwlist = setdiff(hwlist,cellfun(@(a) a.Name,hw,'uni',0));
             end
@@ -119,7 +119,7 @@ classdef Hardware < handle
 
             if ~ok, return; end
             
-            obj.Hardware = epsych.hw.(hwlist{sel})(obj);
+            obj.HardwareObj = epsych.hw.(hwlist{sel})(obj);
             
         end
 
@@ -129,7 +129,7 @@ classdef Hardware < handle
 
     methods (Access = private)
         function alias_changed(obj,hObj,evnt)
-            obj.Hardware.Alias = hObj.Value;
+            obj.HardwareObj.Alias = hObj.Value;
             obj.update_hardware;
         end
     end % methods (Access = private)

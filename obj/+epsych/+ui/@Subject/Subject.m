@@ -8,7 +8,7 @@ classdef Subject < handle
     % Subject data is in h.Subject
 
     properties
-        Subject    (1,1) epsych.expt.Subject
+        SubjectObj    (1,1) epsych.expt.Subject
     end
 
     properties (Access = protected)
@@ -41,9 +41,9 @@ classdef Subject < handle
     methods
         create(obj,parent)
 
-        function obj = Subject(Subject,parent)
-            if nargin == 0, obj.Subject = epsych.expt.Subject; end
-            if nargin > 0 && ~isempty(Subject), obj.Subject = Subject; end
+        function obj = Subject(SubjectObj,parent)
+            if nargin == 0, obj.SubjectObj = epsych.expt.Subject; end
+            if nargin > 0 && ~isempty(SubjectObj), obj.SubjectObj = SubjectObj; end
             if nargin < 2, parent = []; end
 
             obj.create(parent);
@@ -53,27 +53,27 @@ classdef Subject < handle
 
         function create_field(obj,hObj,event)
             if endsWith(hObj.Tag,'File')
-                hObj.Tooltip = obj.Subject.(hObj.Tag);
-                [~,fn] = fileparts(obj.Subject.(hObj.Tag));
+                hObj.Tooltip = obj.SubjectObj.(hObj.Tag);
+                [~,fn] = fileparts(obj.SubjectObj.(hObj.Tag));
                 hObj.Value = fn;
             else
-                hObj.Value = obj.Subject.(hObj.Tag);
+                hObj.Value = obj.SubjectObj.(hObj.Tag);
             end
         end
 
         function update_field(obj,hObj,event)
             try
-                obj.Subject.(hObj.Tag) = event.Value;
+                obj.SubjectObj.(hObj.Tag) = event.Value;
 
             catch me
-                obj.Subject.(hObj.Tag) = event.PreviousValue;
+                obj.SubjectObj.(hObj.Tag) = event.PreviousValue;
                 s = event.Value;
                 if isnumeric(s), s = num2str(s); end
                 uialert(obj.parent,'Invalid Entry', ...
                     'You entered an invalid value: %s',s);
             end
             
-            ev = epsych.ui.evSubjectDialog(obj.Subject,hObj,event);
+            ev = epsych.ui.evSubjectDialog(obj.SubjectObj,hObj,event);
             notify(obj,'FieldUpdated',ev);
         end
 

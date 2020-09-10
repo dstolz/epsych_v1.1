@@ -2,7 +2,7 @@ classdef Config < handle
     % User-settable functions, directories, and options
     
     properties
-        Config  epsych.expt.Config = epsych.expt.Config;
+        ConfigObj  epsych.expt.Config = epsych.expt.Config;
     end
 
     properties (SetAccess = immutable)
@@ -21,7 +21,7 @@ classdef Config < handle
             obj.type = type;
         end
 
-        function set.Config(obj,C)
+        function set.ConfigObj(obj,C)
             % TODO: Update fields based on new Config
             m = metaclass(C);
             ind = ismember({m.PropertyList.SetAccess},'public');
@@ -41,7 +41,7 @@ classdef Config < handle
         end
 
         function create_field(obj,hObj,event)
-            v = obj.Config.(hObj.Tag);
+            v = obj.ConfigObj.(hObj.Tag);
             if isa(v,'function_handle')
                 hObj.Value = func2str(v);
             else
@@ -52,10 +52,10 @@ classdef Config < handle
         function update_function(obj,hObj,event)
             global RUNTIME
             hObj.Value = epsych.Tool.check_function(event);
-            obj.Config.(hObj.Tag) = str2func(hObj.Value);
+            obj.ConfigObj.(hObj.Tag) = str2func(hObj.Value);
             log_write('Verbose','Updated value of "%s" to %s',hObj.Tag,hObj.Value)
 
-            RUNTIME.Config = copy(obj.Config);
+            RUNTIME.Config = copy(obj.ConfigObj);
         end
 
         function update_directory(obj,hObj,event)
@@ -73,16 +73,16 @@ classdef Config < handle
                 mkdir(event.Value);
                 
             end
-            obj.Config.(hObj.Tag) = event.Value;
+            obj.ConfigObj.(hObj.Tag) = event.Value;
 
-            RUNTIME.Config = copy(obj.Config);
+            RUNTIME.Config = copy(obj.ConfigObj);
 
             log_write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %s',hObj.Tag,event.Value)
         end
 
         function update_checkbox(obj,hObj,event)
             global RUNTIME
-            obj.Config.(hObj.Tag) = event.Value;
+            obj.ConfigObj.(hObj.Tag) = event.Value;
             log_write(epsych.log.Verbosity.Verbose,'Updated value of "%s" to %d',hObj.Tag,event.Value)
 
             % one-off
@@ -90,7 +90,7 @@ classdef Config < handle
                 setpref('epsych_Config','AutoLoadRuntimeConfig',event.Value)
             end
 
-            RUNTIME.Config = copy(obj.Config);
+            RUNTIME.Config = copy(obj.ConfigObj);
         end
 
         function locate_file(obj,hObj,event,ext)
@@ -124,9 +124,9 @@ classdef Config < handle
         
         function locate_directory(obj,hObj,event)
             global RUNTIME
-            d = uigetdir(obj.Config.(hObj.Tag),'Choose a Directory');
+            d = uigetdir(obj.ConfigObj.(hObj.Tag),'Choose a Directory');
             if isequal(d,0), return; end
-            obj.Config.(hObj.Tag) = d;
+            obj.ConfigObj.(hObj.Tag) = d;
             h = findall(0,'Tag',hObj.Tag,'-and','Type','uieditfield');
             h.Value = d;
 
@@ -134,7 +134,7 @@ classdef Config < handle
                 epsych.Tool.restart_required(obj.parent);
             end
 
-            RUNTIME.Config = copy(obj.Config);
+            RUNTIME.Config = copy(obj.ConfigObj);
         end
     end % methods
 

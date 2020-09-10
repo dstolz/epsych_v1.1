@@ -193,7 +193,7 @@ classdef Navigation < handle
                         hw = epsych.ui.Hardware(obj.mainPanel);
                     end
                     
-                    if isempty(hw.Hardware) % user cancelled
+                    if isempty(hw.HardwareObj) % user cancelled
                         obj.tree.SelectedNodes = obj.treeHardware;
                         obj.selection_changed(src,event);
                         log_write('Verbose','No more hardware is available.')
@@ -204,18 +204,18 @@ classdef Navigation < handle
                     sind = ismember({h.Tag},{'AddHardware','LoadHardware'});
                     h(sind) = [];
                     if isempty(h)
-                        str = hw.Hardware.Alias;
+                        str = hw.HardwareObj.Alias;
                     else
-                        str = matlab.lang.makeUniqueStrings([{h.Text} {hw.Hardware.Alias}]);
+                        str = matlab.lang.makeUniqueStrings([{h.Text} {hw.HardwareObj.Alias}]);
                         str = str{end};
                     end
-                    str = strcat(str,' [',hw.Hardware.Name,']');
+                    str = strcat(str,' [',hw.HardwareObj.Name,']');
                     h = uitreenode(node.Parent,node,'Text',str,'Tag',sprintf('Hardware_%d',length(h)+1));
                     move(h,node,'before');
                     
                     h.NodeData = hw;
                     
-                    ic = epsych.Tool.icon(hw.Hardware.Vendor);
+                    ic = epsych.Tool.icon(hw.HardwareObj.Vendor);
                     if exist(ic,'file')
                         h.Icon = ic;
                     else
