@@ -169,7 +169,6 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
 
             D = hObj.Data;
             
-            
             switch col
                 case 1 % Module
                 case 2 % Index
@@ -241,7 +240,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
 %             % TODO: NEED SOME HARDWARE INDEX ID
 %             RUNTIME.Hardware = copy(obj);
 
-            obj.hwSetup.update_hardware(obj);
+            obj.hwSetup.update(obj);
         end
 
         function select_rpvds_file(obj,hObj,event)

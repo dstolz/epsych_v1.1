@@ -1,7 +1,7 @@
 function obj = epsych(varargin)
 
 w = which('epsych.expt.Runtime');
-if isempty(w)
+if isequal(w,'Not on MATLAB path')
     epsych_startup(fileparts(mfilename));
 end
 

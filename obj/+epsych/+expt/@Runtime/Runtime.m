@@ -2,7 +2,7 @@ classdef Runtime < handle & dynamicprops
     
     properties (Transient)
         Log             % epsych.log.Log
-        ErrorMException (:,1) MException
+        ErrorMException (:,1) MException        
     end
     
     properties (SetObservable,AbortSet)
@@ -13,11 +13,11 @@ classdef Runtime < handle & dynamicprops
     
     properties (Transient,SetObservable,AbortSet)
         State           (1,1) epsych.enState
-        ReadyToBegin    (1,1) logical = false;
     end
     
     properties (SetAccess = private)
         ConfigIsSaved   (1,1) logical = true;
+        ReadyToBegin    (1,1) logical = false;
     end
     
     properties (Dependent)
@@ -50,7 +50,7 @@ classdef Runtime < handle & dynamicprops
             m = metaclass(obj);
             ind = [m.PropertyList.SetObservable];
             psp = {m.PropertyList(ind).Name};
-            obj.el_PostSet = cellfun(@(a) addlistener(obj,a,'PostSet',@obj.runtime_updated),psp);
+            obj.el_PostSet = cellfun(@(a) addlistener(obj,a,'PostSet',@obj.update),psp);
             
             obj.Info = epsych.Info;
             
@@ -191,27 +191,32 @@ classdef Runtime < handle & dynamicprops
         end
         
         
-        function runtime_updated(obj,hObj,event)
-            obj.Log.write('Verbose','Runtime Object Updated');
+        function update(obj,hObj,event)
+            d = dbstack(1);
+            obj.Log.write('Debug','Runtime Object Updated; triggered by "%s"',d(1).name);
             
             obj.ConfigIsSaved = false;
             
             % Test whether Runtime is ready to begin
             h = false; s = false;
             
+            c = obj.Config.Status == epsych.enConfigStatus.Ready;
+            obj.Log.write('Verbose','Config ready = %s',mat2str(c));
+            
+            % check hardware
             if ~isempty(obj.Hardware)
-                 % TODO: h = cellfun(@(a) a.Status == epsych.hw.enStatus.Ready,obj.Hardware);
-                h = true(size(obj.Hardware));
+                h = cellfun(@(a) a.Status == epsych.hw.enStatus.Ready,obj.Hardware);
+                %h = true(size(obj.Hardware));
             end
-            
-            if ~isempty(obj.Subject)
-                s = [obj.Subject.isReady];
-            end
-            
-            obj.ReadyToBegin = all(h) && all(s);
             
             for i = 1:length(obj.Hardware)
                 obj.Log.write('Verbose','Hardware: %s; status = %s',obj.Hardware{i}.Name,char(obj.Hardware{i}.Status))
+            end
+            
+            
+            % check subject
+            if ~isempty(obj.Subject)
+                s = [obj.Subject.isReady];
             end
             
             for i = 1:length(obj.Subject)
@@ -221,6 +226,10 @@ classdef Runtime < handle & dynamicprops
                     obj.Log.write('Verbose','Subject: %s [ID %s] is not ready',obj.Subject(i).Name,obj.Subject(i).ID)
                 end
             end
+            
+            obj.ReadyToBegin = c && all(h) && all(s);
+            
+            
             
             if obj.ReadyToBegin
                 obj.Log.write('Verbose','Runtime is ready to begin');

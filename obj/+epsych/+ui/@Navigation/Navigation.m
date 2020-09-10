@@ -39,7 +39,7 @@ classdef Navigation < handle
             obj.selection_changed([],ev);
             
             addlistener(RUNTIME,'RuntimeConfigLoaded',@obj.reset);
-            
+                        
             if nargout == 0, clear obj; end
         end
         
@@ -143,7 +143,8 @@ classdef Navigation < handle
                     obj.selection_changed(src,ev);
                     
                     if ~loadFlag
-                        notify(RUNTIME,'RuntimeConfigChange');
+                        
+                        RUNTIME.update;
                     end
                     
                 case 'Subj' % Subject_#
@@ -283,8 +284,6 @@ classdef Navigation < handle
                     RUNTIME.Hardware(ind) = [];
             end
             
-            notify(RUNTIME,'RuntimeConfigChange');
-            
             ev.Source = hObj;
             ev.EventName = 'RemovedNode';
             obj.selection_changed(nodeParent,ev);
@@ -292,7 +291,6 @@ classdef Navigation < handle
         
         
         function load_node(obj,hObj,event)
-            global RUNTIME
 
             node = obj.tree.SelectedNodes;
             
@@ -324,8 +322,6 @@ classdef Navigation < handle
             eval(sprintf('ev.LoadedData = %s;',extType));
             obj.tree.SelectedNodes = obj.(sprintf('tree%sNodes',extType))(end-1);
             obj.selection_changed([],ev);
-            
-            notify(RUNTIME,'RuntimeConfigChange');
             
             log_write('Verbose','Loaded %s: "%s"',extType,ffn)
         end
@@ -369,10 +365,10 @@ classdef Navigation < handle
             
             node = obj.tree.SelectedNodes;
             
-            ind = ismember({RUNTIME.Subject.Name},node.NodeData.Subject.Name);
-            RUNTIME.Subject(ind) = node.NodeData.Subject;
-            node.Text = node.NodeData.Subject.Name;
-            if node.NodeData.Subject.Active
+            ind = ismember({RUNTIME.Subject.Name},node.NodeData.SubjectObj.Name);
+            RUNTIME.Subject(ind) = node.NodeData.SubjectObj;
+            node.Text = node.NodeData.SubjectObj.Name;
+            if node.NodeData.SubjectObj.Active
                 node.Icon = epsych.Tool.icon('mouse');
             else
                 node.Icon = epsych.Tool.icon('mouse_grey');
@@ -380,7 +376,8 @@ classdef Navigation < handle
            
             log_write('Verbose','Subject "%s" updated',RUNTIME.Subject(ind).Name);
             
-            notify(RUNTIME,'RuntimeConfigChange');
+            
+            RUNTIME.update;
         end
         
         
@@ -392,7 +389,8 @@ classdef Navigation < handle
             
             log_write('Verbose','Hardware "%s" updated',node.Text);
             
-            notify(RUNTIME,'RuntimeConfigChange');
+            
+            RUNTIME.update;
         end
         
         

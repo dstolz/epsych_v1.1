@@ -12,6 +12,8 @@ end
 % TODO: This probably should all be setup from reading a JSON file
 
 switch lower(type)
+    case 'projects'
+        
     case 'logo'
         g = uigridlayout(parent);
         g.ColumnWidth = {'1x'};
@@ -33,6 +35,8 @@ switch lower(type)
         h.VerticalAlignment = 'top';
         h.FontSize = 18;
         h.FontName = 'Consolas';
+        h.FontWeight = 'bold';
+        h.FontColor = 'b';
 
     case 'behavior'
         % USER INTERFACE

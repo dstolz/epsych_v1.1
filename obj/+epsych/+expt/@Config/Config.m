@@ -49,13 +49,11 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
         end
 
         function s = get.Status(obj)
-            if isempty(obj.SubjectConfig) ...
-                || isempty(obj.BitmaskConfig) ...
-                || isempty(obj.Hardware)
-                s = epsych.enConfigStatus.NotReady;
-            else
-                s = epsych.enConfigStatus.Ready;
-            end
+            D = {'LogDirectory','UserDirectory','DataDirectory'};
+            s = all(cellfun(@(a) isfolder(obj.(a)),D));
+            
+            D = {'UserInterface','SaveFcn','StartFcn','TimerFcn','StopFcn','ErrorFcn'};
+            s = s && all(cellfun(@(a) isa(obj.(a),'function_handle') && ~isempty(which(func2str(obj.(a)))),D));
         end
 
         function s = saveobj(obj)

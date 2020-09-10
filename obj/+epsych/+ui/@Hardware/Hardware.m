@@ -29,7 +29,7 @@ classdef Hardware < handle
             obj.create(parent);
             
             if isempty(HardwareObj)
-                obj.add_hardware;
+                obj.add;
             else
                 obj.HardwareObj = HardwareObj;
             end
@@ -38,7 +38,7 @@ classdef Hardware < handle
                 return
             end
             
-            obj.update_hardware(obj.HardwareObj);
+            obj.update(obj.HardwareObj);
             
             obj.HardwareObj.setup(obj.HardwarePanel);
                         
@@ -53,7 +53,7 @@ classdef Hardware < handle
         end
 
 
-        function update_hardware(obj,hObj)
+        function update(obj,hObj)
             global RUNTIME
             
             if nargin < 2, hObj = []; end
@@ -61,7 +61,7 @@ classdef Hardware < handle
             if isempty(RUNTIME.Hardware)
                 RUNTIME.Hardware = {obj.HardwareObj};                
             else
-                ind = cellfun(@(a) isequal(a,hObj),RUNTIME.Hardware);
+                ind = cellfun(@(a) isequal(a.Alias,hObj.Alias),RUNTIME.Hardware);
                 if ~any(ind), ind = numel(RUNTIME.Hardware)+1; end
                 RUNTIME.Hardware{ind} = obj.HardwareObj;
             end
@@ -71,7 +71,7 @@ classdef Hardware < handle
         end
 
 
-        function add_hardware(obj,hObj,event)
+        function add(obj,hObj,event)
             global RUNTIME
             
             hwlist = epsych.hw.Hardware.available;
@@ -121,6 +121,7 @@ classdef Hardware < handle
             
             obj.HardwareObj = epsych.hw.(hwlist{sel})(obj);
             
+            obj.update;
         end
 
         
@@ -130,7 +131,8 @@ classdef Hardware < handle
     methods (Access = private)
         function alias_changed(obj,hObj,evnt)
             obj.HardwareObj.Alias = hObj.Value;
-            obj.update_hardware;
+            ev = epsych.evHardwareUpdated(obj,obj.HardwareObj);
+            notify(obj,'HardwareUpdated',ev);
         end
     end % methods (Access = private)
 
