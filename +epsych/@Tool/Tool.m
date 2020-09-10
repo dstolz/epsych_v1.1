@@ -31,15 +31,20 @@ classdef Tool < handle
         
         function r = check_function(e)
             r = e.Value;
-            if exist(e.Value,'file') == 2
-                e.Source.BackgroundColor = [1 1 1];
-                e.Source.FontColor = [0 0 0];
-            else
-                e.Source.BackgroundColor = [1 0.4 0.4];
+            wr = which(r);
+            if isempty(wr)
+                e.Source.BackgroundColor = [1 0.8 0.8];
                 e.Source.FontColor = [1 1 1];
-                msg = sprintf('The function "%s" was not found on Matlab''s path.',e.Value);
-                uialert(ancestor(e.Source,'figure'),msg,'Invalid Entry','icon','warning');
+                log_write('Critical','The function "%s" was not found on Matlab''s path.',e.Value);
+                pause(0.5);
+                r = e.PreviousValue;
+            else
+                e.Source.BackgroundColor = [0.8 1 0.8];
+                e.Source.FontColor = [0 0 0];
+                pause(0.5); 
             end
+            e.Source.BackgroundColor = [1 1 1];
+            e.Source.FontColor = [0 0 0];
         end
 
         function [unit,multiplier] = time_gauge(S)

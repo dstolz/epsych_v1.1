@@ -244,8 +244,10 @@ classdef ControlPanel < handle
             
             log_write('Verbose','Loaded Runtime Config file: %s',ffn)
 
-            [pn,~] = fileparts(ffn);
+            [pn,fn] = fileparts(ffn);
             setpref('epsych_Config','configPath',pn);
+            
+            fig.Name = sprintf('EPsych Control Panel - "%s"',fn);
             
             figure(fig); % unhide gui
             fig.Pointer = 'arrow';

@@ -25,10 +25,7 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
 
     properties (SetAccess = private)
         LastModified
-    end
-
-
-    properties (SetAccess = immutable)
+        Filename
         CreatedOn
     end
 
@@ -38,15 +35,12 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
 
             if ischar(file) && isfile(file)
                 obj = load(file,'-mat');
+                obj.Filename = file;
             else
                 obj.CreatedOn = datestr(now);
             end
         end
 
-
-        function modified(obj)
-            obj.LastModified = datestr(now);
-        end
 
         function s = get.Status(obj)
             D = {'LogDirectory','UserDirectory','DataDirectory'};
@@ -57,6 +51,10 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
         end
 
         function s = saveobj(obj)
+            obj.LastModified = datestr(now);
+            if isempty(obj.CreatedOn)
+                obj.CreatedOn = obj.LastModified;
+            end
             s = obj;
         end
 
