@@ -1,4 +1,4 @@
-classdef NavigationSetup < handle
+classdef Navigation < handle
     
     
     properties (Access = protected)
@@ -22,7 +22,7 @@ classdef NavigationSetup < handle
         create(obj,parent);
         
         % Constructor
-        function obj = NavigationSetup(parent)
+        function obj = Navigation(parent)
             global RUNTIME
             
             narginchk(1,1)
@@ -71,11 +71,11 @@ classdef NavigationSetup < handle
             
             switch node.Tag(1:4)
                 case 'parC' % parConfig
-                    epsych.ui.ConfigSetup(obj.mainPanel,'logo');
+                    epsych.ui.Config(obj.mainPanel,'logo');
                     expand(node);
 
                 case 'Conf' % Config
-                    epsych.ui.ConfigSetup(obj.mainPanel,node.Tag(7:end));
+                    epsych.ui.Config(obj.mainPanel,node.Tag(7:end));
                     
                 case 'parS' % parSubjects
                     % TODO: Assign subjects to boxes
@@ -149,7 +149,7 @@ classdef NavigationSetup < handle
                 case 'Subj' % Subject_#
                     ind = ismember({RUNTIME.Subject.Name},event.SelectedNodes.Text);
                     S = RUNTIME.Subject(ind);
-                    sdh = epsych.ui.SubjectDialog(S,obj.mainPanel);
+                    sdh = epsych.ui.Subject(S,obj.mainPanel);
                     
                     addlistener(sdh,'FieldUpdated',@obj.subject_updated);
                     
@@ -188,9 +188,9 @@ classdef NavigationSetup < handle
                    
                 case 'AddH' % AddHardware
                     if loadFlag
-                        hw = epsych.ui.HardwareSetup(obj.mainPanel,event.LoadedData);
+                        hw = epsych.ui.Hardware(obj.mainPanel,event.LoadedData);
                     else
-                        hw = epsych.ui.HardwareSetup(obj.mainPanel);
+                        hw = epsych.ui.Hardware(obj.mainPanel);
                     end
                     
                     if isempty(hw.Hardware) % user cancelled
@@ -233,7 +233,7 @@ classdef NavigationSetup < handle
                 case 'Hard' % Hardware
                     ind = cellfun(@(a) startsWith(node.Text,a.Alias),RUNTIME.Hardware);
                     hardware = RUNTIME.Hardware{ind};
-                    epsych.ui.HardwareSetup(obj.mainPanel,hardware);
+                    epsych.ui.Hardware(obj.mainPanel,hardware);
                     
                 case 'Load' % Load
                     obj.load_node;

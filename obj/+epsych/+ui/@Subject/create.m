@@ -1,4 +1,4 @@
-function create(obj,parent) % epsych.ui.SubjectDialog
+function create(obj,parent) % epsych.ui.Subject
 
 
 if isempty(parent)

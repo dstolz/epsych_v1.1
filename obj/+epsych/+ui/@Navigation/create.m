@@ -1,4 +1,4 @@
-function create(obj,parent) % epsych.ui.NavigationSetup
+function create(obj,parent) % epsych.ui.Navigation
 global RUNTIME
 
 g = uigridlayout(parent);

@@ -1,4 +1,4 @@
-classdef HardwareSetup < handle
+classdef Hardware < handle
 
     
     properties
@@ -20,7 +20,7 @@ classdef HardwareSetup < handle
     methods
         create(obj,parent);
         
-        function obj = HardwareSetup(parent,Hardware)
+        function obj = Hardware(parent,Hardware)
             global RUNTIME
             
             if nargin < 2, Hardware = []; end

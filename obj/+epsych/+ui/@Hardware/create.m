@@ -1,4 +1,4 @@
-function create(obj,parent) % epsych.ui.HardwareSetup
+function create(obj,parent) % epsych.ui.Hardware
 
 
 g = uigridlayout(parent);

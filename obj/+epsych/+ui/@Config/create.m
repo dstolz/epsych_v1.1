@@ -1,4 +1,4 @@
-function create(obj,parent,type) % epsych.ui.ConfigSetup
+function create(obj,parent,type) % epsych.ui.Config
 
 if isa(parent,'matlab.ui.Figure')
     % Create parent

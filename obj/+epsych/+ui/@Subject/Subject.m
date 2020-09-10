@@ -1,5 +1,5 @@
-classdef SubjectDialog < handle
-    % h = epsych.ui.SubjectDialog([Subject],[parent]);
+classdef Subject < handle
+    % h = epsych.ui.Subject([Subject],[parent]);
     %
     % Use the following to block execution:
     %   waitfor(h.parent);
@@ -41,7 +41,7 @@ classdef SubjectDialog < handle
     methods
         create(obj,parent)
 
-        function obj = SubjectDialog(Subject,parent)
+        function obj = Subject(Subject,parent)
             if nargin == 0, obj.Subject = epsych.expt.Subject; end
             if nargin > 0 && ~isempty(Subject), obj.Subject = Subject; end
             if nargin < 2, parent = []; end

@@ -88,7 +88,7 @@ classdef SubjectSetup < handle
                 return
             end
 
-            h = epsych.ui.SubjectDialog(obj.Subject(obj.selIdx(1)));
+            h = epsych.ui.Subject(obj.Subject(obj.selIdx(1)));
             waitfor(h.parent);
 
             if isequal(h.UserResponse,'Cancel'), return; end
@@ -122,7 +122,7 @@ classdef SubjectSetup < handle
         function add_subject(obj,hObj,event)
             global RUNTIME
 
-            h = epsych.ui.SubjectDialog;
+            h = epsych.ui.Subject;
             waitfor(h.parent);
 
             if isequal(h.UserResponse,'Cancel'), return; end

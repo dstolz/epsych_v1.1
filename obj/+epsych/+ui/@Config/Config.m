@@ -1,4 +1,4 @@
-classdef ConfigSetup < handle
+classdef Config < handle
     % User-settable functions, directories, and options
     
     properties
@@ -13,7 +13,7 @@ classdef ConfigSetup < handle
     methods
         create(obj,parent,type);
 
-        function obj = ConfigSetup(parent,type)
+        function obj = Config(parent,type)
             narginchk(2,2)
             
             obj.create(parent,type);
