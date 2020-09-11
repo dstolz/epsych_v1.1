@@ -86,7 +86,10 @@ classdef ControlPanel < handle
 
         % Destructor
         function delete(obj)
-            global RUNTIME %#ok<NUSED>
+            
+            if obj.Runtime.Config.AutoSaveRuntimeConfig
+                obj.save_config('default');
+            end
             
             log_write('Important','ControlPanel closing.')
             
