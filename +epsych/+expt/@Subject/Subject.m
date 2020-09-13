@@ -38,9 +38,24 @@ classdef Subject < handle & dynamicprops & matlab.mixin.Copyable
         end
 
         function ready = get.isReady(obj)
-            % TODO: test data fields
-            ready = true;
+            f = {'Name','DOB','ID','Sex','ProtocolFile','BitmaskFile'};
+            
+            e = cellfun(@(a) isempty(obj.(a)),f);
+            
+            cellfun(@(a,b) log_write('Verbose','Subject "%s" - "%s" ready = %s',obj.Name,a,mat2str(b)),f,num2cell(~e));
+                        
+            ready = ~any(e);
         end
     end
 
 end
+
+
+
+
+
+
+
+
+
+

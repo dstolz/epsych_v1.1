@@ -66,9 +66,9 @@ classdef ControlPanel < handle
 
                 drawnow
 
-                loadConfig = getpref('epsych_Config','AutoLoadRuntimeConfig',true);
-                if loadConfig
-                    obj.load_config;
+                loadConfig = getpref('epsych_Config','AutoLoadRuntimeConfigFile','');
+                if isfile(loadConfig)
+                    obj.load_config(loadConfig);
                 end
                 
                 set(ancestor(obj.parent,'figure'),'Tag','EPsychControlPanel'); % required
@@ -265,7 +265,9 @@ classdef ControlPanel < handle
         function listener_RuntimeConfigChange(obj,hObj,event)
             if isempty(obj.SaveButton), return; end % may not be instantiated yet
 
-            obj.SaveButton.Enable = 'on';
+            if isvalid(obj.SaveButton) % prevents errors on autosave on close
+                obj.SaveButton.Enable = 'on';
+            end
             
             if  hObj.State == epsych.enState.Prep && hObj.ReadyToBegin
                 hObj.State = epsych.enState.Ready;

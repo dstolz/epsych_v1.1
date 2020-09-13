@@ -31,16 +31,14 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
         MaxNumInstances % determines max number of instances of this hardware can be used at once
     end
     
-    properties (Abstract,Dependent)
+    properties (Abstract, SetAccess = protected)
+        isReady         % returns logical true if hardware is setup and configured properly
         Status          % returns indicator of connector status: epsych.hw.enStatus
-    end
-
-    properties (Abstract, Access = protected)
         ErrorME         % MException error message object
     end
 
     properties (Abstract, SetAccess = private)
-        hwSetup
+        hwSetup         % handle to configuration gui
     end
     
     methods (Abstract)
@@ -57,11 +55,8 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
 
     % ^^^^^^^^^ ABSTRACT PROPERTIES AND METHODS ^^^^^^^^^
 
-
-
-    properties (Dependent)
-        isReady (1,1) logical
-    end
+    
+    
 
     properties (Access = protected, Transient)
         % el_PostSet

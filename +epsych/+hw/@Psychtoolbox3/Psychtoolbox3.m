@@ -12,13 +12,18 @@ classdef (ConstructOnLoad) Psychtoolbox3 < epsych.hw.Hardware
         MaxNumInstances = 1;
     end
     
-    properties (Dependent)
-        Status
+    properties (SetAccess = protected)
+        isReady         % returns logical true if hardware is setup and configured properly
+        Status          % returns indicator of connector status: epsych.hw.enStatus
+        ErrorME         % MException error message object    
     end
-
-    properties (Access = protected)
-        ErrorME
+    
+    properties (SetAccess = private)
+        hwSetup         % handle to configuration gui
     end
+    
+    
+    
     
     properties (SetAccess = private,Transient)
         hScreen % handle to Screen element

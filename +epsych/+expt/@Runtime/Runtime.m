@@ -205,7 +205,8 @@ classdef Runtime < handle & dynamicprops
             
             % check hardware
             if ~isempty(obj.Hardware)
-                h = cellfun(@(a) a.Status == epsych.hw.enStatus.Ready,obj.Hardware);
+                h = cellfun(@(a) a.isReady,obj.Hardware);
+                %h = cellfun(@(a) a.Status == epsych.hw.enStatus.Ready,obj.Hardware);
                 %h = true(size(obj.Hardware));
             end
             

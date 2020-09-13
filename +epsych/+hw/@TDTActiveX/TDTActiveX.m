@@ -12,17 +12,18 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         MaxNumInstances = 1;
     end
 
-    properties (Dependent)
+    properties (SetAccess = protected)
         Status
-    end
-
-    properties (Access = protected)
+        isReady
         ErrorME
     end
     
     properties (SetAccess = private)
         hwSetup
     end
+    % ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    
+    
     
     % vvvvvvvvv Define module specific properties vvvvvvvvvvv
     properties (Access = private,Transient,Hidden)
@@ -74,6 +75,24 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
 
         function delete(obj)
             obj.cleanup;
+        end
+        
+        function ready = get.isReady(obj)
+            f = {'Type','Index','Fs','Alias','RPvds'};
+            
+            k = 1;
+            for i = 1:length(obj.Module)
+                e(k:k+length(f)-1) = cellfun(@(a) isempty(obj.Module(i).(a)),f);
+                
+                cellfun(@(a,b) log_write('Verbose','Hardware "%s" "%s" - "%s" ready = %s', ...
+                    obj.Alias,obj.Module(i).Alias,a,mat2str(b)),f,num2cell(~e));
+                
+                k = length(e)+1;
+            end
+                        
+            e(end+1) = obj.Status ~= epsych.hw.enStatus.InPrep;
+            
+            ready = ~any(e);
         end
 
         function e = start(obj)
@@ -218,7 +237,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
 
         function module_updated(obj)
             
-            D = obj.TDTModulesTable.Data;
+            D  = obj.TDTModulesTable.Data;
             UD = obj.TDTModulesTable.UserData;
             for i = 1:size(D,1)
                 M(i).Type  = epsych.hw.enTDTModules(D{i,1});
@@ -236,7 +255,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
             end
             
             obj.Module = M;
-%             
+             
 %             % TODO: NEED SOME HARDWARE INDEX ID
 %             RUNTIME.Hardware = copy(obj);
 
