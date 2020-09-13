@@ -19,8 +19,10 @@ obj.hEchoTextArea.FontName = 'Consolas';
 fid = fopen(obj.LogFilename,'r');
 C = textscan(fid,'%s%d%s%s%s','delimiter','\t');
 fclose(fid);
-ind = any(cellfun(@isempty,C),2);
-C(ind,:) = [];
+
+m = cellfun(@numel,C);
+if ~all(m==m(1)), C{1}(end) = []; end
+
 
 txt = '';
 for i = 1:size(C{1},1)
