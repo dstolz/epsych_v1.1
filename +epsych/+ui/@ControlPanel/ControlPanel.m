@@ -165,8 +165,10 @@ classdef ControlPanel < handle
             [pn,~] = fileparts(ffn);
             setpref('epsych_Config','configPath',pn);
             
-            figure(obj.parent);
-            epsych.Tool.figure_state(obj.parent,prevState);
+            if isvalid(obj.parent)
+                figure(obj.parent);
+                epsych.Tool.figure_state(obj.parent,prevState);
+            end
         end
         
         

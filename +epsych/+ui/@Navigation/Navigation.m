@@ -131,8 +131,8 @@ classdef Navigation < handle
                             RUNTIME.Subject(end+1) = S;
                         end
                     end
-                    
-                    h.Icon = epsych.Tool.icon('mouse');
+                                        
+                    obj.update_icon_border(S,node,epsych.Tool.icon('mouse'));
                     
                     obj.add_contextmenu(h);
                     
@@ -217,11 +217,10 @@ classdef Navigation < handle
                     h.NodeData = hw;
                     
                     ic = epsych.Tool.icon(hw.HardwareObj.Vendor);
-                    if exist(ic,'file')
-                        h.Icon = ic;
-                    else
-                        h.Icon = epsych.Tool.icon('hardware');                        
+                    if ~exist(ic,'file')
+                        ic = epsych.Tool.icon('hardware');                        
                     end
+                    obj.update_icon_border(hw.HardwareObj,node,ic)
                     
                     obj.add_contextmenu(h);
                     
@@ -369,10 +368,16 @@ classdef Navigation < handle
             RUNTIME.Subject(ind) = node.NodeData.SubjectObj;
             node.Text = node.NodeData.SubjectObj.Name;
             if node.NodeData.SubjectObj.Active
-                node.Icon = epsych.Tool.icon('mouse');
+                ic = epsych.Tool.icon('mouse');
             else
-                node.Icon = epsych.Tool.icon('mouse_grey');
+                ic = epsych.Tool.icon('mouse_grey');
             end
+            
+            if ~exist(ic,'file')
+                ic = epsych.Tool.icon('hardware');
+            end
+            
+            obj.update_icon_border(RUNTIME.Subject(ind),node,ic);
            
             log_write('Verbose','Subject "%s" updated',RUNTIME.Subject(ind).Name);
             
@@ -387,12 +392,32 @@ classdef Navigation < handle
             node = obj.tree.SelectedNodes;
             node.Text = strcat(event.Hardware.Alias,' [',event.Hardware.Name,']');
             
+            hw = node.NodeData.HardwareObj;
+            ic = epsych.Tool.icon(hw.Vendor);
+            if ~exist(ic,'file')
+                ic = epsych.Tool.icon('hardware');
+            end
+                        
+            obj.update_icon_border(hw,node,ic);
+                        
             log_write('Verbose','Hardware "%s" updated',node.Text);
             
             
             RUNTIME.update;
         end
         
+        function update_icon_border(obj,nObj,node,ic)
+            ic = imread(ic);
+            
+            if nObj.isReady, i = 2; else, i = 1; end
+            
+            b = round(.1*size(ic,[1 2]));
+            ic = padarray(ic,b,0,'both');
+            ic(:,[1:b end-b:end],i) = 255;
+            ic([1:b end-b:end],:,i) = 255;
+            
+            node.Icon = ic;
+        end
         
         function reset(obj,hObj,event)
             global RUNTIME
@@ -410,10 +435,11 @@ classdef Navigation < handle
                     'Text',RUNTIME.Subject(i).Name, ...
                     'Tag',sprintf('Subject_%d',i));
                 if RUNTIME.Subject(i).Active
-                    h.Icon = epsych.Tool.icon('mouse');
+                    ic = epsych.Tool.icon('mouse');
                 else
-                    h.Icon = epsych.Tool.icon('mouse_grey');
+                    ic = epsych.Tool.icon('mouse_grey');
                 end
+                obj.update_icon_border(RUNTIME.Subject(i),h,ic);
                 obj.add_contextmenu(h);
                 move(h,node,'before');
             end
@@ -425,12 +451,10 @@ classdef Navigation < handle
                     'Tag',sprintf('Hardware_%d',i));
                 
                 ic = epsych.Tool.icon(RUNTIME.Hardware{i}.Vendor);
-                if exist(ic,'file')
-                    h.Icon = ic;
-                else
-                    h.Icon = epsych.Tool.icon('hardware');
+                if ~exist(ic,'file')
+                    ic = epsych.Tool.icon('hardware');
                 end
-                
+                obj.update_icon_border(RUNTIME.Hardware{i},h,ic);
                 obj.add_contextmenu(h);
                 move(h,node,'before');
             end

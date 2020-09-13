@@ -60,6 +60,8 @@ classdef Hardware < handle
 
             if isempty(RUNTIME.Hardware)
                 RUNTIME.Hardware = {obj.HardwareObj};                
+            elseif isempty(hObj)
+                RUNTIME.Hardware{end+1} = obj.HardwareObj;
             else
                 ind = cellfun(@(a) isequal(a.Alias,hObj.Alias),RUNTIME.Hardware);
                 if ~any(ind), ind = numel(RUNTIME.Hardware)+1; end
