@@ -14,7 +14,7 @@ classdef (ConstructOnLoad) Psychtoolbox3 < epsych.hw.Hardware
     
     properties (SetAccess = protected)
         isReady         % returns logical true if hardware is setup and configured properly
-        Status          % returns indicator of connector status: epsych.hw.enStatus
+        Status          = epsych.hw.enStatus.InPrep;
         ErrorME         % MException error message object    
     end
     
@@ -42,14 +42,35 @@ classdef (ConstructOnLoad) Psychtoolbox3 < epsych.hw.Hardware
         e = trigger(obj,parameter); % send a trigger
 
 
-        function obj = Psychtoolbox3
+        function obj = Psychtoolbox3(hwSetup)
+            if nargin == 0, hwSetup = []; end
+            
             % call superclass constructor
-            obj = obj@epsych.hw.Hardware;
+            obj = obj@epsych.hw.Hardware; 
+            
+            obj.hwSetup = hwSetup;
         end
-
-        function status = get.Status(obj)
-            status = epsych.hw.enStatus.Ready;
+        
+        
+        
+        function ready = get.isReady(obj)
+            f = {'hScreen'};
+            
+            e = cellfun(@(a) isempty(obj.(a)),f);
+            
+            cellfun(@(a,b) log_write('Verbose','Hardware "%s" - "%s" ready = %s', ...
+                obj.Alias,a,mat2str(b)),f,num2cell(~e));
+                
+                        
+            e(end+1) = obj.Status ~= epsych.hw.enStatus.InPrep;
+            
+            ready = ~any(e);
         end
+        
+        
+%         function status = get.Status(obj)
+%             status = epsych.hw.enStatus.Ready;
+%         end
     end
 end
 

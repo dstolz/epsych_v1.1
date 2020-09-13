@@ -13,7 +13,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
     end
 
     properties (SetAccess = protected)
-        Status
+        Status  = epsych.hw.enStatus.InPrep;
         isReady
         ErrorME
     end
@@ -80,12 +80,14 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         function ready = get.isReady(obj)
             f = {'Type','Index','Fs','Alias','RPvds'};
             
+            e = false;
+            
             k = 1;
             for i = 1:length(obj.Module)
                 e(k:k+length(f)-1) = cellfun(@(a) isempty(obj.Module(i).(a)),f);
                 
                 cellfun(@(a,b) log_write('Verbose','Hardware "%s" "%s" - "%s" ready = %s', ...
-                    obj.Alias,obj.Module(i).Alias,a,mat2str(b)),f,num2cell(~e));
+                    obj.Alias,obj.Module(i).Alias,a,mat2str(b)),f,num2cell(~e(k:k+length(f)-1)));
                 
                 k = length(e)+1;
             end
