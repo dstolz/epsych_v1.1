@@ -16,7 +16,7 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
         TimerPeriod   (1,1) double {mustBePositive,mustBeFinite} = .01;
 
         AutoSaveRuntimeConfig     (1,1) logical = true;
-        AutoLoadRuntimeConfigFile (1,:) char = '';
+        AutoLoadRuntimeConfig     (1,1) logical = true;
     end
 
     properties (Dependent)

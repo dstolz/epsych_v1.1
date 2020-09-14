@@ -428,7 +428,7 @@ classdef Navigation < handle
             delete([obj.mainPanel obj.logPanel]);
             
             obj.create(obj.parent);
-            
+                       
             node = obj.treeSubjectNodes(1);
             for i = 1:length(RUNTIME.Subject)
                 h = uitreenode(obj.treeSubject,node, ...

@@ -2,7 +2,7 @@ classdef Config < handle
     % User-settable functions, directories, and options
     
     properties
-        ConfigObj  epsych.expt.Config = epsych.expt.Config;
+        ConfigObj % epsych.expt.Config %= epsych.expt.Config;
     end
 
     properties (SetAccess = immutable)
@@ -15,6 +15,10 @@ classdef Config < handle
 
         function obj = Config(parent,type)
             narginchk(2,2)
+            
+            global RUNTIME
+            
+            obj.ConfigObj = RUNTIME.Config;
             
             obj.create(parent,type);
             obj.parent = parent;
@@ -38,19 +42,22 @@ classdef Config < handle
                     h.Value = C.(p{i});
                 end
             end
+            obj.ConfigObj = C;
         end
 
         function create_field(obj,hObj,event)
             v = obj.ConfigObj.(hObj.Tag);
+            
             if isa(v,'function_handle')
                 hObj.Value = func2str(v);
-            else
+            else                
                 hObj.Value = v;
             end
         end
         
         function update_function(obj,hObj,event)
             global RUNTIME
+            
             hObj.Value = epsych.Tool.check_function(event);
             obj.ConfigObj.(hObj.Tag) = str2func(hObj.Value);
             log_write('Verbose','Updated value of "%s" to %s',hObj.Tag,hObj.Value)

@@ -66,9 +66,9 @@ classdef ControlPanel < handle
 
                 drawnow
 
-                loadConfig = getpref('epsych_Config','AutoLoadRuntimeConfigFile','');
-                if isfile(loadConfig)
-                    obj.load_config(loadConfig);
+                loadConfig = getpref('epsych_Config','AutoLoadRuntimeConfig',true);
+                if isempty(filename) && loadConfig
+                    filename = getpref('epsych_Config','AutoLoadRuntimeConfigFile',fullfile(epsych.Info.user_directory,'AutoLoadRuntimeConfig.mat'));
                 end
                 
                 set(ancestor(obj.parent,'figure'),'Tag','EPsychControlPanel'); % required
@@ -232,7 +232,6 @@ classdef ControlPanel < handle
                 return
             end
             
-            
             log = RUNTIME.Log;
             
             load(ffn,'-mat','RUNTIME');
@@ -244,15 +243,18 @@ classdef ControlPanel < handle
                 addlistener(obj.Runtime,hl{i}.EventName,hl{i}.Callback);
             end
 
-            log_write('Debug','notify "RuntimeConfigChange" after load config')
-            notify(obj.Runtime,'RuntimeConfigLoaded');
-            
             log_write('Verbose','Loaded Runtime Config file: %s',ffn)
 
             [pn,fn] = fileparts(ffn);
             setpref('epsych_Config','configPath',pn);
             
             fig.Name = sprintf('EPsych Control Panel - "%s"',fn);
+            
+            
+            log_write('Debug','notify "RuntimeConfigChange" after load config')
+            notify(obj.Runtime,'RuntimeConfigLoaded');
+            
+            notify(obj.Runtime,'RuntimeConfigChange');
             
             figure(fig); % unhide gui
             fig.Pointer = 'arrow';
