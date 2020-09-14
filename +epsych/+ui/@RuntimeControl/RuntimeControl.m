@@ -155,6 +155,7 @@ classdef RuntimeControl < handle
             obj.PauseButton.Icon = epsych.Tool.icon(pauseButtonIcon);
 
             drawnow
+            pause(.001);
         end
     end % methods (Access = private)
 end

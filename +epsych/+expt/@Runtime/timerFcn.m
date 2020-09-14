@@ -1,6 +1,6 @@
 function timerFcn(obj) % epsych.expt.Runtime
 
-doTheDebug = obj.Log.Verbosity == epsych.log.Verbosity.Debug;
+doTheDebug = obj.Log.Verbosity >= epsych.log.Verbosity.Debug;
 
 if doTheDebug
     if mod(obj.Timer.TasksExecuted,100) == 0
@@ -9,10 +9,10 @@ if doTheDebug
     end
 end
 
-
-e = obj.runtime;
-
-if e
-    error('epsych:expt:Runtime:timerFcn:RuntimeError', ...
-        'Error returned from %s [%s] runtime function',obj.Name,obj.Type);
+for i = 1:length(obj.Hardware)
+    if obj.Hardware{i}.runtime
+        error('epsych:expt:Runtime:timerFcn:RuntimeError', ...
+            'Error returned from %s [%s] runtime function',obj.Hardware{i}.Name,obj.Hardware{i}.Type);
+    end
 end
+

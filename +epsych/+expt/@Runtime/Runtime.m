@@ -84,7 +84,9 @@ classdef Runtime < handle & dynamicprops
         end
         
         function call_TimerFcn(obj,varargin)
-            % obj.Log.write(epsych.log.Verbosity.Insanity,'Calling Runtime.TimerFcn: "%s"',func2str(obj.Config.TimerFcn));
+%             if obj.Log.Verbosity >= epsych.log.Verbosity.Insanity
+%                 obj.Log.write(epsych.log.Verbosity.Insanity,'Calling Runtime.TimerFcn: "%s"',func2str(obj.Config.TimerFcn));
+%             end
             
             feval(obj.Config.TimerFcn,obj)
         end
@@ -255,10 +257,9 @@ classdef Runtime < handle & dynamicprops
         function create_timer(obj)
             % Create new timer for RPvds control of experiment
             T = timerfind('Name','EPsychRuntime');
-            if ~isempty(T)
-                try delete(T); end
+            if isempty(T)
+                T = timer('Name','EPsychRuntime');
             end
-            T = timer('Name','EPsychRuntime');
             T.BusyMode = 'queue';
             T.ExecutionMode = 'fixedRate';
             T.TasksToExecute = inf;
