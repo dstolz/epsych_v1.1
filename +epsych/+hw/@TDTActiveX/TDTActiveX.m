@@ -11,7 +11,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         Description  = 'Standalone TDT ActiveX controls';
         MaxNumInstances = 1;
     end
-
+    
     properties (SetAccess = protected)
         Status  = epsych.hw.enStatus.InPrep;
         isReady
@@ -28,13 +28,13 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
     % vvvvvvvvv Define module specific properties vvvvvvvvvvv
     properties (Access = private,Transient,Hidden)
         InterfaceParent     % matlab.ui.container
-    
+        
         ConnectionTypeDropDownLabel matlab.ui.control.Label
         ConnectionTypeDropDown      matlab.ui.control.DropDown
         TDTModulesTable             matlab.ui.control.Table
         AddModuleButton             matlab.ui.control.Button
         RemoveModuleButton          matlab.ui.control.Button
-
+        
         CurrentIdx % selected row
     end
     
@@ -42,12 +42,12 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         ConnectionType  (1,:) char {mustBeMember(ConnectionType,{'GB','USB'})} = 'GB';
         Module          (1,:) % structure
     end
-
-
+    
+    
     properties (Dependent)
         FsIdx
     end
-
+    
     properties (SetAccess = private,Transient)
         handle % handle to ActiveX
     end
@@ -55,24 +55,24 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
     properties (Access = private,Transient)
         emptyFig % holds TDT ActiveX object which requires a figure
     end
-
+    
     methods
         e = prepare(obj);
         e = runtime(obj);
-
+        
         e = write(obj,parameter,value);
         v = read(obj,parameter);
         e = trigger(obj,parameter);
-
+        
         function obj = TDTActiveX(hwSetup)
             if nargin == 0, hwSetup = []; end
             
             % call superclass constructor
-            obj = obj@epsych.hw.Hardware; 
-            
+            obj = obj@epsych.hw.Hardware;
+                        
             obj.hwSetup = hwSetup;
         end
-
+        
         function delete(obj)
             obj.cleanup;
         end
@@ -91,25 +91,20 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
                 
                 k = length(e)+1;
             end
-                        
-            e(end+1) = obj.Status ~= epsych.hw.enStatus.InPrep;
+            
+            %e(end+1) = obj.Status ~= epsych.hw.enStatus.InPrep;
             
             ready = ~any(e);
         end
-
+        
         function e = start(obj)
             e = false;
-            for i = 1:length(obj.handle)
-                if obj.handle(i).Run
-                    fprintf('running\n')
-                else
-                    errordlg(sprintf(['Unable to run %s module!\n\n', ...
-                        'Ensure all modules are powered on and connections are secured'], ...
-                        module),'Run Error','modal');
-                    obj.cleanup;
-                    e = true;
-                    return
-                end
+            if ~obj.handle.Run
+                errordlg(sprintf(['Unable to run %s module!\n\n', ...
+                    'Ensure all modules are powered on and connections are secured'], ...
+                    module),'Run Error','modal');
+                obj.cleanup;
+                e = true;
             end
         end
         
@@ -122,21 +117,20 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         
         function cleanup(obj)
             delete(obj.handle);
-            h = findobj('Name','RPfig');
-            close(h);
+            close(obj.emptyFig);
         end
-
+        
         function status = get.Status(obj)
             if isa(obj.handle,obj.Type)
                 for i = 1:length(obj.handle)
                     rpstatus = obj.handle(i).GetStatus;
                     if rpstatus == 7
                         status = epsych.hw.enStatus.Running;
-
+                        
                     elseif rpstatus == 3
                         status = epsych.hw.enStatus.Ready;
                         return
-
+                        
                     else
                         status = epsych.hw.enStatus.InPrep;
                         return
@@ -146,20 +140,20 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
                 status = epsych.hw.enStatus.Error;
             end
         end % get.enStatus
-
-
+        
+        
         function i = get.FsIdx(obj)
             mfs = 390625; % master sampling rate for most TDT hardware
             fs = mfs ./ 2.^(0:6);
             i = obj.ModuleFs == fs;
         end
-
-
+        
+        
         % UI -----------------------------------------------------
         function connectiontype_changed(obj,hObj,event)
             obj.ConnectionType = hObj.Value;
         end
-
+        
         function add_module(obj,hObj,event)
             % add module to the table
             D = obj.TDTModulesTable.Data;
@@ -171,23 +165,23 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
             obj.TDTModulesTable.Data(end+1,:) = n;
             obj.module_updated;
         end
-
+        
         function remove_module(obj,hObj,event)
             idx = obj.CurrentIdx;
-
+            
             if size(obj.TDTModulesTable.Data,1) == 1, return; end
-
+            
             obj.TDTModulesTable.Data(idx,:) = [];
             
             obj.Module(idx) = [];
             obj.module_updated;
         end
-
+        
         function module_edit(obj,hObj,event)
             obj.CurrentIdx = event.Indices(1);
             row = event.Indices(1,1);
             col = event.Indices(1,2);
-
+            
             D = hObj.Data;
             
             switch col
@@ -222,25 +216,26 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
             end
             obj.module_updated;
         end
-
+        
         function module_select(obj,hObj,event)
             obj.CurrentIdx = event.Indices(1); % use only first selected row
             
             if event.Indices(1,2) < 5, return; end
             
             obj.select_rpvds_file(hObj,event);
-
+            
             obj.module_updated;
         end
-
+        
     end % methods
     
     methods (Access = private)
-
+        
         function module_updated(obj)
             
             D  = obj.TDTModulesTable.Data;
             UD = obj.TDTModulesTable.UserData;
+            
             for i = 1:size(D,1)
                 M(i).Type  = epsych.hw.enTDTModules(D{i,1});
                 M(i).Index = D{i,2};
@@ -253,20 +248,19 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
                 else
                     M(i).RPvds = UD{i,5};
                 end
-                M(i).handle = []; % activex control handle (created in prepare)
             end
             
             obj.Module = M;
-             
-%             % TODO: NEED SOME HARDWARE INDEX ID
-%             RUNTIME.Hardware = copy(obj);
-
+            
+            %             % TODO: NEED SOME HARDWARE INDEX ID
+            %             RUNTIME.Hardware = copy(obj);
+            
             obj.hwSetup.update(obj);
         end
-
+        
         function select_rpvds_file(obj,hObj,event)
             figState = epsych.Tool.figure_state(hObj,false);
-
+            
             row = event.Indices(1);
             if row <= length(obj.Module) && ~isempty(obj.Module(row).RPvds)
                 pn = fileparts(obj.Module(row).RPvds);
@@ -274,23 +268,23 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
                 pn = getpref('epsych_Hardware','RPvdsPath',epsych.Info.user_directory);
             end
             [fn,pn] = uigetfile('*.rcx','RPvds File',pn);
-
+            
             epsych.Tool.figure_state(hObj,figState);
-
+            
             figure(ancestor(hObj,'figure'));
             
             if isequal(fn,0), return; end
-                        
+            
             hObj.Data{row,5} = fn;
             hObj.UserData{row,5} = fullfile(pn,fn);
             
             setpref('epsych_Hardware','RPvdsPath',pn);
-
+            
             figure(ancestor(hObj,'figure'));
-
+            
             obj.module_updated;
-
-        end 
+            
+        end
     end % methods (Access = private)
     
 end

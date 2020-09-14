@@ -11,26 +11,22 @@ end
 if isempty(obj.emptyFig)
     obj.emptyFig = figure('Visible','off','Name','RPfig');
 end
+obj.handle = actxcontrol('RPco.x','parent',obj.emptyFig);
 
 for i = 1:length(obj.Module)
 
     M = obj.Module(i);
     
-    e = exist(M.RPvds,'file') == 2;
-    
-    if ~e
+    if ~isfile(M.RPvds)
         obj.ErrorME = MException('epsych:TDTActiveX:prepare:fileNotFound', ...
             'File does not exist: "%s"',M.RPvds);
         return
     end
     
-
-    M.handle = actxcontrol('RPco.x','parent',obj.emptyFig);
     
-    
-    e = ~eval(sprintf('M.handle.Connect%s(''%s'',%d)',char(M.Type),obj.ConnectionType,M.Index));
+    success = eval(sprintf('obj.handle.Connect%s(''%s'',%d)',char(M.Type),obj.ConnectionType,M.Index));
 
-    if e
+    if ~success
         obj.ErrorME = MException('epsych:TDTActiveX:prepare', ...
             ['Unable to connect to %s_%d module via %s connection!\n\n', ...
             'Ensure all modules are powered on and connections are secured\n\n', ...
@@ -40,22 +36,28 @@ for i = 1:length(obj.Module)
     end
     
     log_write('Verbose','%s_%d connected',char(M.Type),M.Index)
-    M.handle.ClearCOF;
+    obj.handle.ClearCOF;
     
     if M.Fs >= 0
-        e = ~M.handle.LoadCOFsf(M.RPvds,M.Fs);
+        success = obj.handle.LoadCOFsf(M.RPvds,M.Fs);
     else
-        e = ~M.handle.LoadCOF(M.RPvds);
+        success = obj.handle.LoadCOF(M.RPvds);
     end
     
-    if e
+    if ~success
         obj.ErrorME = MException('epsych:TDTActiveX:prepare', ...
             ['Unable to load RPvds file (%s) to %s module!\n', ...
             'The RPvds file exists, but can not be loaded.'], ...
             M.RPvds,char(M.Type));
         return
     end
+    
 
-    obj.Module(i) = M;
+    
+    success = obj.Status == epsych.hw.enStatus.Ready;
+
+    e = ~success;
+    
+    if e, break; end
 end
 

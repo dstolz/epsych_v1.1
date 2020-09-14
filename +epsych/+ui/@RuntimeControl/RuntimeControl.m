@@ -76,8 +76,9 @@ classdef RuntimeControl < handle
     
     methods (Access = private)
         function listener_PreStateChange(obj,hObj,event)
+            if ~isvalid(obj.RunButton), return; end
+            
             % update GUI component availability
-
             obj.RunButton.Enable = 'off';
             obj.PauseButton.Enable = 'off';
 
@@ -88,9 +89,9 @@ classdef RuntimeControl < handle
         end
 
         function listener_PostStateChange(obj,hObj,event)
+            if ~isvalid(obj.RunButton), return; end
+            
             % update GUI component availability
-            
-            
             switch event.State
                 case epsych.enState.Prep
                     obj.RunButton.Enable   = 'off';

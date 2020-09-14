@@ -26,9 +26,9 @@ function startFcn(obj) % epsych.expt.Runtime
 
 
     for i = 1:numel(obj.Hardware)
-        H = obj.Hardware(i);
+        H = obj.Hardware{i};
         obj.Log.write('Verbose','Run Hardware: %s',H.Name);
-        e = H.run;
+        e = H.start;
 
         if e
             obj.Log.write('Error',H.ErrorME);

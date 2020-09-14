@@ -284,6 +284,8 @@ classdef ControlPanel < handle
 
 
         function listener_PreStateChange(obj,hObj,event)           
+            if ~isvalid(obj.LoadButton), return; end
+            
             % update GUI component availability
             if event.State == epsych.enState.Run
                 log_write('Debug','Disabling ControlPanel interface');
@@ -294,7 +296,9 @@ classdef ControlPanel < handle
         end
 
         
-        function listener_PostStateChange(obj,hObj,event)            
+        function listener_PostStateChange(obj,hObj,event)
+            if ~isvalid(obj.LoadButton), return; end
+            
             % update GUI component availability
             if any(event.State == [epsych.enState.Prep epsych.enState.Halt epsych.enState.Error])
                 log_write('Debug','Enabling ControlPanel interface');
