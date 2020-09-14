@@ -20,39 +20,26 @@ classdef Scalar < epsych.par.Parameter
     
     % ^^^^^^^^^^^^ Define Abstract Properties ^^^^^^^^^^^^^^^^^^^^^^
     
-    properties (SetAccess = immutable)
-        isRange     (1,1) logical = false;
-        isLogical   (1,1) logical = false;
-    end
-    
     methods
         function obj = Scalar(Name,Expression,varargin)
             
             % call superclass constructor
             obj = obj@epsych.par.Parameter(Name,Expression,varargin{:});
             
-            if obj.isRange
-                assert(length(obj.Data)==2, ...
-                    'epsych:par:Scalar:InvalidData', ...
-                    'A parameter that is range must have 2 values');
-            end
-            
-            if obj.isLogical
-                assert(islogical(obj.Data)&length(obj.Data)==1, ....
-                    'epsych:par:Scalar:InvalidData', ...
-                    'A parameter that is logical must have 1 logical value');
-            end
             
         end
         
         
   
         function v = get.Value(obj)
-            if obj.isRange
-                [a,b] = bounds(obj.Data);
-                v = rand(1) * (b-a)+a;
-            else
-                v = obj.Data(obj.Index);
+            switch obj.Select
+                case 'randRange'
+                    [a,b] = bounds(obj.Data);
+                    v = rand(1) * (b-a)+a;
+                case 'randIndex'
+                    v = randi(obj.N,1);
+                case 'index'
+                    v = obj.Data(obj.Index);
             end
         end
         
@@ -61,7 +48,7 @@ classdef Scalar < epsych.par.Parameter
         end
         
         function d = get.Data(obj)
-            d = eval(obj.Expression);
+            d = eval(obj.Expression)/obj.ScaleFactor;
         end
         
         function c = get.DataStr(obj)
@@ -72,7 +59,7 @@ classdef Scalar < epsych.par.Parameter
         end
         
         function s = get.ValueStr(obj)
-            s = sprintf(obj.DispFormat,obj.Value*obj.ScaleFactor);
+            s = sprintf(obj.DispFormat,obj.Value/obj.ScaleFactor);
         end
     end
 end

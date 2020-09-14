@@ -31,8 +31,12 @@ classdef uiControl < handle & matlab.mixin.SetGet
         end
         
         function value_changed(obj,src,event)
-            idx = find(ismember(obj.Parameter.Data,src.Value));
-            obj.Parameter.Index = idx;
+            P = obj.Parameter;
+            if P.isRange
+                P.Value = src.Value;
+            else
+                P.Index = find(ismember(P.Data,src.Value));
+            end
         end
     end
     

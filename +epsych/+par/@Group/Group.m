@@ -1,7 +1,7 @@
 classdef Group < handle
 
     properties
-        Parameters (1,:) epsych.par.Parameter
+        Parameters (1,:) % epsych.par.Parameter
     end
 
     properties (Dependent)
@@ -12,7 +12,6 @@ classdef Group < handle
         PairNames
         
         isPaired
-        isRange
     end
     
     methods
