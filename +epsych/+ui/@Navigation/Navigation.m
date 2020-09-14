@@ -132,7 +132,7 @@ classdef Navigation < handle
                         end
                     end
                                         
-                    obj.update_icon_border(S,node,epsych.Tool.icon('mouse'));
+                    obj.update_icon_border(S,h,epsych.Tool.icon('mouse'));
                     
                     obj.add_contextmenu(h);
                     
@@ -220,7 +220,7 @@ classdef Navigation < handle
                     if ~exist(ic,'file')
                         ic = epsych.Tool.icon('hardware');                        
                     end
-                    obj.update_icon_border(hw.HardwareObj,node,ic)
+                    obj.update_icon_border(hw.HardwareObj,h,ic)
                     
                     obj.add_contextmenu(h);
                     
