@@ -1,4 +1,4 @@
-classdef uiControl < handle & matlab.mixin.SetGet
+classdef Control < handle & matlab.mixin.SetGet
     
     properties
         Value
@@ -6,7 +6,7 @@ classdef uiControl < handle & matlab.mixin.SetGet
         LabelString     (1,:) char
         LabelPosition   (1,:) char {mustBeMember(LabelPosition,{'left','right','above','below','none'})} = 'left';
 
-        Parameter       (1,1) epsych.param.Parameter
+        Parameter       (1,1) % epsych.par.Parameter
         
         Position        (1,4) double {mustBeFinite,mustBeNonNan}
         
@@ -36,7 +36,7 @@ classdef uiControl < handle & matlab.mixin.SetGet
     
     methods
         % Constructor
-        function obj = uiControl(Parameter,parent,varargin)            
+        function obj = Control(Parameter,parent,varargin)            
             obj.Parameter = Parameter;
             
             if nargin < 2 || isempty(parent), parent = gcf; end
@@ -48,7 +48,7 @@ classdef uiControl < handle & matlab.mixin.SetGet
             p = properties(obj);
             for i = 1:2:length(varargin)
                 ind = strcmpi(p,varargin{i});
-                assert(any(ind),'epsych.ui.comp.uiControl:uiControl:InvalidParameter', ...
+                assert(any(ind),'epsych:par:ui:Control:InvalidParameter', ...
                     'Invalid property "%s"',varargin{i})
                 obj.(p{ind}) = varargin{i+1};
             end
@@ -115,23 +115,23 @@ classdef uiControl < handle & matlab.mixin.SetGet
     methods (Access = protected)
                 
         function modify_parameter(obj,hObj,event)
-            str = sprintf('Modify Parameter Expression for "%s":',obj.epsych.param.Name);
+            str = sprintf('Modify Parameter Expression for "%s":',obj.epsych.par.Name);
             
             options.Resize='on';
             options.WindowStyle='normal';
             options.Interpreter='none';
             
-            a = inputdlg(str,obj.epsych.param.Name,1, ...
-                {obj.epsych.param.Expression},options);
+            a = inputdlg(str,obj.epsych.par.Name,1, ...
+                {obj.epsych.par.Expression},options);
             if isempty(a), return; end
             
-            obj.epsych.param.Expression = char(a);
+            obj.epsych.par.Expression = char(a);
            
             obj.ValueType = obj.ValueType;
             
             obj.create;
             
-            obj.hControl.Tooltip = sprintf('%s: %s',obj.epsych.param.Name,obj.epsych.param.Expression);
+            obj.hControl.Tooltip = sprintf('%s: %s',obj.epsych.par.Name,obj.epsych.par.Expression);
         end
         
         function Callback(obj,hObj,event)
@@ -176,19 +176,19 @@ classdef uiControl < handle & matlab.mixin.SetGet
                 obj.hControl = uicontrol(obj.parent, ...
                     'Style',        obj.Style, ...
                     'Callback',     @obj.Callback, ...
-                    'Tooltip',      sprintf('%s: %s',obj.epsych.param.Name,obj.epsych.param.Expression));
+                    'Tooltip',      sprintf('%s: %s',obj.epsych.par.Name,obj.epsych.par.Expression));
 %                     'ButtonDownFcn',@obj.modify_parameter);
                 
                 if ~isequal(obj.LabelPosition,'none')
                     obj.hLabel = uicontrol(obj.parent, ...
                         'Style',   'text', ...
-                        'String',   obj.epsych.param.Name);
+                        'String',   obj.epsych.par.Name);
 %                         'ButtonDownFcn',@obj.modify_parameter);
                     obj.hLabel.Position([1 2]) = obj.hControl.Position([1 2]);
                 end
                 obj.update_position;
             else
-                style = epsych.ui.comp.uiControl.guess_uistyle(obj.Parameter);
+                style = epsych.par.ui.Control.guess_uistyle(obj.Parameter);
                 if isequal(obj.hControl.Style,style), return; end
                 position = obj.Position;
                 delete(obj.hControl);

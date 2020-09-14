@@ -1,4 +1,4 @@
-classdef uiPanel < handle & matlab.mixin.SetGet
+classdef Panel < handle & matlab.mixin.SetGet
     
     properties
         Position        (1,4) double {mustBeFinite,mustBeNonNan}
@@ -20,13 +20,13 @@ classdef uiPanel < handle & matlab.mixin.SetGet
     end
 
     properties (SetAccess = immutable)
-        Group    (1,1) epsych.param.ItemSet
+        Group    (1,1) epsych.par.ItemSet
         parent
     end
     
     methods
         % Constructor
-        function obj = uiPanel(Group,Styles,parent,varargin)
+        function obj = Panel(Group,Styles,parent,varargin)
             narginchk(1,3);
             
             if nargin < 3 || isempty(parent), parent = gcf; end
@@ -44,7 +44,7 @@ classdef uiPanel < handle & matlab.mixin.SetGet
             p = properties(obj);
             for i = 1:2:length(varargin)
                 ind = strcmpi(p,varargin{i});
-                assert(any(ind),'epsych.ui.comp.uiPanel:uiPanel:InvalidParameter', ...
+                assert(any(ind),'epsych:par:ui:Panel:InvalidParameter', ...
                     'Invalid property "%s"',varargin{i})
                 obj.(p{ind}) = varargin{i+1};
             end
@@ -58,7 +58,7 @@ classdef uiPanel < handle & matlab.mixin.SetGet
         
         
         function create(obj)
-            obj.hPanel = uiPanel(obj.parent);
+            obj.hPanel = Panel(obj.parent);
             obj.hPanel.Position = obj.Position;
 
             obj.hPanel.Units = 'pixels';
@@ -73,7 +73,7 @@ classdef uiPanel < handle & matlab.mixin.SetGet
 
             for i = 1:obj.Group.N
                 if isequal(obj.Styles{i},'auto')
-                    obj.Styles{i} = epsych.param.uiControl.guess_uistyle(obj.Group.Parameters(i));
+                    obj.Styles{i} = epsych.par.ui.Control.guess_uistyle(obj.Group.Parameters(i));
                 end
                 
                 switch obj.Styles{i}
@@ -86,7 +86,7 @@ classdef uiPanel < handle & matlab.mixin.SetGet
                         position(4) = 22;
                 end
                 
-                h = epsych.ui.comp.(['ui' obj.Styles{i}])(obj.Group.Parameters(i), ...
+                h = epsych.par.ui.(['ui' obj.Styles{i}])(obj.Group.Parameters(i), ...
                     obj.parent, ...
                     'Position',position);
 

@@ -17,7 +17,7 @@ function [schedule,fail] = compile_schedule(schedule,parameter,varargin)
     %  schedule = compile_schedule(schedule,'randomized','round',[100 400]);
     %               - the second input can be the function name to operate on
     %               randomized value between the range specified in the next
-    %               epsych.param.  If no function should be applied to the random
+    %               epsych.par.  If no function should be applied to the random
     %               numbers, then simply leave empty: ...'randomized',[],[100 400])
     %               - most often, this will be the last call to this funciton
     %               in a series of calls.  Otherwise, random numbers will be
@@ -49,9 +49,9 @@ function [schedule,fail] = compile_schedule(schedule,parameter,varargin)
     
 
 
-    if epsych.param.isPaired
+    if epsych.par.isPaired
         
-    elseif epsych.param.isRange
+    elseif epsych.par.isRange
 
     end
     

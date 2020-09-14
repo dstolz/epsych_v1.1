@@ -1,4 +1,4 @@
-classdef uiPopupmenu < epsych.param.uiControl
+classdef Popupmneu < epsych.par.ui.Control
     
     properties         
         ValueType = 'ValuesStr';
@@ -9,15 +9,15 @@ classdef uiPopupmenu < epsych.param.uiControl
     end
 
     methods
-        function obj = uiPopupmenu(varargin)
-            obj = obj@epsych.param.uiControl(varargin{:});
+        function obj = Popupmneu(varargin)
+            obj = obj@epsych.par.ui.Control(varargin{:});
             obj.ValueType = obj.ValueType;
         end
         
         function set.ValueType(obj,type)
             mustBeMember(type,{'Values','ValuesStr'})
             obj.ValueType = type;
-            obj.hControl.String = obj.epsych.param.(obj.ValueType);
+            obj.hControl.String = obj.epsych.par.(obj.ValueType);
         end
     end
 

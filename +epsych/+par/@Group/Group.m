@@ -1,7 +1,7 @@
 classdef Group < handle
 
     properties
-        Parameters (1,:) epsych.param.Parameter
+        Parameters (1,:) epsych.par.Parameter
     end
 
     properties (Dependent)

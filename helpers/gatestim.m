@@ -15,7 +15,7 @@ function varargout = gatestim(signal,gate_duration,Fs,varargin)
 % Fs is the signal sampling rate in Hz.
 % 
 % somefunc is some function to generate the signal.  Only used if a scalara
-% value is specified as the first input epsych.param.  Default = @randn
+% value is specified as the first input epsych.par.  Default = @randn
 % 
 % gatetype is passed to the WINDOW function (see help window).  Default =
 % @triang (same as a linear gate).  Also available: 'cos2' for cosine
