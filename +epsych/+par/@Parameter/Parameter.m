@@ -1,52 +1,65 @@
 classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     % P = epsych.par.Parameter(Name,Expression,'Property','Value',...)
 
-    properties(Abstract,Constant)
-        Type        % Parameter type, i.e. scalar, vector, file, etc
+    % vvvvvvvvvvvvv Define Abstract Properties vvvvvvvvvvvvvvvvvvvvvv    
+    properties (Abstract,SetObservable)
+        Data
     end
-
+    
+    properties (Abstract,SetAccess = private)
+        Value
+    end
+    
     properties (Abstract,Dependent)
-        N
         DataStr
         ValueStr
     end
     
-    properties (Abstract)
-        Value           (1,1)
-        Data            (1,:)
+    properties (Abstract,Constant)
+        Type        % Parameter type, i.e. scalar, vector, file, etc
     end
+    % ^^^^^^^^^^^^ Define Abstract Properties ^^^^^^^^^^^^^^^^^^^^^^
 
-    properties
+    
+    
+    properties (SetObservable)
         Expression      % uses eval
-        Index           (1,1) uint32 {mustBeInteger,mustBePositive,mustBeNonempty} = 1;
+        Index           (1,1) double {mustBeInteger,mustBePositive,mustBeNonempty} = 1;
         Name            (1,:) char = 'UNKNOWN';
         PairName        (1,:) char
         Select          (1,:) char   {mustBeMember(Select,{'index','randIndex','randRange','custom'})} = 'index';
         SelectFunction  (1,1) % function handle
         DispFormat      (1,:) char = '%g';
         ScaleFactor     (1,1) double = 1;
-        ValueBounds     (1,2) double {mustBeNonNan,mustBeNonempty} = [-inf inf];
+        
+        uiControl       (1,1) % epsych.par.uiControl
     end
 
     
     properties (Dependent)
+        N
         isPaired        (1,1) logical
     end
 
     methods
-        function obj = Parameter(Name,Expression,addArgs)
+        function obj = Parameter(Name,Expression,varargin)
             if nargin == 0, return; end
 
             if nargin >= 1 && ~isempty(Name), obj.Name = Name; end
             if nargin >= 2 && ~isempty(Expression), obj.Expression = Expression; end
             
             p = properties(obj);
-            for i = 1:2:length(addArgs)
-                ind = strcmpi(p,addArgs{i});
-                assert(any(ind),'epsych:par:Parameter:InvalidParameter', ...
-                    'Invalid property "%s"',addArgs{i})
-                obj.(p{ind}) = addArgs{i+1};
+            for i = 1:2:length(varargin)
+                ind = strcmpi(p,varargin{i});
+                assert(any(ind),'epsych:par:Parameter:InvalidProperty', ...
+                    'Invalid property "%s"',varargin{i})
+                obj.(p{ind}) = varargin{i+1};
             end
+        end
+        
+        
+        function n = get.N(obj)
+            n = length(obj.Data);
         end
         
         function set.Index(obj,idx)
@@ -57,12 +70,18 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         
         
         function set.Expression(obj,e)
-            if ~ischar(e)
+            if isnumeric(e)
                 e = mat2str(e);
             end
-            obj.Expression = e;
+            
+            obj.Expression = e;            
         end
          
+        function set.uiControl(obj,h)
+            obj.uiControl = epsych.par.uiControl(obj,h);
+            
+        end
+        
 %         function v = get.Value(obj)
 %             switch obj.Select
 %                 case 'index'
@@ -91,38 +110,30 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
 %             
 %         end
 
-        function v = get.Values(obj)
-
-            if iscell(obj.Expression)
-                v = feval(obj.Expression{:});
-                
-            elseif ischar(obj.Expression)
-                v = eval(obj.Expression);
-            
-            elseif obj.isBuffer
-                error('Buffers not yet implemented for Parameter')
-
-            else
-                v = obj.Expression;
-            end            
-
-        end
+%         function v = get.Values(obj)
+% 
+%             if iscell(obj.Expression)
+%                 v = feval(obj.Expression{:});
+%                 
+%             elseif ischar(obj.Expression)
+%                 v = eval(obj.Expression);
+%             
+%             elseif obj.isBuffer
+%                 error('Buffers not yet implemented for Parameter')
+% 
+%             else
+%                 v = obj.Expression;
+%             end            
+% 
+%         end
         
 
 
-        function set.Value(obj,v)
-            obj.Expression = v;
-        end
-
-        function set.Values(obj,v)
-            obj.Expression = v;
-        end
-
-        function set.ValueBounds(obj,vb)
-            assert(numel(vb)==2 & isnumeric(vb),'epsych.par.Parameter:set.ValueBounds:InvalidEntry', ...
-                'Parameter ValueBounds must contain 2 numeric values');
-            obj.ValueBounds = sort(vb(:)','ascend');
-        end
+%         function set.ValueBounds(obj,vb)
+%             assert(numel(vb)==2 & isnumeric(vb),'epsych.par.Parameter:set.ValueBounds:InvalidEntry', ...
+%                 'Parameter ValueBounds must contain 2 numeric values');
+%             obj.ValueBounds = sort(vb(:)','ascend');
+%         end
         
         function set.Select(obj,s)
             obj.Select = s;

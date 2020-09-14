@@ -1,13 +1,15 @@
 classdef Scalar < epsych.par.Parameter
     
     % vvvvvvvvvvvvv Define Abstract Properties vvvvvvvvvvvvvvvvvvvvvv    
-    properties
-        Value           (1,1)
-        Data            (1,:)
+    properties (SetObservable)
+        Data
+    end
+    
+    properties (SetAccess = private)
+        Value
     end
     
     properties (Dependent)
-        N
         DataStr
         ValueStr
     end
@@ -23,13 +25,11 @@ classdef Scalar < epsych.par.Parameter
         isLogical   (1,1) logical = false;
     end
     
-    
-    
     methods
         function obj = Scalar(Name,Expression,varargin)
             
             % call superclass constructor
-            obj = obj@epsych.par.Parameter(Name,Expression,varargin);
+            obj = obj@epsych.par.Parameter(Name,Expression,varargin{:});
             
             if obj.isRange
                 assert(length(obj.Data)==2, ...
@@ -42,15 +42,27 @@ classdef Scalar < epsych.par.Parameter
                     'epsych:par:Scalar:InvalidData', ...
                     'A parameter that is logical must have 1 logical value');
             end
+            
         end
         
         
-        function n = get.N(obj)
-            n = length(obj.Values);
+  
+        function v = get.Value(obj)
+            if obj.isRange
+                [a,b] = bounds(obj.Data);
+                v = rand(1) * (b-a)+a;
+            else
+                v = obj.Data(obj.Index);
+            end
         end
         
+        function set.Data(obj,v)     
+            obj.Expression = v;
+        end
         
-        
+        function d = get.Data(obj)
+            d = eval(obj.Expression);
+        end
         
         function c = get.DataStr(obj)
             c = cell(1,obj.N);
