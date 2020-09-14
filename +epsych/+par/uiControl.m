@@ -13,8 +13,7 @@ classdef uiControl < handle & matlab.mixin.SetGet
             obj.Parameter = pObj;
             obj.hControl = hObj;
             
-            addlistener(pObj,{'Index','Expression','Data'},'PostSet',@obj.update)
-            
+            addlistener(pObj,{'Index','Expression','Data'},'PostSet',@obj.update);
             
             obj.update(pObj,'init');
         end
@@ -24,7 +23,16 @@ classdef uiControl < handle & matlab.mixin.SetGet
     
     methods (Access = private)
         function update(obj,src,event)
-            obj.hControl.Value = obj.Parameter.ValueStr;
+            obj.hControl.Items = obj.Parameter.DataStr;
+            obj.hControl.ItemsData = obj.Parameter.Data;
+            obj.hControl.Value = obj.Parameter.Value;
+            
+            obj.hControl.ValueChangedFcn = @obj.value_changed;
+        end
+        
+        function value_changed(obj,src,event)
+            idx = find(ismember(obj.Parameter.Data,src.Value));
+            obj.Parameter.Index = idx;
         end
     end
     

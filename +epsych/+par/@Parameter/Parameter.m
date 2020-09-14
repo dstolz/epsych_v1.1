@@ -22,7 +22,7 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
 
     
     
-    properties (SetObservable)
+    properties (SetObservable,AbortSet)
         Expression      % uses eval
         Index           (1,1) double {mustBeInteger,mustBePositive,mustBeNonempty} = 1;
         Name            (1,:) char = 'UNKNOWN';
@@ -31,6 +31,8 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         SelectFunction  (1,1) % function handle
         DispFormat      (1,:) char = '%g';
         ScaleFactor     (1,1) double = 1;
+        
+        Bounds          (1,2) double
         
         uiControl       (1,1) % epsych.par.uiControl
     end
