@@ -48,7 +48,7 @@ switch lower(type)
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 1;
         h.Layout.Column = 1;
-        h.Text = 'Behavior GUI Fcn:';
+        h.Text = 'User Interface Fcn:';
         
         h = uieditfield(g,'Tag','UserInterface','CreateFcn',@obj.create_field);
         h.Layout.Row = 1;

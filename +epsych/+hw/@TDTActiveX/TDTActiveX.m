@@ -26,6 +26,11 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
     
     
     % vvvvvvvvv Define module specific properties vvvvvvvvvvv
+    properties
+        digLines    (1,:)   epsych.hw.comp.DigitalLine
+    end
+    
+    
     properties (Access = private,Transient,Hidden)
         InterfaceParent     % matlab.ui.container
         
@@ -58,11 +63,14 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
     
     methods
         e = prepare(obj);
-        e = runtime(obj);
+        e = runtime(obj,Runtime);
         
         e = write(obj,parameter,value);
         v = read(obj,parameter);
         e = trigger(obj,parameter);
+        
+        set_digital_line(obj,src,event);
+        read_digital_lines(obj);
         
         function obj = TDTActiveX(hwSetup)
             if nargin == 0, hwSetup = []; end
@@ -97,7 +105,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
             ready = ~any(e);
         end
         
-        function e = start(obj)
+        function e = start(obj,Runtime)
             e = false;
             if ~obj.handle.Run
                 errordlg(sprintf(['Unable to run %s module!\n\n', ...
@@ -108,14 +116,14 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
             end
         end
         
-        function e = stop(obj)
+        function e = stop(obj,Runtime)
             for i = 1:length(obj.handle)
                 e(i) = obj.handle(i).Halt;
             end
             obj.cleanup;
         end
         
-        function e = error(obj)
+        function e = error(obj,Runtime)
             e = 1;
             obj.stop;
         end

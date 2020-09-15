@@ -10,7 +10,7 @@ if doTheDebug
 end
 
 for i = 1:length(obj.Hardware)
-    if obj.Hardware{i}.runtime
+    if obj.Hardware{i}.runtime(obj)
         error('epsych:expt:Runtime:timerFcn:RuntimeError', ...
             'Error returned from %s [%s] runtime function',obj.Hardware{i}.Name,obj.Hardware{i}.Type);
     end

@@ -57,11 +57,6 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
     % ^^^^^^^^^ ABSTRACT PROPERTIES AND METHODS ^^^^^^^^^
 
     
-    
-
-    properties (Access = protected, Transient)
-        % el_PostSet
-    end
     methods
         % Constructor
         function obj = Hardware
