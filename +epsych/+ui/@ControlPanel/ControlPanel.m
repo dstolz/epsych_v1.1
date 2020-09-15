@@ -165,7 +165,7 @@ classdef ControlPanel < handle
             [pn,~] = fileparts(ffn);
             setpref('epsych_Config','configPath',pn);
             
-            if isvalid(obj.parent)
+            if ~isempty(obj.parent) && isvalid(obj.parent)
                 figure(obj.parent);
                 epsych.Tool.figure_state(obj.parent,prevState);
             end
@@ -273,10 +273,12 @@ classdef ControlPanel < handle
                 obj.SaveButton.Enable = 'on';
             end
             
-            if  hObj.State == epsych.enState.Prep && hObj.ReadyToBegin
-                hObj.State = epsych.enState.Ready;
-            else
-                hObj.State = epsych.enState.Prep;
+            if hObj.State < epsych.enState.Ready
+                if hObj.ReadyToBegin
+                    hObj.State = epsych.enState.Ready;
+                else
+                    hObj.State = epsych.enState.Prep;
+                end
             end
 
             log_write('Verbose','obj.Runtime Config updated')            

@@ -222,6 +222,8 @@ switch lower(type)
         g.ColumnWidth = {'.3x','.7x',50};
         g.RowHeight = {25,25,25,25};
         
+        
+        
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 1;
         h.Layout.Column = 1;
@@ -240,14 +242,38 @@ switch lower(type)
         h.Icon = epsych.Tool.icon('search_folder');
         h.ButtonPushedFcn = @obj.locate_directory;
         
-        h = uicheckbox(g,'Tag','AutoSaveRuntimeConfig','CreateFcn',@obj.create_field);
+        
+        
+        
+        h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 2;
+        h.Layout.Column = 1;
+        h.Text = 'User Directory';
+        
+        h = uieditfield(g,'Tag','UserDirectory','CreateFcn',@obj.create_field);
+        h.Layout.Row = 2;
+        h.Layout.Column = 2;
+        h.ValueChangedFcn = @obj.update_directory;
+        
+        h = uibutton(g,'Tag','UserDirectory');
+        h.Layout.Row = 2;
+        h.Layout.Column = 3;
+        h.Text = '';
+        h.Tooltip = 'Locate a directory';
+        h.Icon = epsych.Tool.icon('search_folder');
+        h.ButtonPushedFcn = @obj.locate_directory;
+        
+        
+        
+        
+        h = uicheckbox(g,'Tag','AutoSaveRuntimeConfig','CreateFcn',@obj.create_field);
+        h.Layout.Row = 3;
         h.Layout.Column = [2 3];
         h.Text = 'Auto Save Runtime Config';
         h.ValueChangedFcn = @obj.update_checkbox;
         
         h = uicheckbox(g,'Tag','AutoLoadRuntimeConfig','CreateFcn',@obj.create_field);
-        h.Layout.Row = 3;
+        h.Layout.Row = 4;
         h.Layout.Column = [2 3];
         h.Text = 'Auto Load Runtime Config';
         h.ValueChangedFcn = @obj.update_checkbox;

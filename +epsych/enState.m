@@ -1,6 +1,5 @@
-classdef enState < int8
+classdef enState < uint8
     enumeration
-        Error   (-1)
         Prep    (0)
         Ready   (1)
         Preview (2)
@@ -8,6 +7,7 @@ classdef enState < int8
         Pause   (4)
         Resume  (5)
         Halt    (6)
+        Error   (255)
     end
 
     methods (Static)

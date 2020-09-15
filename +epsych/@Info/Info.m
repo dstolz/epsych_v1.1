@@ -60,7 +60,7 @@ classdef Info < handle
                 d  = dir(fn);
                 c  = d.date;
             catch
-                warning('EPsychInfo:get:commitTimestamp','Not using the git version!')
+                warning('epsych:Info:commitTimestamp:NoGit','Not using the git version!')
                 c = datestr(0);
             end
         end
@@ -75,6 +75,7 @@ classdef Info < handle
 
         function d = user_directory
             d = char(java.lang.System.getProperty('user.home'));
+            d = getpref('epsych_Info','user_directory',d);
         end
         
         function s = last_modified_str(datens)

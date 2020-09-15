@@ -42,8 +42,8 @@ classdef RuntimeControl < handle
             switch btn
                 case 'Run|Halt'
                     switch RUNTIME.State
-                        case epsych.enState.Ready
-                            log_write('Verbose','Updating State: Prep -> Run');
+                        case {epsych.enState.Ready epsych.enState.Error}
+                            log_write('Verbose','Updating State: %s -> Run',char(RUNTIME.State));
                             RUNTIME.State = epsych.enState.Run;
 
                         case {epsych.enState.Run, epsych.enState.Preview, epsych.enState.Pause, epsych.enState.Resume}
@@ -92,6 +92,7 @@ classdef RuntimeControl < handle
             if ~isvalid(obj.RunButton), return; end
             
             % update GUI component availability
+            obj.RunButton.BackgroundColor = [.6 1 .6];
             switch event.State
                 case epsych.enState.Prep
                     obj.RunButton.Enable   = 'off';
@@ -109,6 +110,7 @@ classdef RuntimeControl < handle
 
                 case epsych.enState.Run
                     obj.RunButton.Enable   = 'on';
+                    obj.RunButton.BackgroundColor = [1 .6 .6];
                     obj.PauseButton.Enable = 'on';
                     stateIndicatorIcon   = 'Running';
                     runButtonIcon   = 'stop';

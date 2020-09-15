@@ -69,10 +69,17 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
 
         function d = get.UserDirectory(obj)
             if isempty(obj.UserDirectory)
-                obj.UserDirectory = fullfile(epsych.Info.user_directory,'EPsych');
+                obj.UserDirectory = epsych.Info.user_directory;
                 if ~isfolder(obj.UserDirectory), mkdir(obj.UserDirectory); end
             end
             d = obj.UserDirectory;
+        end
+        
+        function set.UserDirectory(obj,d)
+            assert(isfolder(d),'epsych:expt:Config:UserDirectory:InvalidDirectory', ...
+                sprintf('Directory "%s" does not exist',d))
+            obj.UserDirectory = d;
+            setpref('epsych_Info','user_directory',d);
         end
 
         function d = get.DataDirectory(obj)

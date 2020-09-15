@@ -115,6 +115,11 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
             obj.cleanup;
         end
         
+        function e = error(obj)
+            e = 1;
+            obj.stop;
+        end
+        
         function cleanup(obj)
             delete(obj.handle);
             close(obj.emptyFig);

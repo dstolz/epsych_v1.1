@@ -47,6 +47,7 @@ classdef (ConstructOnLoad) Hardware < handle & dynamicprops & matlab.mixin.Copya
         e = start(obj,varargin);    % establish connection to hardware (if not already connected) and run
         e = runtime(obj,varargin);  % called on each tick of the master clock
         e = stop(obj,varargin);     % stop running hardware
+        e = error(obj,varargin);    % handle error when running hardware
 
         % write(obj,parameter,value); % write (update) parameter value
         % v = read(obj,parameter);    % read current parameter value

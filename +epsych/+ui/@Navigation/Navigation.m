@@ -241,6 +241,8 @@ classdef Navigation < handle
                 case 'Prog' % ProgramLog
                     obj.logPanel.Visible = 'on';
             end
+            
+            
             fig.Pointer = 'arrow';
         end
         
