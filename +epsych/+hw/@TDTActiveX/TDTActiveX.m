@@ -28,6 +28,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
     % vvvvvvvvv Define module specific properties vvvvvvvvvvv
     properties
         digLines    (1,:)   epsych.hw.comp.DigitalLine
+        DigIO       (1,1)   %epsych.ui.comp.DigIO
     end
     
     

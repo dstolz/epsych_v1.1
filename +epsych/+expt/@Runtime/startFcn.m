@@ -37,10 +37,10 @@ feval(obj.Config.UserInterface,obj);
 for i = 1:numel(obj.Hardware)
     H = obj.Hardware{i};
     
-    for j = 1:length(H.digLines)
-        if ~H.digLines(j).isOutput, continue; end
-        obj.Log.write('Debug','Adding listener for digLine %d on "%s"',j,H.Alias)
-        addlistener(H.digLines(j),'State','PostSet',@H.set_digital_line);
+    for j = 1:length(H.DigIO.digLines)
+        if ~H.DigIO.digLines(j).isOutput, continue; end
+        obj.Log.write('Debug','Adding listener for digLine "%s" on "%s"',H.DigIO.digLines(j).Alias,H.Alias)
+        addlistener(H.DigIO.digLines(j),'State','PostSet',@H.set_digital_line);
     end
     
     

@@ -1,7 +1,7 @@
 classdef DigitalLine < handle
      
     properties (SetObservable,AbortSet)
-        Index       (1,1) uint8
+        Alias       (1,1) string  = "DigitalLine";
         Label       (1,1) string  = "DigitalLine";
         isOutput    (1,1) logical = false;
         State       (1,1) logical
@@ -16,11 +16,10 @@ classdef DigitalLine < handle
     end
     
     methods
-        function obj = DigitalLine(Index,isOutput,Label)
-            if nargin > 0, obj.Index    = Index;    end
-            if nargin > 1, obj.isOutput = isOutput; end
-            if nargin > 2, obj.Label    = Label;    end
-            
+        function obj = DigitalLine(isOutput,Label,Alias)
+            if nargin > 0, obj.isOutput = isOutput; end
+            if nargin > 1, obj.Label    = Label;    end
+            if nargin > 2, obj.Alias = Alias, else obj.Alias = obj.Label; end
         end
                 
         function set.State(obj,s)

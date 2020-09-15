@@ -1,8 +1,8 @@
-classdef DigIO < handle
+classdef DigIO < handle & dynamicprops
     
     
     properties (SetAccess = private)
-        digLine      (1,:)   epsych.hw.comp.DigitalLine
+        digLines      (1,:)   epsych.hw.comp.DigitalLine
         hIndicator   (1,:)   matlab.ui.control.Lamp
         hOutputState (1,:)   matlab.ui.control.StateButton
     end
@@ -18,10 +18,10 @@ classdef DigIO < handle
     end
     
     methods
-        function obj = DigIO(parent,digLine)
+        function obj = DigIO(parent,digLines)
             narginchk(2,2);
             
-            obj.digLine = digLine(:)';
+            obj.digLines = digLines(:)';
             
             if isempty(parent), parent = gcf; end
             
@@ -31,22 +31,22 @@ classdef DigIO < handle
         end
         
         function n = get.N(obj)
-            n = length(obj.digLine);
+            n = length(obj.digLines);
         end
         
         function n = get.nOut(obj)
-            n = sum([obj.digLine.isOutput]);
+            n = sum([obj.digLines.isOutput]);
         end
         
         function n = get.nIn(obj)
-            n = sum(~[obj.digLine.isOutput]);
+            n = sum(~[obj.digLines.isOutput]);
         end
         
         function update(obj,src,event)
             h = event.AffectedObject;
             h.hIndicator.Enable = event.AffectedObject.StateStr;
-            h.hIndicator.Tooltip = sprintf('%s [%d] - %s', ...
-                    h.Label,h.Index,h.StateStr);
+            h.hIndicator.Tooltip = sprintf('%s - %s', ...
+                    h.Alias,h.StateStr);
         end
         
         function set_state(obj,src,event)
@@ -66,13 +66,13 @@ classdef DigIO < handle
             g.ColumnWidth = repmat({15},1,obj.N);
             g.RowHeight   = {15,15};
             for i = 1:obj.N
-                D = obj.digLine(i);
+                D = obj.digLines(i);
                 h = uilamp(g);
                 h.Layout.Column = i;
                 h.Layout.Row    = 1;
                 h.Enable = D.StateStr;
-                h.Tooltip = sprintf('%s [%d] - %s', ...
-                    D.Label,D.Index,D.StateStr);
+                h.Tooltip = sprintf('%s - %s', ...
+                    D.Alias,D.StateStr);
                 
                 addlistener(D,'State','PostSet',@obj.update);
                 
@@ -92,6 +92,10 @@ classdef DigIO < handle
                 end
                 
                 D.hIndicator = h;
+
+                p = matlab.lang.makeValidName(D.Alias);
+                obj.addprop(p);
+                obj.(p) = D;
             end
         end
     end
