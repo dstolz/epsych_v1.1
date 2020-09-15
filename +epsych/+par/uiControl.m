@@ -23,8 +23,13 @@ classdef uiControl < handle & matlab.mixin.SetGet
     
     methods (Access = private)
         function update(obj,src,event)
-            obj.hControl.Items = obj.Parameter.DataStr;
-            obj.hControl.ItemsData = obj.Parameter.Data;
+            if isprop(obj.hControl,'Items')
+                obj.hControl.Items = obj.Parameter.DataStr;
+                obj.hControl.ItemsData = obj.Parameter.Data;
+            elseif isprop(obj.hControl,'Limits')
+                obj.hControl.Limits = obj.Parameter.Limits;
+            end
+            
             obj.hControl.Value = obj.Parameter.Value;
             
             obj.hControl.ValueChangedFcn = @obj.value_changed;
@@ -32,10 +37,20 @@ classdef uiControl < handle & matlab.mixin.SetGet
         
         function value_changed(obj,src,event)
             P = obj.Parameter;
-            if P.isRange
-                P.Value = src.Value;
-            else
-                P.Index = find(ismember(P.Data,src.Value));
+            switch P.Select
+                case 'value'
+                    P.Data = src.Value;
+                
+                case 'discrete'
+                    P.Index = find(ismember(P.Data,src.Value));
+                    
+                case 'randRange'
+                    v = str2num(src.Value);
+                    if length(v) == 1, v = [0 v]; end
+                    v(3:end) = [];
+                    v = sort(v);
+                    P.Data = v;
+                    src.Value = mat2str(v);
             end
         end
     end
