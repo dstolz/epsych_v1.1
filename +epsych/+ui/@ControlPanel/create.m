@@ -18,6 +18,10 @@ if nargin == 1 || isempty(parent)
     obj.parent.Name = 'EPsych Control Panel';
 end
 
+
+pos = getpref('epsych_ControlPanel','Position',[]);
+if ~isempty(pos), obj.parent.Position = pos; end
+
 g = uigridlayout(obj.parent);
 
 g.RowHeight   = {30,175,'1x'};

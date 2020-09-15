@@ -79,7 +79,9 @@ classdef ControlPanel < handle
             if ~isempty(filename)
                 obj.load_config(filename);
             end
-                       
+            
+            
+            
             if nargout == 0, clear obj; end
         end
         
@@ -94,7 +96,7 @@ classdef ControlPanel < handle
             log_write('Important','ControlPanel closing.')
             
             drawnow
-                        
+                                    
             delete(obj.Runtime);
             
             clear global RUNTIME
@@ -131,6 +133,8 @@ classdef ControlPanel < handle
                     end
                 end
             end
+            
+            setpref('epsych_ControlPanel','Position',obj.parent.Position);
             
             delete(obj.parent);
             delete(obj);
