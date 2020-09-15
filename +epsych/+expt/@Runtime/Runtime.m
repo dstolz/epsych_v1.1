@@ -1,8 +1,7 @@
 classdef Runtime < handle & dynamicprops
     
-    properties (Transient)
-        Log             % epsych.log.Log
-        ErrorMException (:,1) MException        
+    properties
+        UserData
     end
     
     properties (SetObservable,AbortSet)
@@ -26,6 +25,8 @@ classdef Runtime < handle & dynamicprops
     end
     
     properties (Transient)
+        Log             % epsych.log.Log
+        ErrorMException (:,1) MException    
         Timer
     end
     
@@ -53,10 +54,6 @@ classdef Runtime < handle & dynamicprops
             obj.el_PostSet = cellfun(@(a) addlistener(obj,a,'PostSet',@obj.update),psp);
             
             obj.Info = epsych.Info;
-            
-            % elevate Matlab.exe process to a high priority in Windows
-            pid = feature('getpid');
-            [~,~] = dos(sprintf('wmic process where processid=%d CALL setpriority 128',pid));
         end
         
         % Destructor
@@ -67,10 +64,6 @@ classdef Runtime < handle & dynamicprops
             end
             
             delete(obj.Log);
-            
-            % be nice and return Matlab.exe process to normal priority in Windows
-            pid = feature('getpid');
-            [~,~] = dos(sprintf('wmic process where processid=%d CALL setpriority 32',pid));
         end
         
         

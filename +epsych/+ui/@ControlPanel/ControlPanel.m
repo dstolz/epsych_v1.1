@@ -81,6 +81,11 @@ classdef ControlPanel < handle
             end
             
             
+            % elevate Matlab.exe process to a high priority in Windows
+            pid = feature('getpid');
+            [~,msg] = dos(sprintf('wmic process where processid=%d CALL setpriority 128',pid));
+            log_write('Debug',msg);
+
             
             if nargout == 0, clear obj; end
         end
@@ -98,6 +103,11 @@ classdef ControlPanel < handle
             drawnow
                                     
             delete(obj.Runtime);
+            
+            
+            % be nice and return Matlab.exe process to normal priority in Windows
+            pid = feature('getpid');
+            [~,~] = dos(sprintf('wmic process where processid=%d CALL setpriority 32',pid));
             
             clear global RUNTIME
         end
