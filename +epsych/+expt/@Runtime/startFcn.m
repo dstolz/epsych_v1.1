@@ -29,8 +29,9 @@ end
 
 
 % Launch user gui (if specified)
-feval(obj.Config.UserInterface,obj);
-
+if ~isempty(obj.Config.UserInterface)
+    feval(obj.Config.UserInterface,obj);
+end
 
 
 % Setup hardware
