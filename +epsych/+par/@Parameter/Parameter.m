@@ -23,7 +23,7 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         Index           (1,1) double {mustBeInteger,mustBePositive,mustBeNonempty} = 1;
         Name            (1,:) char = 'UNKNOWN';
         PairName        (1,:) char
-        Select          (1,:) char   {mustBeMember(Select,{'value','discrete','randRange','custom'})} = 'value';
+        Select          (1,:) char   {mustBeMember(Select,{'value','discrete','randRange','userfcn'})} = 'value';
         SelectFunction  (1,1) % function handle
         DispFormat      (1,:) char = '%g';
         ScaleFactor     (1,1) double = 1;
@@ -52,6 +52,15 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                 assert(any(ind),'epsych:par:Parameter:InvalidProperty', ...
                     'Invalid property "%s"',varargin{i})
                 obj.(p{ind}) = varargin{i+1};
+            end
+            
+            
+            if ~strcmpi('Select',varargin(1:2:end))
+                if length(obj.Data) > 1
+                    obj.Select = 'discrete';
+                else
+                    obj.Select = 'value';
+                end
             end
         end
         
@@ -83,7 +92,7 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
 
         function set.SelectFunction(obj,h)
             obj.SelectFunction = h;
-            obj.Select = 'custom';
+            obj.Select = 'userfcn';
         end
         
         

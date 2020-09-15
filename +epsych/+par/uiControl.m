@@ -30,15 +30,21 @@ classdef uiControl < handle & matlab.mixin.SetGet
                 obj.hControl.Limits = obj.Parameter.Limits;
             end
             
-            obj.hControl.Value = obj.Parameter.Value;
+            if ischar(obj.hControl.Value)
+                v = obj.Parameter.ValueStr;
+            else
+                v = obj.Parameter.Value;
+            end
+            obj.hControl.Value = v;
             
             obj.hControl.ValueChangedFcn = @obj.value_changed;
         end
         
         function value_changed(obj,src,event)
             P = obj.Parameter;
+
             switch P.Select
-                case 'value'
+                case {'value','userfcn'}
                     P.Data = src.Value;
                 
                 case 'discrete'
@@ -51,6 +57,7 @@ classdef uiControl < handle & matlab.mixin.SetGet
                     v = sort(v);
                     P.Data = v;
                     src.Value = mat2str(v);
+                    
             end
         end
     end

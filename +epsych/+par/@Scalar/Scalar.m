@@ -22,13 +22,6 @@ classdef Scalar < epsych.par.Parameter
             % call superclass constructor
             obj = obj@epsych.par.Parameter(Name,Expression,varargin{:});
             
-            if ~strcmpi('Select',varargin(1:2:end))
-                if length(obj.Data) > 1
-                    obj.Select = 'discrete';
-                else
-                    obj.Select = 'value';
-                end
-            end
         end
         
   
@@ -43,7 +36,13 @@ classdef Scalar < epsych.par.Parameter
                     v = randi(obj.N,1);
                 case 'discrete'
                     v = obj.Data(obj.Index);
+                case 'custom'
+                    v = feval(obj.SelectFunction,obj.Data);
             end
+            
+            if v < obj.Limits(1), v = obj.Limits(1); end
+            if v > obj.Limits(2), v = obj.Limits(2); end
+                
         end
         
         function set.Data(obj,v)     
