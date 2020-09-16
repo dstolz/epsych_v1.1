@@ -99,6 +99,8 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         function p = get.isPaired(obj)
             p = ~isempty(obj.PairName);
         end
+
+        
     end
 
     

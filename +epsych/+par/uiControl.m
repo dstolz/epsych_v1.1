@@ -1,5 +1,12 @@
 classdef uiControl < handle & matlab.mixin.SetGet
     
+    properties
+        Listen      (1,1) logical = true;
+    end
+    
+    properties (Hidden)
+        evl
+    end
     
     properties (SetAccess = immutable)
         Parameter
@@ -13,21 +20,32 @@ classdef uiControl < handle & matlab.mixin.SetGet
             obj.Parameter = pObj;
             obj.hControl = hObj;
             
-            addlistener(pObj,{'Index','Expression','Data'},'PostSet',@obj.update);
+            hObj.UserData = pObj;
             
             obj.update(pObj,'init');
+            
+            obj.evl = addlistener(pObj,{'Index','Data'},'PostSet',@obj.update);
         end
         
+        function set.Listen(obj,tf)
+            obj.evl.Enabled = tf;
+            if tf, obj.update(obj.Parameter,'activateListener'); end
+        end
         
+        function tf = get.Listen(obj)
+            tf = obj.evl.Enabled;
+        end
     end
     
     methods (Access = private)
         function update(obj,src,event)
-            if isprop(obj.hControl,'Items')
-                obj.hControl.Items = obj.Parameter.DataStr;
-                obj.hControl.ItemsData = obj.Parameter.Data;
-            elseif isprop(obj.hControl,'Limits')
-                obj.hControl.Limits = obj.Parameter.Limits;
+            if isequal(event,'init')
+                if isprop(obj.hControl,'Items')
+                    obj.hControl.Items = obj.Parameter.DataStr;
+                    obj.hControl.ItemsData = obj.Parameter.Data;
+                elseif isprop(obj.hControl,'Limits')
+                    obj.hControl.Limits = obj.Parameter.Limits;
+                end
             end
             
             if ischar(obj.hControl.Value)
