@@ -403,7 +403,9 @@ rn(ismember(rn,'ACTIVE')) = [];
 for i = 1:length(wp)
     ind = ismember(rn,wp{i});
     if ~any(ind), continue; end
-    RUNTIME.TRIALS.trials(:,i) = Data(:,ind);
+    for j = 1:size(RUNTIME.TRIALS.trials,1)
+        RUNTIME.TRIALS.trials{j,i} = str2num(Data{j,ind});
+    end
 end
 
 
