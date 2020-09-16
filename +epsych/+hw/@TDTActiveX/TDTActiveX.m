@@ -29,6 +29,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
     properties
         digLines    (1,:)   epsych.hw.comp.DigitalLine
         DigIO       (1,1)   %epsych.ui.comp.DigIO
+        Parameters  (1,:)   %epsych.par.Parameter (or inherited classes)
     end
     
     
@@ -66,7 +67,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         e = prepare(obj);
         e = runtime(obj,Runtime);
         
-        e = write(obj,parameter,value);
+        e = write(obj,src,event);
         v = read(obj,parameter);
         e = trigger(obj,parameter);
         

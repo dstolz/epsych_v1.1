@@ -12,7 +12,7 @@ classdef Scalar < epsych.par.Parameter
     end
     
     properties (Constant)
-        Type = 'scalar';
+        DataClass = 'scalar';
     end    
     % ^^^^^^^^^^^^ Define Abstract Properties ^^^^^^^^^^^^^^^^^^^^^^
     

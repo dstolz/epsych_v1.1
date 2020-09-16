@@ -1,32 +1,42 @@
-function e = write(obj,parameter,value)  % epsych.hw.TDTActiveX
+function e = write(obj,src,event)  % epsych.hw.TDTActiveX
+% e = write(obj,parameter,value) % manually called
+% e = write(obj,src,event) % called by a Parameter property listener
 
-useParameterValue = nargin < 3 | isempty(value);
+if nargin < 3, event = []; end
 
-if useParameterValue
+if isa(event,'event.PropertyEvent') % called by a Parameter property listener
+    parameter = event.AffectedObject;
+    value = [];
+else
+    parameter = src;
+    value = event;
+end
+
+
+
+if isempty(value)
     value = parameter.Value; % ???
 end
     
-mind = parameter.ModuleID == obj.ModuleID;
-
 
 if isa(parameter,'epsych.par.Parameter')
 
     switch parameter.DataClass
         case 'scalar'
-            e = obj.handle(mind).SetTagVal(parameter.Name,value);
+            e = obj.handle.SetTagVal(parameter.Name,value);
 
         case 'buffer'
             value = value(:)';
-            e = obj.handle(mind).WriteTagV(parameter.Name,value);
+            e = obj.handle.WriteTagV(parameter.Name,value);
 
         case 'table'
-            e = obj.handle(mind).WriteTagVEX(parameter.Name,0,'F32',value);
+            e = obj.handle.WriteTagVEX(parameter.Name,0,'F32',value);
     end
 
 elseif isa(parameter,'epsych.par.Group')
-    e = arrayfun(@write,parameter.Parameters);
+    e = arrayfun(@obj.write,parameter.Parameters);
 
 else
-    p = parameter.Parameter(parameter);
-    e = write(p,value);
+    p = parameter.Parameter(parameter); % ??
+    e = obj.write(p,value);
 end

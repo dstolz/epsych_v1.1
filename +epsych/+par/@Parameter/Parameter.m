@@ -13,7 +13,7 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     end
     
     properties (Abstract,Constant)
-        Type        % Parameter type, i.e. scalar, vector, file, etc
+        DataClass        % Parameter type, i.e. scalar, buffer, file, etc
     end
     % ^^^^^^^^^^^^ Define Abstract Properties ^^^^^^^^^^^^^^^^^^^^^^
 

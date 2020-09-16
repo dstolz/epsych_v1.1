@@ -1,22 +1,20 @@
 function v = read(obj,parameter) % epsych.hw.TDTActiveX
-
+% v = read(obj,parameter)
 
     
 if isa(parameter,'epsych.par.Parameter')
 
-    mind = parameter.ModuleID == obj.ModuleID;
-
     switch parameter.DataClass
         case 'scalar'
-            v = obj.handle(mind).GetTagVal(parameter.Name);
+            v = obj.handle.GetTagVal(parameter.Name);
 
         case 'buffer'
-            s = obj.handle(mind).GetTagSize(parameter.Name);
-            v = obj.handle(mind).ReadTagV(parameter.Name,0,s);
+            s = obj.handle.GetTagSize(parameter.Name);
+            v = obj.handle.ReadTagV(parameter.Name,0,s);
 
         case 'table'
-            s = obj.handle(mind).GetTagSize(parameter.Name);
-            v = obj.handle(mind).ReadTagVEX(parameter.Name,0,s,'F32',value);
+            s = obj.handle.GetTagSize(parameter.Name);
+            v = obj.handle.ReadTagVEX(parameter.Name,0,s,'F32',value);
     end
         
 elseif isa(parameter,'epsych.par.Group')

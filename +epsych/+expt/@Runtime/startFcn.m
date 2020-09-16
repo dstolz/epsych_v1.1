@@ -38,6 +38,14 @@ end
 for i = 1:numel(obj.Hardware)
     H = obj.Hardware{i};
     
+    % add listeners for Parameter changes
+    for j = 1:length(H.Parameters)
+        obj.Log.write('Debug','Adding listener for Parameter "%s" (%s)',H.Parameters(i).Alias,H.Parameters(i).Label)
+        addlistener(H.Parameters(i),'Value','PostSet',@H.write);
+    end
+    
+    
+    % add listeners for Digital line changes
     for j = 1:length(H.DigIO.digLines)
         if ~H.DigIO.digLines(j).isOutput, continue; end
         obj.Log.write('Debug','Adding listener for digLine "%s" on "%s"',H.DigIO.digLines(j).Alias,H.Alias)
