@@ -210,6 +210,7 @@ for i = 1:length(wp)
     tpData(ind,:) = RUNTIME.TRIALS.trials(:,i)'; %#ok<AGROW>
 end
 
+tpData = cellfun(@mat2str,tpData,'uni',0);
 
 % update the table with any changes made by the trial function or something
 % else
@@ -319,6 +320,11 @@ ttind = ismember(fn,'TrialType');
 ridx = [find(ttind) find(~ttind)];
 fn = fn(ridx);
 T  = T(ridx,:);
+
+
+% ensure values are expressed as strings
+T = cellfun(@mat2str,T,'uni',0);
+
 
 % Add a row of checkboxes to allow the user to include/exclude trials
 T = [num2cell(true(1,size(T,2))); T];
