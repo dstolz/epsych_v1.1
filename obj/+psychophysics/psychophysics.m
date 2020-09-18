@@ -1,40 +1,122 @@
 classdef psychophysics < handle
-    properties
-
+    
+    properties (Abstract,Constant)
+        ResponseBits
+        Type
     end
 
-    properties (Abstract,Constant)
-        Type
+
+    properties (Constant)
+        TrialTypeBits = epsych.BitMask(12:15);
+    end
+
+    properties (SetAccess = immutable)
+        Runtime
+        BoxID
+        
+    end
+
+    properties (Dependent)
+        ResponseCodes
+        Ind
+        Count
+        Rate
+        TrialType
+        NumTrialTypes
+        Data
     end
 
     methods
 
-        function dp = dprime(obj,HR,FAR)
-            swtich obj.Type
-                case {'DETECT','YESNO'}
-                    dp = obj.dprime_detect(HR,FAR);
-                case '2AFC'
-                    dp = obj.dprime_2afc(HR,FAR);
+        function obj = psychophysics(Runtime,BoxID)
+            obj.BoxID   = BoxID;
+            obj.Runtime = Runtime;
+        end
+
+
+        function s = get.Ind(obj)
+            for i = 1:obj.NumTrialTypes
+                f = char(obj.TrialTypeBits(i));
+                s.(f).Trials = logical(bitget(obj.ResponseCodes,obj.TrialTypeBits(i)));
+                for j = 1:length(obj.ResponseBits)
+                    s.(f).(char(obj.ResponseBits(j))) = s.(f).Trials & bitget(obj.ResponseCodes,obj.ResponseBits(j));
+                end
             end
+        end
+        
+        function n = get.NumTrialTypes(obj)
+            n = length(obj.TrialTypeBits);
+        end
+        
+
+        function c = get.Count(obj)
+            S = obj.Ind;
+            for i = 1:obj.NumTrialTypes
+                f = char(obj.TrialTypeBits(i));
+                c.(f).Trials = sum(S.(f).Trials);
+                for j = 1:length(obj.ResponseBits)
+                    c.(f).(char(obj.ResponseBits(j))) = sum(S.(f).(char(obj.ResponseBits(j))));
+                end
+            end            
+        end
+
+        function r = get.Rate(obj)
+            C = obj.Count;
+            for i = 1:obj.NumTrialTypes
+                f = char(obj.TrialTypeBits(i));
+                for j = 1:length(obj.ResponseBits)
+                    r.(f).(char(obj.ResponseBits(j))) = C.(f).(char(obj.ResponseBits(j))) ./ C.(f).Trials;
+                end
+            end
+        end
+
+        function c = get.ResponseCodes(obj)
+             c = obj.Data.ResponseCodes;
+        end
+
+        function t = get.Data(obj)
+            t = obj.Runtime.TRIALS(obj.BoxID).Data;
+        end
+
+        function dp = dprime(obj)
+            R = obj.Rate;
+            for i = 1:obj.NumTrialTypes
+                f = char(obj.TrialTypeBits(i));
+                switch obj.Type
+                    case {'DETECT','YESNO'}
+                        dp.(f) = obj.dprime_detect(R.(f).Hit,R.(f).FalseAlarm);
+                        
+                    case '2AFC'
+                        dp.(f) = obj.dprime_2afc(R.(f).Hit,R.(f).Miss);
+                end
+            end
+        end
+        
+        
+        
+        function plot(obj,ax)
+            if nargin < 2 || isempty(ax), ax = gca; end
+            
+            
         end
     end
 
     methods (Static)
         function z = zscore(a)
-            % bounds input to [0.01 0.99] to avoid inf values
-            a = max(min(a,0.99),0.01);
             z = norminv(a,0,1);
         end
 
         function dp = dprime_detect(HR,FAR)
-            if obj.Type
-            HR = max(min(HR,0.99),0.01);
-            FAR = max(min(HR,0.99),0.01);
-            dp = norminv(HR) - norminv(FAR);
+            HR  = max(min(HR,0.99),0.01);
+            FAR = max(min(FAR,0.99),0.01);
+            dp  = norminv(HR) - norminv(FAR);
         end
 
         function dp = dprime_2afc(HR,FAR)
-            dp = psychophysics.dprime(HR,FAR)./sqrt(2);
+            HR  = max(min(HR,0.99),0.01);
+            FAR = max(min(FAR,0.99),0.01);
+            dp  = norminv(HR) - norminv(FAR);
+            dp  = dp ./ sqrt(2);
         end
     end
 end
