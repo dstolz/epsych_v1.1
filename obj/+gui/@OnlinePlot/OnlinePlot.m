@@ -99,11 +99,11 @@ classdef OnlinePlot < gui.Helper & handle
         function pause(obj,varargin)
             obj.paused = ~obj.paused;
             
-            c = findobj('tag','uic_pause');
+            c = obj.get_menu_item('uic_pause');
             if obj.paused
-                c(1).Label = 'Catch up >';
+                c.Label = 'Catch up >';
             else
-                c(1).Label = 'Pause ||';
+                c.Label = 'Pause ||';
             end
         end
         
@@ -171,7 +171,8 @@ classdef OnlinePlot < gui.Helper & handle
             B = obj.trialBuffer;
             idx = find(B(2:end) > B(1:end-1),1,'last'); % find onsets
             if isempty(idx)
-                to = obj.Time(end);
+                %to = obj.Time(end);
+                to = [];
             else
                 to = obj.Time(idx);
             end                
@@ -190,7 +191,7 @@ classdef OnlinePlot < gui.Helper & handle
                 catch
                     vprintf(0,1,'Unable to read the RPvds parameter: %s\nUpdate the trialParam to an existing parameter in the RPvds circuit', ...
                         obj.trialParam)
-                    c = findobj('Tag','uic_plotType');
+                    c = obj.get_menu_item('uic_plotType');
                     delete(c);
                     obj.trialParam = '';
                 end
@@ -208,14 +209,18 @@ classdef OnlinePlot < gui.Helper & handle
                 obj.lineH(i).YData = obj.yPositions(i).*obj.Buffers(i,:);
             end
             
-            if obj.trialLocked && ~isempty(obj.trialParam)
+            if obj.trialLocked && ~isempty(obj.trialParam) && ~isempty(obj.last_trial_onset)
                 obj.ax.XLim = obj.last_trial_onset + obj.timeWindow;
+            elseif obj.trialLocked
+                obj.ax.XLim = obj.timeWindow;
             else
                 obj.ax.XLim = obj.Time(end) + obj.timeWindow;
             end
             drawnow limitrate
             
         end
+        
+        
         
         function error(obj,varargin)
             vprintf(-1,'OnlinePlot closed with error')
@@ -255,7 +260,7 @@ classdef OnlinePlot < gui.Helper & handle
             obj.ax.XMinorGrid = 'on';
             obj.ax.Box = 'on';
             
-            obj.ax.XAxis.Label.String = 'time since start (mm:ss)';
+            %obj.ax.XAxis.Label.String = 'time since start (mm:ss)';
             
             obj.startTime = clock;
         end
@@ -278,18 +283,26 @@ classdef OnlinePlot < gui.Helper & handle
         end
         
         function add_context_menu(obj)
-            c = uicontextmenu;
-            c.Parent = obj.figH;
+            c = uicontextmenu(obj.figH);
+            
+            switch class(obj.ax)
+                case 'matlab.ui.control.UIAxes'
+                    obj.ax.ContextMenu = c; 
+                otherwise
+                    c.Parent = obj.figH;
+            end
+            
             uimenu(c,'Tag','uic_stayOnTop','Label','Keep Window on Top','Callback',@obj.stay_on_top);
             uimenu(c,'Tag','uic_pause','Label','Pause ||','Callback',@obj.pause);
-            uimenu(c,'Tag','uic_plotType','Label','Set Plot to Trial-Locked','Callback',@obj.plot_type);
+            uimenu(c,'Tag','uic_plotType','Label','Set Plot to Trial-Locked','Callback',{@obj.plot_type,true});
             uimenu(c,'Tag','uic_timeWindow','Label',sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number),'Callback',@obj.update_window);
             obj.ax.UIContextMenu = c;
         end
         
         function stay_on_top(obj,varargin)
             obj.stayOnTop = ~obj.stayOnTop;
-            c = findobj('Tag','uic_stayOnTop');
+            
+            c = obj.get_menu_item('uic_stayOnTop');
             if obj.stayOnTop
                 c.Label = 'Don''t Keep Window on Top';
                 obj.figH.Name = [obj.figName ' - *On Top*'];
@@ -300,9 +313,14 @@ classdef OnlinePlot < gui.Helper & handle
             FigOnTop(obj.figH,obj.stayOnTop);
         end
         
-        function plot_type(obj,varargin)
-            obj.trialLocked = ~obj.trialLocked;
-            c = findobj('Tag','uic_plotType');
+        function plot_type(obj,src,event,toggle)
+            if nargin > 1 && isequal(class(src),'logical')
+                obj.trialLocked = src;
+            elseif nargin == 4 && toggle
+                obj.trialLocked = ~obj.trialLocked; 
+            end
+
+            c = obj.get_menu_item('uic_plotType');
             atw = abs(obj.timeWindow);
             if isempty(obj.trialParam)
                 vprintf(0,1,'Unable to set the plot to Trial-Locked mode because the trialParam is empty')
@@ -327,7 +345,8 @@ classdef OnlinePlot < gui.Helper & handle
                 return
             end
             obj.timeWindow = seconds(r(:)');
-            c = findobj('Tag','uic_timeWindow');
+
+            c = obj.get_menu_item('uic_timeWindow');
             c.Label = sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number);
             FigOnTop(obj.figH,obj.stayOnTop);
         end
@@ -335,6 +354,11 @@ classdef OnlinePlot < gui.Helper & handle
         function s = timeWindow2number(obj)
             s = cellstr(char(obj.timeWindow));
             s = cellfun(@(a) str2double(a(1:find(a==' ',1,'last')-1)),s);
+        end
+        
+        function c = get_menu_item(obj,tag) 
+            C = obj.ax.ContextMenu.Children;
+            c = C(ismember({obj.ax.ContextMenu.Children.Tag},tag));
         end
     end
     
