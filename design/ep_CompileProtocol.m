@@ -145,6 +145,7 @@ for i = 1:length(fn)
     end
     
     % buffers
+    m = 1;
     bufparams = { v{([v{:,6}]==1),1} };               %kp
     for j = 1:length(bufparams)
         idx = find(strcmpi(bufparams{j},{v{:,1}}));   %kp
@@ -157,6 +158,7 @@ for i = 1:length(fn)
         end
         if isempty(v{idx,3}) || strcmp(v{idx,3},'< NONE >')
             bb = sprintf('BufBuddy%d',m);
+            m = m + 1;
         else
             bb = v{idx,3};
         end
