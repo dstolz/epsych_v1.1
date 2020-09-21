@@ -94,6 +94,8 @@ for i = 1:RUNTIME.NSubjects
         end
 
     catch me
+        fprintf(2,'Error in Custom Trial Selection Function "%s" on line %d\n\n%s\n%s', ...
+            me.stack(1).name,me.stack(1).line,me.identifier,me.message);
         vprintf(0,me);
     end
     

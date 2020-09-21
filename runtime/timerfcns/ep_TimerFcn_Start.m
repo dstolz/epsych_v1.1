@@ -128,7 +128,8 @@ for i = 1:RUNTIME.NSubjects
             error('Invalid output from custom trial selection function ''%s''',RUNTIME.TRIALS(i).trialfunc)
         end
     catch me
-        errordlg('Error in Custom Trial Selection Function');
+        errordlg(sprintf('Error in Custom Trial Selection Function "%s" on line %d\n\n%s\n%s', ...
+            me.stack(1).name,me.stack(1).line,me.identifier,me.message));
         rethrow(me)
     end
     RUNTIME.TRIALS(i).TrialCount(RUNTIME.TRIALS(i).NextTrialID) = 1;
