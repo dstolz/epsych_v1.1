@@ -7,6 +7,8 @@ function [S,M,cnt] = FellowsSeq(nSeq)
 %
 % default nSeq = 100
 %
+% Use the RNG function before calling to seed for repeatability.
+%
 % DJS 2020
 
 if nargin < 1 || isempty(nSeq), nSeq = 100; end
