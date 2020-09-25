@@ -6,7 +6,7 @@ classdef OnlinePlotBM < gui.Helper & handle
         trialParam  (1,:) char
         
         lineWidth   (:,1) double {mustBePositive,mustBeFinite} % line plot width [obj.N,1]
-        lineColors  (:,3) double {mustBeNonnegative,mustBeLessThanOrEqual(lineColors,1)} % line colors [obj.N,3]
+        lineColors  (:,3) double {mustBeNonnegative,mustBeLessThanOrEqual(lineColors,1)} = lines(128);% line colors [obj.N,3]
         
         yPositions  (:,1) double {mustBeFinite}
         
@@ -146,19 +146,19 @@ classdef OnlinePlotBM < gui.Helper & handle
             end
         end
         
-        function c = get.lineColors(obj)
-            if isempty(obj.lineColors)
-                c = lines(obj.N);
-            else
-                c = obj.lineColors;
-                if size(c,1) < obj.N
-                    x = lines(obj.N);
-                    c = [c; x(size(c,1)+1:obj.N,:)];
-                else
-                    c = c(1:obj.N);
-                end
-            end
+        
+        function set.lineColors(obj,c)
+            if isempty(c), c = [.2 .2 .2]; end
             
+            if size(c,1) == 1
+                c = repmat(c,obj.N,1);
+            end
+            obj.lineColors = c(1:obj.N,:);
+            
+            if isempty(obj.lineH), return; end
+            for i = 1:obj.N
+                obj.lineH(i).Color = c(i,:);
+            end
         end
         
         function n = get.N(obj)
