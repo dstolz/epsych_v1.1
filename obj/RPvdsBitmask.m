@@ -8,6 +8,7 @@ classdef RPvdsBitmask < handle
     properties (Dependent)
         Bitmask
         BitStates
+        N
     end
     
     properties (SetAccess = private)
@@ -50,6 +51,10 @@ classdef RPvdsBitmask < handle
         function set.Bank(obj,bank)
             obj.Bank = bank;
             obj.update;
+        end
+        
+        function n = get.N(obj)
+            n = numel(obj.Bits);
         end
     end
     

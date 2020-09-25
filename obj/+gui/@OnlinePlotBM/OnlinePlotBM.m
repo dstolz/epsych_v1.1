@@ -31,7 +31,7 @@ classdef OnlinePlotBM < gui.Helper & handle
         
         BoxID       (1,1)  uint8 = 1;
         
-        RPvdsBitmask (1,1)
+        RPvdsBitmask
     end
     
     properties (SetAccess = private,Hidden)
@@ -55,7 +55,11 @@ classdef OnlinePlotBM < gui.Helper & handle
                        
             obj.TDTActiveX = TDTActiveX;
             
-            obj.RPvdsBitmask = RPvdsBitmask(RUNTIME,TDTActiveX,BMBank);
+            BMBank = cellstr(BMBank);
+            
+            for i = 1:length(BMBank)
+                obj.RPvdsBitmask{i} = RPvdsBitmask(RUNTIME,TDTActiveX,BMBank{i});
+            end
             
             
             if isempty(ax)
@@ -131,7 +135,7 @@ classdef OnlinePlotBM < gui.Helper & handle
         
         function w = get.lineWidth(obj)
             if isempty(obj.lineWidth)
-                w = repmat(14,obj.N,1);
+                w = repmat(10,obj.N,1);
             else
                 w = obj.lineWidth;
                 if length(w) < obj.N
@@ -157,8 +161,8 @@ classdef OnlinePlotBM < gui.Helper & handle
             
         end
         
-        function s = get.N(obj)
-            s = numel(obj.RPvdsBitmask.Bits);
+        function n = get.N(obj)
+            n = sum(cellfun(@(a) a.N,obj.RPvdsBitmask));
         end
         
         function to = last_trial_onset(obj)
@@ -192,7 +196,10 @@ classdef OnlinePlotBM < gui.Helper & handle
                 end
             end
             
-            BS = obj.RPvdsBitmask.BitStates;
+            BS = {};
+            for i= 1:length(obj.RPvdsBitmask)
+                BS(end+1:end+obj.RPvdsBitmask{i}.N,:) = obj.RPvdsBitmask{i}.BitStates;
+            end
 
             obj.Buffers(:,end+1) = [BS{:,2}];
             if obj.setZeroToNan, obj.Buffers(obj.Buffers(:,end)==0,end) = nan; end
@@ -240,7 +247,7 @@ classdef OnlinePlotBM < gui.Helper & handle
         function setup_plot(obj,varargin)
             delete(obj.lineH);
             
-            for i = 1:length(obj.RPvdsBitmask.Bits)
+            for i = 1:obj.N
                 obj.lineH(i) = line(obj.ax,seconds(0),obj.yPositions(i), ...
                     'color',obj.lineColors(i,:), ...
                     'linewidth',obj.lineWidth(i));
@@ -253,7 +260,11 @@ classdef OnlinePlotBM < gui.Helper & handle
             obj.ax.YAxis.Limits = [.8 obj.yPositions(end)+.2];
             obj.ax.YAxis.TickValues = obj.yPositions;
             obj.ax.YAxis.TickLabelInterpreter = 'none';
-            obj.ax.YAxis.TickLabels = obj.RPvdsBitmask.Labels;
+            lbl = {};
+            for i = 1:length(obj.RPvdsBitmask)
+                lbl(end+1:end+obj.RPvdsBitmask{i}.N) = obj.RPvdsBitmask{i}.Labels;
+            end
+            obj.ax.YAxis.TickLabels = lbl;
             obj.ax.XMinorGrid = 'on';
             obj.ax.Box = 'on';
             
