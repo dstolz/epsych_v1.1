@@ -224,7 +224,7 @@ classdef OnlinePlotBM < gui.Helper & handle
                 line(obj.ax,[1 1]*lto,obj.ax.YLim,'Color',[1 0 0],'LineWidth',2);
                 tn = obj.getParamVals(obj.TDTActiveX,'#TrialNum~1');
                 tn = tn - 1;
-                text(obj.ax,lto+seconds(.05),obj.N-.5,num2str(tn,'%d'),'FontWeight','Bold','FontSize',15);
+                text(obj.ax,lto-seconds(.25),obj.N-.5,num2str(tn,'%d'),'FontWeight','Bold','FontSize',15);
                 
                 w = obj.timeWindow2number;
                 s = seconds(diff(w)/10);
