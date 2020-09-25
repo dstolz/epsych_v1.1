@@ -6,7 +6,7 @@ classdef OnlinePlotBM < gui.Helper & handle
         trialParam  (1,:) char
         
         lineWidth   (:,1) double {mustBePositive,mustBeFinite} % line plot width [obj.N,1]
-        lineColors  (:,3) double {mustBeNonnegative,mustBeLessThanOrEqual(lineColors,1)} = lines(128);% line colors [obj.N,3]
+        lineColors  (:,3) double {mustBeNonnegative,mustBeLessThanOrEqual(lineColors,1)} % line colors [obj.N,3]
         
         yPositions  (:,1) double {mustBeFinite}
         
@@ -61,6 +61,7 @@ classdef OnlinePlotBM < gui.Helper & handle
                 obj.RPvdsBitmask{i} = RPvdsBitmask(RUNTIME,TDTActiveX,BMBank{i});
             end
             
+            obj.lineColors = jet(obj.N);
             
             if isempty(ax)
                 obj.setup_figure;
@@ -180,6 +181,8 @@ classdef OnlinePlotBM < gui.Helper & handle
         function update(obj,varargin)
             global PRGMSTATE
             
+            persistent LTO
+            
             % stop if the program state has changed
             if ismember(PRGMSTATE,{'STOP','ERROR'}), stop(obj.Timer); return; end
             
@@ -213,12 +216,27 @@ classdef OnlinePlotBM < gui.Helper & handle
                 obj.lineH(i).YData = obj.yPositions(i).*obj.Buffers(i,:);
             end
             
-            if obj.trialLocked && ~isempty(obj.trialParam) && ~isempty(obj.last_trial_onset)
-                obj.ax.XLim = obj.last_trial_onset + obj.timeWindow;
-            elseif obj.trialLocked
+            assignin('base','ax',obj.ax)
+            
+            lto = obj.last_trial_onset;
+            if obj.trialLocked && ~isempty(obj.trialParam) && ~isempty(lto) && ~isequal(lto,LTO)
+                obj.ax.XLim = lto + obj.timeWindow;
+                line(obj.ax,[1 1]*lto,obj.ax.YLim,'Color',[1 0 0],'LineWidth',2);
+                tn = obj.getParamVals(obj.TDTActiveX,'#TrialNum~1');
+                tn = tn - 1;
+                text(obj.ax,lto+seconds(.05),obj.N-.5,num2str(tn,'%d'),'FontWeight','Bold','FontSize',15);
+                
+                w = obj.timeWindow2number;
+                s = seconds(diff(w)/10);
+                obj.ax.XAxis.TickValues = lto-s:s:lto+seconds(w(2));
+                
+                
+                LTO = lto;
+            elseif obj.trialLocked && ~isequal(lto,LTO)
                 obj.ax.XLim = obj.timeWindow;
-            else
+            elseif ~obj.trialLocked
                 obj.ax.XLim = obj.Time(end) + obj.timeWindow;
+                obj.ax.XAxis.TickValuesMode = 'auto';
             end
             drawnow limitrate
             
