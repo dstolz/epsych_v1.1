@@ -79,11 +79,19 @@ classdef Navigation < handle
                     
                 case 'parS' % parSubjects
                     % TODO: Assign subjects to boxes
-                    
-                    if isempty(RUNTIME.Subject)
+                    S = RUNTIME.Subject;
+                    if isempty(S)
                         str = 'You must add at least one subject';
                     else
-                        str = {RUNTIME.Subject.Name};
+                        ai = {'INACTIVE','ACTIVE'};
+                        rb = {'NOT READY TO BEGIN','READY TO BEGIN'};
+                        str = '';
+                        for i = 1:length(S)
+                            isa = ai{double(S(i).Active)+1};
+                            rtb = rb{double(S(i).isReady)+1};
+                            str = sprintf('%s%d. %s [%s]\n > %s\n > %s\n > %s\n', ...
+                                str,i,S(i).Name,S(i).ID,S(i).Age,isa,rtb);
+                        end
                     end
                     
                     g = uigridlayout(obj.mainPanel);
