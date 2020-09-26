@@ -16,6 +16,7 @@ classdef Subject < handle & dynamicprops & matlab.mixin.Copyable
     end
 
     properties (Dependent)
+        Age
         isReady (1,1) logical
     end
 
@@ -45,6 +46,11 @@ classdef Subject < handle & dynamicprops & matlab.mixin.Copyable
             cellfun(@(a,b) log_write('Verbose','Subject "%s" - "%s" ready = %s',obj.Name,a,mat2str(b)),f,num2cell(~e));
                         
             ready = ~any(e);
+        end
+
+        function age = get.Age(obj)
+            d = datetime('today') - obj.DOB;
+            age = sprintf('%d y %d d',floor(years(d)),days(d));
         end
     end
 
