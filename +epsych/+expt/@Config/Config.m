@@ -63,8 +63,14 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
             if isempty(obj.LogDirectory)
                 obj.LogDirectory = fullfile(obj.UserDirectory,'Logs');
             end
-            if ~isfolder(obj.LogDirectory), mkdir(obj.LogDirectory); end
-            d = obj.LogDirectory;
+            try
+                if ~isfolder(obj.LogDirectory), mkdir(obj.LogDirectory); end
+                d = obj.LogDirectory;
+            catch me
+                log_write('Error',me);
+                d = epsych.Info.user_directory;
+            end
+            
         end
 
         function d = get.UserDirectory(obj)
