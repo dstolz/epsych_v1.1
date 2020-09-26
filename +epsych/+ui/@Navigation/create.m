@@ -23,8 +23,6 @@ obj.treeConfigNodes.Icon = epsych.Tool.icon('time');
 obj.treeConfigNodes = uitreenode(h,'Text','Miscellaneous','Tag','ConfigMiscellaneous');
 obj.treeConfigNodes.Icon = epsych.Tool.icon('miscellaneous');
 
-obj.treeConfigNodes = uitreenode(h,'Text','Info','Tag','ConfigInfo');
-obj.treeConfigNodes.Icon = epsych.Tool.icon('info');
 
 obj.treeConfig = h;
 
@@ -64,6 +62,11 @@ h = uitreenode(obj.tree,'Text','Log','Tag','ProgramLog');
 h.Icon = epsych.Tool.icon('notebook');
 
 
+% obj.treeInfo
+h = uitreenode(obj.tree,'Text','Info','Tag','ConfigInfo');
+h.Icon = epsych.Tool.icon('info');
+
+
 
 % obj.mainPanel
 obj.mainPanel = uipanel(g);
@@ -79,7 +82,6 @@ obj.logPanel.Layout.Row = 1;
 obj.logPanel.BorderType = 'none';
 obj.logPanel.Visible = 'off';
 RUNTIME.Log.create_gui(obj.logPanel);
-
 
 
 
