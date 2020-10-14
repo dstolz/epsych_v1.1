@@ -61,6 +61,11 @@ classdef OnlinePlotBM < gui.Helper & handle
                 obj.RPvdsBitmask{i} = RPvdsBitmask(RUNTIME,TDTActiveX,BMBank{i});
             end
             
+            % set buffer size
+            obj.Buffers     = nan(1000,obj.N,'single');
+            obj.Time        = seconds(zeros(1000,1));
+            obj.trialBuffer = zeros(1000,1,'single');
+            
             obj.lineColors = jet(obj.N);
             
             if isempty(ax)
@@ -167,8 +172,7 @@ classdef OnlinePlotBM < gui.Helper & handle
         end
         
         function to = last_trial_onset(obj)
-            B = obj.trialBuffer;
-            idx = find(B(2:end) > B(1:end-1),1,'last'); % find onsets
+            idx = find(obj.trialBuffer(2:end) > obj.trialBuffer(1:end-1),1,'last'); % find onsets
             if isempty(idx)
                 %to = obj.Time(end);
                 to = [];
@@ -189,7 +193,8 @@ classdef OnlinePlotBM < gui.Helper & handle
             
             if ~isempty(obj.trialParam)
                 try
-                    obj.trialBuffer(end+1) = obj.getParamVals(obj.TDTActiveX,obj.trialParam);
+                    obj.trialBuffer(1:end-1) = obj.trialBuffer(2:end);
+                    obj.trialBuffer(end) = obj.getParamVals(obj.TDTActiveX,obj.trialParam);
                 catch
                     vprintf(0,1,'Unable to read the RPvds parameter: %s\nUpdate the trialParam to an existing parameter in the RPvds circuit', ...
                         obj.trialParam)
@@ -204,19 +209,22 @@ classdef OnlinePlotBM < gui.Helper & handle
                 BS(end+1:end+obj.RPvdsBitmask{i}.N,:) = obj.RPvdsBitmask{i}.BitStates;
             end
 
-            obj.Buffers(:,end+1) = [BS{:,2}];
-            if obj.setZeroToNan, obj.Buffers(obj.Buffers(:,end)==0,end) = nan; end
+            % shift and update Buffers
+            obj.Buffers(1:end-1,:) = obj.Buffers(2:end,:);
+            obj.Buffers(end,:) = single([BS{:,2}]);
+            if obj.setZeroToNan, obj.Buffers(end,obj.Buffers(end,:)==0) = nan; end
             
-            obj.Time(end+1) = seconds(etime(clock,obj.startTime));
+            
+            obj.Time(1:end-1,:) = obj.Time(2:end,:);
+            obj.Time(end) = seconds(etime(clock,obj.startTime));
             
             if obj.paused, return; end
             
             for i = 1:obj.N
                 obj.lineH(i).XData = obj.Time;
-                obj.lineH(i).YData = obj.yPositions(i).*obj.Buffers(i,:);
+                obj.lineH(i).YData = obj.yPositions(i).*obj.Buffers(:,i);
             end
             
-            assignin('base','ax',obj.ax)
             
             lto = obj.last_trial_onset;
             if obj.trialLocked && ~isempty(obj.trialParam) && ~isempty(lto) && ~isequal(lto,LTO)
@@ -371,6 +379,7 @@ classdef OnlinePlotBM < gui.Helper & handle
                 return
             end
             obj.timeWindow = seconds(r(:)');
+            
 
             c = obj.get_menu_item('uic_timeWindow');
             c.Label = sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number);
