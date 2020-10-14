@@ -165,6 +165,8 @@ switch COMMAND
         
         
         for i = 1:length(CONFIG)
+            RUNTIME.TRIALS(i).protocol_fn = CONFIG(i).protocol_fn;
+            
             modnames = fieldnames(CONFIG(i).PROTOCOL.MODULES);
             for j = 1:length(modnames)
                 RUNTIME.TRIALS(i).MODULES.(modnames{j}) = j;
