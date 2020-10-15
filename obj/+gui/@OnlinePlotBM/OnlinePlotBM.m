@@ -41,6 +41,10 @@ classdef OnlinePlotBM < gui.Helper & handle
         Time        (:,1) duration
     end
     
+    properties (Constant)
+        BufferLength = 500;
+    end
+    
     
     methods
         
@@ -62,9 +66,9 @@ classdef OnlinePlotBM < gui.Helper & handle
             end
             
             % set buffer size
-            obj.Buffers     = nan(1000,obj.N,'single');
-            obj.Time        = seconds(zeros(1000,1));
-            obj.trialBuffer = zeros(1000,1,'single');
+            obj.Buffers     = nan(obj.BufferLength,obj.N,'single');
+            obj.Time        = seconds(zeros(obj.BufferLength,1));
+            obj.trialBuffer = zeros(obj.BufferLength,1,'single');
             
             obj.lineColors = jet(obj.N);
             
@@ -229,28 +233,37 @@ classdef OnlinePlotBM < gui.Helper & handle
             lto = obj.last_trial_onset;
             if obj.trialLocked && ~isempty(obj.trialParam) && ~isempty(lto) && ~isequal(lto,LTO)
                 obj.ax.XLim = lto + obj.timeWindow;
-                line(obj.ax,[1 1]*lto,obj.ax.YLim,'Color',[1 0 0],'LineWidth',2);
-                tn = obj.getParamVals(obj.TDTActiveX,'#TrialNum~1');
-                tn = tn - 1;
-                text(obj.ax,lto-seconds(.25),obj.N-.5,num2str(tn,'%d'),'FontWeight','Bold','FontSize',15);
-                
+
                 w = obj.timeWindow2number;
                 s = seconds(diff(w)/10);
                 obj.ax.XAxis.TickValues = lto-s:s:lto+seconds(w(2));
                 
-                
-                LTO = lto;
             elseif obj.trialLocked && ~isequal(lto,LTO)
                 obj.ax.XLim = obj.timeWindow;
+                
             elseif ~obj.trialLocked
                 obj.ax.XLim = obj.Time(end) + obj.timeWindow;
                 obj.ax.XAxis.TickValuesMode = 'auto';
+                
             end
+            
+            if ~isequal(lto,LTO)
+                obj.plot_trialMarker(lto);
+            end
+            
             drawnow limitrate
             
+            LTO = lto;
+
         end
         
-        
+        function plot_trialMarker(obj,t)
+            if isempty(t), return; end
+            line(obj.ax,[1 1]*t,obj.ax.YLim,'Color',[1 0 0],'LineWidth',2);
+            tn = obj.getParamVals(obj.TDTActiveX,'#TrialNum~1');
+            tn = tn - 1;
+            text(obj.ax,t-seconds(.25),obj.N-.5,num2str(tn,'%d'),'FontWeight','Bold','FontSize',15);
+        end
         
         function error(obj,varargin)
             vprintf(-1,'OnlinePlot closed with error')
