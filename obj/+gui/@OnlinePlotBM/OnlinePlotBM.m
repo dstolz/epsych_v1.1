@@ -42,7 +42,7 @@ classdef OnlinePlotBM < gui.Helper & handle
     end
     
     properties (Constant)
-        BufferLength = 500;
+        BufferLength = 1000;
     end
     
     
@@ -78,6 +78,9 @@ classdef OnlinePlotBM < gui.Helper & handle
                 obj.ax = ax;
             end
             
+            disableDefaultInteractivity(ax)
+            ax.Toolbar.Visible = false;
+            
             obj.add_context_menu;
             
             % set default trial-based parameter tag to use.
@@ -94,7 +97,6 @@ classdef OnlinePlotBM < gui.Helper & handle
             obj.Timer.Period = 0.05;
             
             start(obj.Timer);
-            
         end
         
         % Destructor
