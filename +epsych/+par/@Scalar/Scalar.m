@@ -56,12 +56,12 @@ classdef Scalar < epsych.par.Parameter
         function c = get.DataStr(obj)
             c = cell(1,obj.N);
             for i = 1:obj.N
-                c{i} = sprintf(obj.DispFormat,obj.Data(i)/obj.ScaleFactor);
+                c{i} = sprintf(obj.Format,obj.Data(i)/obj.ScaleFactor);
             end
         end
         
         function s = get.ValueStr(obj)
-            s = sprintf(obj.DispFormat,obj.Value/obj.ScaleFactor);
+            s = sprintf(obj.Format,obj.Value/obj.ScaleFactor);
         end
     end
 end

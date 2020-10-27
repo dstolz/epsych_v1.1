@@ -25,7 +25,7 @@ classdef Parameter < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         PairName        (1,:) char
         Select          (1,:) char   {mustBeMember(Select,{'value','discrete','randRange','userfcn'})} = 'value';
         SelectFunction  (1,1) % function handle
-        DispFormat      (1,:) char = '%g';
+        Format          (1,:) char = '%g';
         ScaleFactor     (1,1) double = 1;
         
         Limits          (1,2) double = [-inf inf];
