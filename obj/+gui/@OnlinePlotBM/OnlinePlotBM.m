@@ -10,14 +10,14 @@ classdef OnlinePlotBM < gui.Helper & handle
         
         yPositions  (:,1) double {mustBeFinite}
         
-        timeWindow  (1,2) duration = seconds([-10 3]);
+        timeWindow  (1,2) duration = seconds([-1 10]);
         
         setZeroToNan (1,1) logical = true;
         
         stayOnTop   (1,1) logical = false;
         paused      (1,1) logical = false;
         
-        trialLocked (1,1) logical = false;
+        trialLocked (1,1) logical = true;
     end
     
     properties (SetAccess = private)
@@ -264,7 +264,7 @@ classdef OnlinePlotBM < gui.Helper & handle
             line(obj.ax,[1 1]*t,obj.ax.YLim,'Color',[1 0 0],'LineWidth',2);
             tn = obj.getParamVals(obj.TDTActiveX,'#TrialNum~1');
             tn = tn - 1;
-            text(obj.ax,t-seconds(.25),obj.N-.5,num2str(tn,'%d'),'FontWeight','Bold','FontSize',15);
+            text(obj.ax,t,obj.N+1,num2str(tn,'%d'),'FontWeight','Bold','FontSize',15);
         end
         
         function error(obj,varargin)
