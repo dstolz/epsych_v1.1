@@ -23,15 +23,16 @@ idx = randi(n,1);
 
 S = zeros(1,12*nSeq,'uint8');
 
+B = M(:,1:2);
+
 k = 1;
 for i = 1:nSeq
     a = M(idx,end-1:end);
-    b = M(:,1:2);
     
     if a(1) == a(2)
-        idx = all(b~=a,2);
+        idx = all(B~=a,2);
     else
-        idx = b(:,1) == a(2) & b(:,2) == a(1) & b(:,1) ~= b(:,2);
+        idx = B(:,1) == a(2) & B(:,2) == a(1) & B(:,1) ~= B(:,2);
     end
     idx = find(idx);
     
