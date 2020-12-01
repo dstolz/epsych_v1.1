@@ -49,7 +49,7 @@ if nargin < 2 || isempty(N), N = 2; end
 C = [];
 if ~any(ind), return; end
 
-ind = ind(:);
+ind = single(ind(:));
 
 if nargin == 3
     dind = diff([false; ~ind; false]);
