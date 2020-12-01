@@ -58,19 +58,26 @@ end
 
 % --- Executes just before ep_GenericGUI is made visible.
 function ep_GenericGUI_OpeningFcn(hObj, ~, h, varargin)
+global RUNTIME
+
 h.output = hObj;
 
 guidata(hObj, h);
 
-% Generate a new timer object and then start it
-h.GTIMER = ep_GenericGUITimer(h.ep_GenericGUI);
-h.GTIMER.TimerFcn = @GenericGUIRunTime;
-h.GTIMER.StartFcn = @GenericGUISetup;
-h.GTIMER.Period = 0.05; 
-
-start(h.GTIMER);
+% % Generate a new timer object and then start it
+% h.GTIMER = ep_GenericGUITimer(h.ep_GenericGUI);
+% h.GTIMER.TimerFcn = @GenericGUIRunTime;
+% h.GTIMER.StartFcn = @GenericGUISetup;
+% h.GTIMER.Period = 0.05; 
+% 
+% start(h.GTIMER);
 
 guidata(hObj, h);
+
+GenericGUISetup(hObj);
+
+addlistener(RUNTIME.HELPER,'NewTrial',@(src,evnt)update_session_info(src,evnt,hObj));
+
 
 
 % --- Outputs from this function are returned to the command line.
@@ -101,7 +108,7 @@ delete(f);
 
 
 
-function GenericGUISetup(~,~,f)
+function GenericGUISetup(f)
 % figure handles
 h = guidata(f);
 
@@ -122,20 +129,22 @@ stay_on_top(h.stayOnTop);
 % Setup h.tbl_TrialParameters
 setup_tblTrialParameters(h);
 
-update_trials_table(h);
+update_trials_table(f);
 
 % Setup h.tbl_Triggers
-setup_tblTriggers(h);
+setup_tblTriggers(f);
 
 % Reset session info
-update_session_info(h);
+update_session_info([],[],f);
 
 
 
 
 
-function update_session_info(h)
+function update_session_info(~,~,f)
 global RUNTIME
+
+h = guidata(f);
 
 trc = RUNTIME.TRIALS.DATA(end).TrialID;
 if isempty(trc), trc = '---'; end
@@ -156,50 +165,13 @@ h.txt_TrialType.String = tt;
 
 
 
-function GenericGUIRunTime(timerObj,~,f)
-% This function can be used to monitor during an experiment 
-
-% see main help file for this GUI for more info on these global variables
-global RUNTIME PRGMSTATE
-
-
-% persistent variables hold their values across calls to this function
-persistent lastupdate
-
-
-% stop if the program state has changed
-if ismember(PRGMSTATE,{'ERROR','STOP'}), stop(timerObj); return; end
-
-
-% number of trials is length of
-ntrials = RUNTIME.TRIALS.DATA(end).TrialID;
-
-if isempty(ntrials)
-    ntrials = 0;
-    lastupdate = 0;
-end
-
-    
-% escape timer function until a trial has finished
-if ntrials == lastupdate,  return; end
-lastupdate = ntrials;
-% `````````````````````````````````````````````````````````````````````````
-% There was a new trial, so do stuff with new data
-
-% Retrieve a structure of handles to objects on the GUI.
-h = guidata(f);
-
-% update_trials_table(h);
-
-update_session_info(h);
 
 
 
-
-
-function update_trials_table(h)
+function update_trials_table(f)
 global RUNTIME
 
+h = guidata(f);
 
 rn = h.tbl_TrialParameters.RowName;
 rn(ismember(rn,'ACTIVE')) = [];
@@ -359,12 +331,13 @@ row = event.Indices(1);
 col = event.Indices(2);
 
 % make certain the new data is valid
-if isnumeric(event.NewData)
+if isnumeric(event.NewData) || islogical(event.NewData)
     NewData = event.NewData;
 else
-    NewData = str2double(event.NewData);
+    NewData = str2num(event.NewData);
 end
-if row > 1 && isnan(NewData)
+
+if row > 1 && any(isnan(NewData))
     hObj.Data{row,col} = event.PreviousData;
     errordlg('Invalid input.  Values must be numeric, finite, real, and scalar','ep_GenericGui','modal');
     return
@@ -387,6 +360,8 @@ global RUNTIME
 
 TBL = h.tbl_TrialParameters;
 
+origT = RUNTIME.TRIALS.trials;
+origA = RUNTIME.TRIALS.activeTrials;
 
 % Update the TRIALS structure with the active trials used by the trial
 % selection function
@@ -415,6 +390,30 @@ h.btn_commitChanges.BackgroundColor = [0.94 0.94 0.94];
 h.btn_resetChanges.Enable = 'off';
 h.btn_resetChanges.BackgroundColor = [0.94 0.94 0.94];
 
+d = datestr(now,'HH:MM:SS');
+
+fprintf('%s: Parameters updated for Trial # %d\n',d,RUNTIME.TRIALS.TrialIndex+1)
+
+ind = origA ~= RUNTIME.TRIALS.activeTrials;
+if any(ind)
+    fprintf('\tActive trials = %s\n',mat2str(find(RUNTIME.TRIALS.activeTrials')))
+end
+
+for i = 1:size(origT,2)
+    ind = cellfun(@isequal,origT(:,i),RUNTIME.TRIALS.trials(:,i));
+    if any(~ind)
+        x = find(~ind);
+        for j = 1:length(x)
+            nv = RUNTIME.TRIALS.trials{x(j),i};
+            if isnumeric(nv) || islogical(nv)
+                nv = mat2str(nv);
+            end
+                
+            fprintf('\tTrial Type %d , %s = %s\n',x(j),wp{i},nv)
+        end
+    end
+end
+
 drawnow
 
 
@@ -434,8 +433,10 @@ hObj.BackgroundColor = c;
 
 
 
-function setup_tblTriggers(h)
+function setup_tblTriggers(f)
 global RUNTIME AX
+
+h = guidata(f);
 
 if ~isa(AX,'COM.RPco_x') && ~isa(AX,'COM.TDevAcc_X')
     vprintf(0,1,'ep_GenericGUI:AX Not defined!')
