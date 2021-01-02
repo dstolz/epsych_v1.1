@@ -1,7 +1,7 @@
 classdef ControlPanel < handle
     
     properties
-        Runtime % handle to epsych.expt.Runtime
+        epsychObj
     end
     
     properties (Access = protected)
@@ -20,13 +20,20 @@ classdef ControlPanel < handle
         parent              % any matlab.ui.container
     end
     
+    
+    
     methods
         % Constructor
-        function obj = ControlPanel(varargin)
-            global RUNTIME
+        function obj = ControlPanel(epsychObj,varargin)
             
             parent = [];
             filename = '';
+            
+            obj.epsychObj = epsychObj;
+            
+            addlistener(epsychObj.Runtime,'RuntimeConfigChange',@obj.listener_RuntimeConfigChange);
+            addlistener(epsychObj.Runtime,'PreStateChange',@obj.listener_PreStateChange);
+            addlistener(epsychObj.Runtime,'PostStateChange',@obj.listener_PostStateChange);
             
             for i = 1:length(varargin)
                 v = varargin{i};
@@ -41,22 +48,6 @@ classdef ControlPanel < handle
                 end
             end
             
-            % INITIALIZE RUNTIME OBJECT
-            if isempty(RUNTIME) || ~isvalid(RUNTIME)
-                RUNTIME = epsych.expt.Runtime;
-                
-                addlistener(RUNTIME,'RuntimeConfigChange',@obj.listener_RuntimeConfigChange);
-                addlistener(RUNTIME,'PreStateChange',@obj.listener_PreStateChange);
-                addlistener(RUNTIME,'PostStateChange',@obj.listener_PostStateChange);
-            end
-            
-            % INITIALIZE SESSION LOG
-            if isempty(RUNTIME.Log) || ~isvalid(RUNTIME.Log)
-                fn = sprintf('EPsychLog_%s.txt',datestr(now,30));
-                RUNTIME.Log = epsych.log.Log(fullfile(RUNTIME.Config.LogDirectory,fn));
-            end
-
-            obj.Runtime = RUNTIME;
             
             % permit only one instance at a time
             f = epsych.Tool.find_epsych_controlpanel;
@@ -80,11 +71,6 @@ classdef ControlPanel < handle
                 obj.load_config(filename);
             end
             
-            
-            % elevate Matlab.exe process to a high priority in Windows
-            pid = feature('getpid');
-            [~,msg] = dos(sprintf('wmic process where processid=%d CALL setpriority 128',pid));
-            log_write('Debug',msg);
 
             
             if nargout == 0, clear obj; end
@@ -101,15 +87,7 @@ classdef ControlPanel < handle
             log_write('Important','ControlPanel closing.')
             
             drawnow
-                                    
-            delete(obj.Runtime);
-            
-            
-            % be nice and return Matlab.exe process to normal priority in Windows
-            pid = feature('getpid');
-            [~,~] = dos(sprintf('wmic process where processid=%d CALL setpriority 32',pid));
-            
-            clear global RUNTIME
+                            
         end
         
         function closereq(obj,hObj,event)
@@ -173,7 +151,7 @@ classdef ControlPanel < handle
 
             log_write(epsych.log.Verbosity.Verbose,'Saving EPsych Runtime Config as "%s"',ffn);
             
-            RUNTIME = obj.Runtime;
+            RUNTIME = obj.epsychObj.Runtime;
             save(ffn,'RUNTIME','-mat');
 
             [pn,~] = fileparts(ffn);
@@ -187,7 +165,6 @@ classdef ControlPanel < handle
         
         
         function load_config(obj,ffn,~,~)
-            global RUNTIME
             
             if ~obj.Runtime.ConfigIsSaved
                 r = uiconfirm(obj.parent,'There have been changes made to the current configuration.  Would you like to first save the current configuration?', ...
@@ -246,12 +223,12 @@ classdef ControlPanel < handle
                 return
             end
             
-            log = RUNTIME.Log;
+            log = obj.epsychObj.Runtime.Log;
             
             load(ffn,'-mat','RUNTIME');
             
             RUNTIME.Log = copy(log);
-            obj.Runtime = RUNTIME;
+            obj.epsychObj.Runtime = RUNTIME;
 
             for i = 1:length(hl)
                 addlistener(obj.Runtime,hl{i}.EventName,hl{i}.Callback);
