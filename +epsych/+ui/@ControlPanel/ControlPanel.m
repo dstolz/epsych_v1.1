@@ -1,7 +1,7 @@
 classdef ControlPanel < handle
     
     properties
-        epsychObj
+        epsychObj   % handle to epsych.epsych parent object
     end
     
     properties (Access = protected)
@@ -17,7 +17,7 @@ classdef ControlPanel < handle
     end
     
     properties (SetAccess = private, Hidden)
-        parent              % any matlab.ui.container
+        parent              % any (?) matlab.ui.container handle
     end
     
     
@@ -25,6 +25,8 @@ classdef ControlPanel < handle
     methods
         % Constructor
         function obj = ControlPanel(epsychObj,varargin)
+            
+            log_write(epsych.log.Verbosity.Verbose,'Building ControlPanel')
             
             parent = [];
             filename = '';
@@ -80,7 +82,7 @@ classdef ControlPanel < handle
         % Destructor
         function delete(obj)
             
-            if obj.Runtime.Config.AutoSaveRuntimeConfig
+            if obj.epsychObj.Runtime.Config.AutoSaveRuntimeConfig
                 obj.save_config('default');
             end
             
@@ -93,15 +95,15 @@ classdef ControlPanel < handle
         function closereq(obj,hObj,event)
             log_write(epsych.log.Verbosity.Important,'ControlPanel close requested.')
             
-            if obj.Runtime.isRunning
+            if obj.epsychObj.Runtime.isRunning
                 uialert(ancestor(obj.parent,'figure'), ...
                     'Please Halt the experiment before closing the Control Panel.','Close', ...
                     'Icon','warning');
                 return
             end
             
-            if ~obj.Runtime.ConfigIsSaved
-                if obj.Runtime.Config.AutoSaveRuntimeConfig
+            if ~obj.epsychObj.Runtime.ConfigIsSaved
+                if obj.epsychObj.Runtime.Config.AutoSaveRuntimeConfig
                     obj.save_config('default');
                     
                 else
@@ -131,7 +133,7 @@ classdef ControlPanel < handle
         function save_config(obj,ffn,~,~)            
             prevState = epsych.Tool.figure_state(obj.parent,false);
             
-            pn = getpref('epsych_Config','configPath',obj.Runtime.Config.UserDirectory);
+            pn = getpref('epsych_Config','configPath',obj.epsychObj.Runtime.Config.UserDirectory);
             if nargin == 1 || isequal(ffn,'default')
                 ffn = fullfile(pn,'EPsychRuntimeConfig.mat');
             elseif ishandle(ffn) % coming from callback
@@ -166,7 +168,7 @@ classdef ControlPanel < handle
         
         function load_config(obj,ffn,~,~)
             
-            if ~obj.Runtime.ConfigIsSaved
+            if ~obj.epsychObj.Runtime.ConfigIsSaved
                 r = uiconfirm(obj.parent,'There have been changes made to the current configuration.  Would you like to first save the current configuration?', ...
                     'Load Config','Icon','question', ...
                     'Options',{'Save','Continue','Cancel'}, ...
@@ -184,7 +186,7 @@ classdef ControlPanel < handle
             end
             
             if nargin == 1 || isequal(ffn,'default')
-                ffn = fullfile(obj.Runtime.Config.UserDirectory,'EPsychRuntimeConfig.mat');
+                ffn = fullfile(obj.epsychObj.Runtime.Config.UserDirectory,'EPsychRuntimeConfig.mat');
                 if ~isfile(ffn), ffn = []; end
 
             elseif ishandle(ffn) % coming from callback
@@ -206,7 +208,7 @@ classdef ControlPanel < handle
             fig = ancestor(obj.parent,'figure');
             fig.Pointer = 'watch'; drawnow
             
-            hl = obj.Runtime.AutoListeners__; % undocumented
+            hl = obj.epsychObj.Runtime.AutoListeners__; % undocumented
             hl(cellfun(@(a) isequal(class(a),'event.proplistener'),hl)) = [];
 
             log_write('Debug','Disabling %d listeners',length(hl))
@@ -231,7 +233,7 @@ classdef ControlPanel < handle
             obj.epsychObj.Runtime = RUNTIME;
 
             for i = 1:length(hl)
-                addlistener(obj.Runtime,hl{i}.EventName,hl{i}.Callback);
+                addlistener(obj.epsychObj.Runtime,hl{i}.EventName,hl{i}.Callback);
             end
 
             log_write('Verbose','Loaded Runtime Config file: %s',ffn)
@@ -243,9 +245,9 @@ classdef ControlPanel < handle
             
             
             log_write('Debug','notify "RuntimeConfigChange" after load config')
-            notify(obj.Runtime,'RuntimeConfigLoaded');
+            notify(obj.epsychObj.Runtime,'RuntimeConfigLoaded');
             
-            notify(obj.Runtime,'RuntimeConfigChange');
+            notify(obj.epsychObj.Runtime,'RuntimeConfigChange');
             
             figure(fig); % unhide gui
             fig.Pointer = 'arrow';
@@ -272,7 +274,7 @@ classdef ControlPanel < handle
                 end
             end
 
-            log_write('Verbose','obj.Runtime Config updated')            
+            log_write('Verbose','obj.epsychObj.Runtime Config updated')            
         end
 
 
