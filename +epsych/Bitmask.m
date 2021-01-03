@@ -1,4 +1,4 @@
-classdef Bitmask < matlab.mixin.Copyable
+classdef Bitmask < handle & matlab.mixin.Copyable
     % [lsb msb]
        
     properties
@@ -151,19 +151,53 @@ classdef Bitmask < matlab.mixin.Copyable
         end
         
         
+        function reorder_bits(obj,newBitOrder)
+            lb = obj.lbls; 
+            
+            obj.Bits = orderfields(obj.Bits,newBitOrder+1);
+            for i = 1:length(lb)
+                obj.Bits.(lb{i}).Digit = newBitOrder(i);
+            end
+        end
         
+        
+        
+        
+        
+        function lbls = get.lbls(obj)
+            lbls = fieldnames(obj.Bits)';
+            if isempty(lbls) || isempty(obj.digs), lbls = {}; return; end
+
+        end
+        
+        function dig = get.digs(obj)
+            lbl = fieldnames(obj.Bits);
+            if isempty(lbl), dig = []; return; end
+            dig = zeros(size(lbl),'uint16');
+            for i = 1:numel(lbl)
+                dig(i) = obj.Bits.(lbl{i}).Digit;
+            end
+        end
+        
+        function val = get.vals(obj)
+            lbl = fieldnames(obj.Bits);
+            val = false(size(lbl));
+            if isempty(lbl), return; end
+            for i = 1:numel(lbl)
+                val(i) = obj.Bits.(lbl{i}).Value;
+            end
+        end
         
         function lbl = get.Labels(obj)
-            lbl = obj.lbls(obj.digitOrder);
-            if isempty(lbl), lbl = {}; end
+            lbl = obj.lbls(obj.digs+1);
         end
         
         function d = get.Digits(obj)
-            d = obj.digs(obj.digitOrder)';
+            d = obj.digs';
         end
         
         function v = get.Values(obj)
-            v = obj.vals(obj.digitOrder);
+            v = obj.vals(obj.digs+1)';
         end
         
         function set.Mask(obj,m)
@@ -176,17 +210,18 @@ classdef Bitmask < matlab.mixin.Copyable
             m = obj.boolean2bitmask(obj.Boolean);
         end
         
-        function i = get.digitOrder(obj)
+        function i = get.digitOrder(obj) %???
             [~,i] = sort(obj.digs);
         end
         
         function b = get.Boolean(obj)
-            d = obj.Digits+1;
-            v = obj.Values;
+            d = obj.digs+1;
+            v = obj.vals;
             
             b = false(1,16);
             b(d) = v;
         end
+
                 
     end % methods
     

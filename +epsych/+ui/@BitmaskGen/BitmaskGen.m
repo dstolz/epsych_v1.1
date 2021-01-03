@@ -38,6 +38,11 @@ classdef BitmaskGen < handle
         defaultVars = {'Hit','Miss','CorrectReject','FalseAlarm','Reward','Punish','Timeout','StimulusTrial','CatchTrial'};
     end
     
+    properties (Access = private, Hidden)
+        VarMoveRowUp
+        VarMoveRowDown
+    end
+    
     properties (SetAccess = immutable)
         parent % uifigure
     end
@@ -136,9 +141,7 @@ classdef BitmaskGen < handle
         
 
         function set.Data(obj,d)
-            if ~iscell(d)
-                d = num2cell(d);
-            end
+            if ~iscell(d), d = num2cell(d); end
             obj.DataTable.Data = d;
             notify(obj,'UpdatedBitmask');
         end
@@ -257,7 +260,7 @@ classdef BitmaskGen < handle
             % Variable Table
             hV = uitable(g);
             hV.Layout.Column  = [1 2];
-            hV.Layout.Row     = [2 3];
+            hV.Layout.Row     = 3;
 %             hV.RowName        = [];
             hV.ColumnName     = {'Variable','State'};
             hV.ColumnWidth    = {'auto',60};
@@ -268,7 +271,32 @@ classdef BitmaskGen < handle
             %hV.ColumnFormat   = {[{'< REMOVE >'}; obj.defaultVars(:)]','logical'};
             hV.ColumnFormat   = {'char','logical'};
             hV.CellEditCallback = @obj.variable_updated;
+            hV.CellSelectionCallback = @obj.variable_selected;
 
+            % Move selected row up/down
+            hpg = uigridlayout(g);
+            hpg.Layout.Column = [1 2];
+            hpg.Layout.Row    = 2;
+            hpg.ColumnSpacing = 5;
+            hpg.RowSpacing = 0;
+            hpg.Padding = [0 0 0 0];
+            hpg.ColumnWidth = {'1x',40,40};
+            hpg.RowHeight   = {'1x'};
+            
+            hRU = uibutton(hpg);
+            hRU.Layout.Column = 2;
+            hRU.Text = char(9650);
+            hRU.Tag = 'up';
+            hRU.ButtonPushedFcn = @obj.move_var_row;
+            
+            
+            hRD = uibutton(hpg);
+            hRD.Layout.Column = 3;
+            hRD.Text = char(9660);
+            hRD.Tag = 'down';
+            hRD.ButtonPushedFcn = @obj.move_var_row;
+            
+            
             % Load button
             hS = uibutton(g);
             hS.Layout.Column = 1;
@@ -340,12 +368,100 @@ classdef BitmaskGen < handle
             obj.VarTable         = hV;
             obj.DataTable        = hD;
             obj.DataTableTitle   = hL;
+            obj.VarMoveRowUp     = hRU;
+            obj.VarMoveRowDown   = hRD;
             
             obj.DataTable.Data = num2cell(zeros(8,5,'uint16'));
             
             obj.default_bitmask_data;
 
             obj.load_expts;
+        end
+        
+        function move_var_row(obj,src,event)
+
+            idx = unique(obj.VarTable.Selection(:,1));
+            if isempty(idx); return; end
+            
+            obj.VarMoveRowUp.Enable   = 'off';
+            obj.VarMoveRowDown.Enable = 'off';
+            drawnow
+            
+            d = obj.VarTable.Data;
+            if isempty(d{end,1}), d(end,:) = []; end
+            
+            
+            if isequal(src.Tag,'down'), idx = flipud(idx); end
+            
+            newIdx = 1:size(d,1);
+            
+            for i = 1:length(idx)
+                ii = idx(i);
+                switch src.Tag
+                    case 'up'
+                        if ii == 1, continue; end
+                        newIdx = [newIdx(1:ii-2) newIdx(ii) newIdx(ii-1) newIdx(ii+1:end)];
+                        
+                    case 'down'
+                        if ii == size(d,1), continue; end
+                        newIdx = [newIdx(1:ii-1) newIdx(ii+1) newIdx(ii) newIdx(ii+2:end)];
+                end
+            end
+%             
+%             d = d(newIdx,:);
+%             
+%             d{end+1,1} = '';
+%             d{end,2} = 0;
+%             obj.VarTable.Data = d;
+            
+            arrayfun(@(o) o.reorder_bits(newIdx-1),obj.BitmaskData);
+            
+            bm = reshape([obj.BitmaskData.Mask],size(obj.BitmaskData));
+            obj.Data(5:end,:) = bm;
+            
+            obj.update_variable_table;
+            
+%             % TESTING
+%             clc
+%             for i = 1:numel(obj.BitmaskData), disp(obj.BitmaskData(i).Labels); end
+            
+            if isequal(src.Tag,'up'), sel = idx - 1; else, sel = idx + 1; end
+            sel = repmat(sel(:)',2,1);
+            sel = sel(:);
+            sel(:,2) = repmat([1; 2],length(sel)/2,1);
+            sel(sel(:,1) > size(d,1) | sel(:,1) < 1,:) = [];          
+            obj.VarTable.Selection = sel;
+            
+            ev.Indices = sel;
+            obj.variable_selected(obj.VarTable,ev);           
+            
+            
+        end
+        
+        function variable_selected(obj,src,event)
+            idx = unique(event.Indices(:,1));
+            
+            idx(idx==size(src.Data,1)) = [];
+            
+            
+            if isempty(idx)
+                obj.VarMoveRowUp.Enable   = 'off';
+                obj.VarMoveRowDown.Enable = 'off';
+                
+            elseif idx == 1
+                obj.VarMoveRowUp.Enable   = 'off';
+                obj.VarMoveRowDown.Enable = 'on';
+                
+            elseif idx == size(src.Data,1)-1
+                obj.VarMoveRowUp.Enable   = 'on';
+                obj.VarMoveRowDown.Enable = 'off';
+                
+            else
+                obj.VarMoveRowUp.Enable   = 'on';
+                obj.VarMoveRowDown.Enable = 'on';
+            end
+            
+            drawnow
         end
         
         function variable_updated(obj,src,event)                        
