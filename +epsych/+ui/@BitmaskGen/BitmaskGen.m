@@ -8,6 +8,9 @@ classdef BitmaskGen < handle
         
         tblIdx
         
+        defStates  (1,5) = {'s0','s1','s2','s3','s4'}
+        defOutputs (1,4) = {'Output-0','Output-1','Output-2','Output-3'}
+        
     end
     
     properties (Access = protected)
@@ -68,7 +71,7 @@ classdef BitmaskGen < handle
                 obj.parent = uifigure( ...
                     'Name','Bitmask Generator', ...
                     'NumberTitle', 'off', ...
-                    'Position',[400 250 720 360], ...
+                    'Position',[400 250 750 400], ...
                     'Color',[0.9 0.9 0.9]);                
             end
             
@@ -91,8 +94,17 @@ classdef BitmaskGen < handle
                 obj.filename = fullfile(pn,fn);
             end
             fprintf('Loading Bitmask Data "%s" ...',obj.filename)
-            load(obj.filename,'BitmaskData','StateMachineData','BitmaskTable','Options','-mat');
+            load(obj.filename,'BitmaskData','StateMachineData', ...
+                'StateDefinition','OutputDefinition','BitmaskTable','Options','-mat');
             obj.DataTable.Data = StateMachineData;
+            if exist('StateDefinition','var')
+                obj.DataTable.ColumnName = StateDefinition;
+                obj.defStates = StateDefinition;
+            end
+            if exist('OutputDefinition','var')
+                obj.DataTable.RowName(5:end) = OutputDefinition;
+                obj.defOutputs = OutputDefinition;
+            end
             obj.VarTable.Data  = BitmaskTable;
             obj.BitmaskData    = BitmaskData; %#ok<PROPLC>
             obj.ExptTypeDropdown.Value = Options.ExptType;
@@ -114,13 +126,17 @@ classdef BitmaskGen < handle
             obj.filename = fullfile(pn,fn);
             
             StateMachineData = obj.DataTable.Data;
+            OutputDefinition = obj.defOutputs;
+            StateDefinition  = obj.defStates;
             BitmaskTable = obj.VarTable.Data;
             BitmaskTable(:,2) = num2cell(false(size(BitmaskTable,1),1));
             Options = struct('ExptType',obj.ExptTypeDropdown.Value);
             BitmaskData = obj.BitmaskData; %#ok<PROPLC>
             
             fprintf('Saving Bitmask Data "%s" ...',obj.filename)
-            save(obj.filename,'BitmaskData','StateMachineData','BitmaskTable','Options','-mat');
+            save(obj.filename,'BitmaskData','StateMachineData', ...
+                'BitmaskTable','OutputDefinition','StateDefinition', ...
+                'Options','-mat');
             fprintf(' done\n')
             
             setpref('epsych_BitmaskGen','projectDir',pn);
@@ -231,7 +247,9 @@ classdef BitmaskGen < handle
 
             for i = 2:5 % col
                 for j = 1:4 % row
-                    set(obj.summary_hPanel(j,i),'Title',sprintf('S%d | output-%d [%d]',i-1,j-1,obj.BitmaskData(j,i).Mask));
+                    %t = sprintf('S%d | output-%d [%d]',i-1,j-1,obj.BitmaskData(j,i).Mask);
+                    t = sprintf('%s - %d',obj.defStates{i},obj.BitmaskData(j,i).Mask);
+                    set(obj.summary_hPanel(j,i),'Title',t);
                     
                     v = obj.BitmaskData(j,i).Values;
                     set(obj.summary_hLabel(j,i),'Text',obj.BitmaskData(j,i).Labels(v));
@@ -247,20 +265,53 @@ classdef BitmaskGen < handle
                 'BackgroundColor',[.7 1 1]);
         end
         
+        function update_definitions(obj,src,event)
+            switch src.Tag
+                case 'states'
+                    d = obj.defStates;
+                    f = {'s0','s1','s2','s3','s4'};
+                    
+                case 'outputs'
+                    d = obj.defOutputs;
+                    f = {'Output-0','Output-1','Output-2','Output-3'};
+            end
+            
+            if isempty(d), d = f; end
+            
+            
+            r = inputdlg(f,src.Tag,[1 35],d);
+            
+            if isempty(r), figure(obj.parent); return; end
+            
+            r = r';
+            
+            switch src.Tag
+                case 'states'
+                    obj.defStates = r;
+                    obj.DataTable.ColumnName = r;
+                    
+                case 'outputs'
+                    obj.defOutputs = r;
+                    obj.DataTable.RowName(5:end) = obj.defOutputs;
+            end
+                        
+        end
+        
+        
     end
     
     methods (Access = private)
         function create_gui(obj)
             
             g = uigridlayout(obj.parent);
-            g.ColumnWidth = {100,100,'1.5x','1x','1x','1x'};
-            g.RowHeight   = {25,25,'1x'};
+            g.ColumnWidth = {100,100,'1x',75,100,100};
+            g.RowHeight   = {25,25,'1x',25};
             
             
             % Variable Table
             hV = uitable(g);
             hV.Layout.Column  = [1 2];
-            hV.Layout.Row     = 3;
+            hV.Layout.Row     = [3 4];
 %             hV.RowName        = [];
             hV.ColumnName     = {'Variable','State'};
             hV.ColumnWidth    = {'auto',60};
@@ -352,17 +403,36 @@ classdef BitmaskGen < handle
             hD = uitable(g);
             hD.Layout.Column  = [3 6];
             hD.Layout.Row     = 3;
-            hD.ColumnName     = {'S0','S1','S2','S3','S4'};
+            hD.ColumnName     = obj.defStates;
             hD.ColumnEditable = true;
             hD.ColumnFormat   = {'numeric','numeric','numeric','numeric','numeric'};
             hD.ColumnWidth    = num2cell(80.*ones(1,5));
-            hD.RowName        = {'If None','If JmpA','If JmpB','If Both','Output-0','Output-1','Output-2','Output-3'};
+            hD.RowName        = [{'If None','If JmpA','If JmpB','If Both'},obj.defOutputs];
             hD.FontSize       = 16;
             hD.CellSelectionCallback = @obj.select_data;
             hD.CellEditCallback      = @obj.edit_data;
             hD.BackgroundColor = [ones(4,1)*[1 1 0.5]; ones(4,3)];
 
 
+            % Define States
+            hDS = uibutton(g);
+            hDS.Layout.Column = 5;
+            hDS.Layout.Row    = 4;
+            hDS.Tag           = 'states';
+            hDS.Text          = 'Define States';
+            hDS.Tooltip       = 'Update definition of "States". This refers to the data table columns.';
+            hDS.ButtonPushedFcn = @obj.update_definitions;
+            
+            % Define Outputs
+            hDO = uibutton(g);
+            hDO.Layout.Column = 6;
+            hDO.Layout.Row    = 4;
+            hDO.Tag           = 'outputs';
+            hDO.Text          = 'Define Outputs';
+            hDO.Tooltip       = 'Update definition of "Outputs". This is typically "Trial Types". This refers to the data table rows.';
+            hDO.ButtonPushedFcn = @obj.update_definitions;
+            
+            
             obj.CopyButton       = hC;
             obj.ExptTypeDropdown = hE;
             obj.VarTable         = hV;
@@ -407,12 +477,6 @@ classdef BitmaskGen < handle
                         newIdx = [newIdx(1:ii-1) newIdx(ii+1) newIdx(ii) newIdx(ii+2:end)];
                 end
             end
-%             
-%             d = d(newIdx,:);
-%             
-%             d{end+1,1} = '';
-%             d{end,2} = 0;
-%             obj.VarTable.Data = d;
             
             arrayfun(@(o) o.reorder_bits(newIdx-1),obj.BitmaskData);
             
@@ -420,10 +484,6 @@ classdef BitmaskGen < handle
             obj.Data(5:end,:) = bm;
             
             obj.update_variable_table;
-            
-%             % TESTING
-%             clc
-%             for i = 1:numel(obj.BitmaskData), disp(obj.BitmaskData(i).Labels); end
             
             if isequal(src.Tag,'up'), sel = idx - 1; else, sel = idx + 1; end
             sel = repmat(sel(:)',2,1);
@@ -494,11 +554,9 @@ classdef BitmaskGen < handle
             bm = obj.CurrentBitmask;
 
             if isempty(lbl)
-                src.Data{r(1),2} = false;
-                return
-            elseif isequal(lbl,'< REMOVE >')
                 src.Data(r(1),:) = [];
                 arrayfun(@(a) a.remove_bit(event.PreviousData),obj.BitmaskData);
+                
                 
             elseif ~ismember(lbl,bm(1).Labels)
                 if ~isempty(event.PreviousData)
@@ -635,7 +693,6 @@ classdef BitmaskGen < handle
         end
         
         
-        
         function default_bitmask_data(obj)    
             sz = size(obj.DataTable.Data);
             bm(4,sz(2)) = epsych.Bitmask(obj.defaultVars);
@@ -646,6 +703,8 @@ classdef BitmaskGen < handle
             end
             obj.BitmaskData = bm;
         end
+
+        
         
     end % methods (Access = private)
 end
