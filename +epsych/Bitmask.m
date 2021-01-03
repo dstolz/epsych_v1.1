@@ -84,7 +84,6 @@ classdef Bitmask < handle & matlab.mixin.Copyable
             obj.Bits.(label).Digit = uint16(digit);
             obj.Bits.(label).Value = value;
             
-            obj.update;
         end
         
         function update_bit(obj,targ,value)
@@ -116,7 +115,6 @@ classdef Bitmask < handle & matlab.mixin.Copyable
                 obj.Bits.(lbl{i}).Value = value(i);
             end
             
-            obj.update;
         end
         
         function reset_bits(obj)
@@ -124,7 +122,6 @@ classdef Bitmask < handle & matlab.mixin.Copyable
             for i = 1:length(lbl)
                 obj.Bits.(lbl{i}).Value = false;
             end
-            update(obj);
         end
 
         function remove_bit(obj,targ)
@@ -144,10 +141,21 @@ classdef Bitmask < handle & matlab.mixin.Copyable
                 lbl = targ;
             end
             
+            % stupid hack
+            lb = obj.lbls;
+            ind = false(size(lb))';
+            for i = 1:numel(lbl)
+                ind = ind | obj.digs > obj.Bits.(lbl{i}).Digit;
+            end
+            idx = find(ind);
+            for i = 1:length(idx)
+                obj.Bits.(lb{idx(i)}).Digit = obj.Bits.(lb{idx(i)}).Digit - 1;
+            end
+            
             for i = 1:numel(lbl)
                 obj.Bits = rmfield(obj.Bits,lbl{i});
             end
-            obj.update;
+                        
         end
         
         
@@ -225,17 +233,6 @@ classdef Bitmask < handle & matlab.mixin.Copyable
                 
     end % methods
     
-    
-    
-    
-    
-    methods (Access = private)
-        function update(obj)
-            obj.lbls = fieldnames(obj.Bits)';
-            obj.digs = structfun(@(a) a.Digit,obj.Bits);
-            obj.vals = structfun(@(a) a.Value,obj.Bits)';
-        end
-    end % methods (Access = private)
     
     
     
