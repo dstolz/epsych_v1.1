@@ -359,7 +359,7 @@ classdef Navigation < handle
             
             ffn = fullfile(pn,fn);           
             
-            eval(sprintf('%s = node.NodeData.%s;',extType,extType));
+            eval(sprintf('%s = node.NodeData.%sObj;',extType,extType));
             
             save(ffn,extType);
             
