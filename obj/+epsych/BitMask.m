@@ -7,8 +7,8 @@ classdef BitMask < uint8
         Hit             (3)
         Miss            (4)
         Abort           (5)
-        CorrectReject   (6)
-        FalseAlarm      (7)
+        Response_A      (6)
+        Response_B      (7)
         PreResponseWindow   (8)
         ResponseWindow      (9)
         PostResponseWindow  (10)
@@ -16,21 +16,21 @@ classdef BitMask < uint8
         TrialType_1     (12)
         TrialType_2     (13)
         TrialType_3     (14)
-        Response_A      (15)
-        Response_B      (16)
-        Response_C      (17)
-        Response_D      (18)
-        Response_E      (9)
+        
 
     end
 
     
     methods (Static)
-        function list
-            b = epsych.BitMask(0:20);
-            for i = 1:length(b)
-                fprintf('% 2d\t%s\n',b(i),char(b(i)))
+        function b = list
+            b = epsych.BitMask(0:14);
+            
+            if nargout == 0
+                for i = 1:length(b)
+                    fprintf('% 2d\t%s\n',b(i),char(b(i)))
+                end
             end
+                
         end
     end
 end

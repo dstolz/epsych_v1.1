@@ -21,7 +21,7 @@ cnt = zeros(n,1);
 
 idx = randi(n,1);
 
-S = zeros(1,12*nSeq,'uint8');
+S = zeros(1,12*nSeq,'int8');
 
 B = M(:,1:2);
 
