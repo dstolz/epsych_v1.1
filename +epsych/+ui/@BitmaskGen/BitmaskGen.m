@@ -559,11 +559,7 @@ classdef BitmaskGen < handle
                 
                 
             elseif ~ismember(lbl,bm(1).Labels)
-                if ~isempty(event.PreviousData)
-                    arrayfun(@(a) a.remove_bit(event.PreviousData),obj.BitmaskData);
-                end
-                arrayfun(@(a) a.add_bit(lbl,r(1)-1),obj.BitmaskData);
-                
+                arrayfun(@(a) a.rename_bit(event.PreviousData,lbl),obj.BitmaskData);
             else
                 arrayfun(@(a) a.update_bit(lbl,val),bm);
             end
@@ -571,6 +567,8 @@ classdef BitmaskGen < handle
             ind = sub2ind(size(obj.Data),obj.bmIdx(:,1)+4,obj.bmIdx(:,2));
             obj.Data(ind) = [bm.Mask];
         end
+        
+        
         
         function select_data(obj,src,event)
             if isempty(event.Indices)
