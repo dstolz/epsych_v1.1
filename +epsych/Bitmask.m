@@ -81,8 +81,24 @@ classdef Bitmask < handle & matlab.mixin.Copyable
             
             if isnumeric(value), value = logical(value); end
             
-            obj.Bits.(label).Digit = uint16(digit);
-            obj.Bits.(label).Value = value;
+            obj.Bits.(label) = struct('Digit',uint16(digit),'Value',value);
+        end
+        
+        function rename_bit(obj,targ,newLabel)
+            narginchk(3,3);
+            
+            B = obj.Bits;
+            
+            Bt = B.(targ);
+            
+            B = rmfield(B,targ);
+            
+            B.(newLabel) = Bt;
+            
+            
+            obj.Bits = B;
+            
+            obj.Bits = orderfields(obj.Bits,obj.digs+1);
             
         end
         
