@@ -43,13 +43,68 @@ classdef Navigation < handle
             if nargout == 0, clear obj; end
         end
         
+        function add_subject_node(obj,S)
+            global RUNTIME
+            
+            h = obj.treeSubject.Children;
+            
+            node = h(ismember({h.Tag},'AddSubject'));
+            
+            sind = ismember({h.Tag},{'AddSubject','LoadSubject'});
+            
+            h(sind) = [];
+            if isempty(h)
+                str = 'Unnamed Subject';
+            else
+                str = matlab.lang.makeUniqueStrings([{h.Text} {'Unnamed Subject'}]);
+                str = str{end};
+            end
+            
+            if nargin < 2
+                S = epsych.expt.Subject;
+                S.Name = str;
+            end
+            
+            h = uitreenode(node.Parent,node,'Text',S.Name,'Tag',sprintf('Subject_%d',length(h)+1));
+            move(h,node,'before');
+            
+            obj.tree.SelectedNodes = h;
+            
+            
+            if isempty(RUNTIME.Subject)
+                RUNTIME.Subject = S;
+            else
+                ind = ismember({RUNTIME.Subject.ID},S.ID);
+                if any(ind)
+                    RUNTIME.Subject(ind) = S;
+                else
+                    RUNTIME.Subject(end+1) = S;
+                end
+            end
+            
+            obj.update_icon_border(S,h,epsych.Tool.icon('mouse'));
+            
+            obj.add_contextmenu(h);
+            
+            ev.SelectedNodes = h;
+            ev.PreviousSelectedNodes = node;
+%             ev.Source = src;
+            ev.EventName = 'SubjectAdded';
+            obj.selection_changed([],ev);
+            
+            RUNTIME.update;
+
+        end
+        
         function add_hardware_node(obj,hw)
 
             h = obj.treeHardware.Children;
             
             node = h(ismember({h.Tag},'AddHardware'));
             
-            if nargin == 2
+            hwSupplied = nargin == 2;
+            
+            if hwSupplied
                 hw = epsych.ui.Hardware(obj.mainPanel,hw);
             else
                 hw = epsych.ui.Hardware(obj.mainPanel);
@@ -90,6 +145,7 @@ classdef Navigation < handle
             
             addlistener(hw,'HardwareUpdated',@obj.hardware_updated);
 
+
         end
         
     end % methods (Access = public)
@@ -99,7 +155,6 @@ classdef Navigation < handle
         function selection_changed(obj,src,event)
             global RUNTIME
             
-            loadFlag = startsWith(event.EventName,'Load');
             
             fig = ancestor(obj.parent,'figure');
             fig.Pointer = 'watch'; drawnow
@@ -153,54 +208,7 @@ classdef Navigation < handle
                     expand(node);
                     
                 case 'AddS' % AddSubject
-                    h = node.Parent.Children;
-                    sind = ismember({h.Tag},{'AddSubject','LoadSubject'});
-                    h(sind) = [];
-                    if isempty(h)
-                        str = 'Unnamed Subject';
-                    else
-                        str = matlab.lang.makeUniqueStrings([{h.Text} {'Unnamed Subject'}]);
-                        str = str{end};
-                    end
-                   
-                    if loadFlag
-                        S = event.LoadedData;
-                    else
-                        S = epsych.expt.Subject;
-                        S.Name = str;
-                    end
-                    
-                    h = uitreenode(node.Parent,node,'Text',S.Name,'Tag',sprintf('Subject_%d',length(h)+1));
-                    move(h,node,'before');
-                    
-                    obj.tree.SelectedNodes = h;
-                    
-                    
-                    if isempty(RUNTIME.Subject)
-                        RUNTIME.Subject = S;
-                    else
-                        ind = ismember({RUNTIME.Subject.ID},S.ID);
-                        if any(ind)
-                            RUNTIME.Subject(ind) = S;
-                        else
-                            RUNTIME.Subject(end+1) = S;
-                        end
-                    end
-                                        
-                    obj.update_icon_border(S,h,epsych.Tool.icon('mouse'));
-                    
-                    obj.add_contextmenu(h);
-                    
-                    ev.SelectedNodes = h;
-                    ev.PreviousSelectedNodes = node;
-                    ev.Source = src;
-                    ev.EventName = 'SubjectAdded';
-                    obj.selection_changed(src,ev);
-                    
-                    if ~loadFlag
-                        
-                        RUNTIME.update;
-                    end
+                    obj.add_subject_node;
                     
                 case 'Subj' % Subject_#
                     ind = ismember({RUNTIME.Subject.Name},event.SelectedNodes.Text);
