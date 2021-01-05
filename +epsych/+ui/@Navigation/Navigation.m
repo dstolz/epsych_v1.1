@@ -43,7 +43,54 @@ classdef Navigation < handle
             if nargout == 0, clear obj; end
         end
         
-        
+        function add_hardware_node(obj,hw)
+
+            h = obj.treeHardware.Children;
+            
+            node = h(ismember({h.Tag},'AddHardware'));
+            
+            if nargin == 2
+                hw = epsych.ui.Hardware(obj.mainPanel,hw);
+            else
+                hw = epsych.ui.Hardware(obj.mainPanel);
+            end
+            
+            if isempty(hw.HardwareObj) % user cancelled
+                obj.tree.SelectedNodes = obj.treeHardware;
+                obj.selection_changed(src,event);
+                log_write('Verbose','No more hardware is available.')
+                return
+            end
+            
+            sind = ismember({h.Tag},{'AddHardware','LoadHardware'});
+            h(sind) = [];
+            if isempty(h)
+                str = hw.HardwareObj.Alias;
+            else
+                str = matlab.lang.makeUniqueStrings([{h.Text} {hw.HardwareObj.Alias}]);
+                str = str{end};
+            end
+            str = strcat(str,' [',hw.HardwareObj.Name,']');
+            h = uitreenode(node.Parent,node,'Text',str,'Tag',sprintf('Hardware_%d',length(h)+1));
+            move(h,node,'before');
+            
+            h.NodeData = hw;
+            
+            ic = epsych.Tool.icon(hw.HardwareObj.Vendor);
+            if ~exist(ic,'file')
+                ic = epsych.Tool.icon('hardware');                        
+            end
+            obj.update_icon_border(hw.HardwareObj,h,ic)
+            
+            obj.add_contextmenu(h);
+            
+            obj.tree.SelectedNodes = h;
+            
+            log_write('Verbose','Added Hardware: "%s"',str);
+            
+            addlistener(hw,'HardwareUpdated',@obj.hardware_updated);
+
+        end
         
     end % methods (Access = public)
     
@@ -196,47 +243,7 @@ classdef Navigation < handle
                     expand(node);
                    
                 case 'AddH' % AddHardware
-                    if loadFlag
-                        hw = epsych.ui.Hardware(obj.mainPanel,event.LoadedData);
-                    else
-                        hw = epsych.ui.Hardware(obj.mainPanel);
-                    end
-                    
-                    if isempty(hw.HardwareObj) % user cancelled
-                        obj.tree.SelectedNodes = obj.treeHardware;
-                        obj.selection_changed(src,event);
-                        log_write('Verbose','No more hardware is available.')
-                        return
-                    end
-                    
-                    h = node.Parent.Children;
-                    sind = ismember({h.Tag},{'AddHardware','LoadHardware'});
-                    h(sind) = [];
-                    if isempty(h)
-                        str = hw.HardwareObj.Alias;
-                    else
-                        str = matlab.lang.makeUniqueStrings([{h.Text} {hw.HardwareObj.Alias}]);
-                        str = str{end};
-                    end
-                    str = strcat(str,' [',hw.HardwareObj.Name,']');
-                    h = uitreenode(node.Parent,node,'Text',str,'Tag',sprintf('Hardware_%d',length(h)+1));
-                    move(h,node,'before');
-                    
-                    h.NodeData = hw;
-                    
-                    ic = epsych.Tool.icon(hw.HardwareObj.Vendor);
-                    if ~exist(ic,'file')
-                        ic = epsych.Tool.icon('hardware');                        
-                    end
-                    obj.update_icon_border(hw.HardwareObj,h,ic)
-                    
-                    obj.add_contextmenu(h);
-                    
-                    obj.tree.SelectedNodes = h;
-                    
-                    log_write('Verbose','Added Hardware: "%s"',str);
-                    
-                    addlistener(hw,'HardwareUpdated',@obj.hardware_updated);
+                    obj.add_hardware_node;
                      
                 case 'Hard' % Hardware
                     ind = cellfun(@(a) startsWith(node.Text,a.Alias),RUNTIME.Hardware);
@@ -268,6 +275,9 @@ classdef Navigation < handle
             
             node.ContextMenu = cm;
         end
+
+
+        
         
         
         function remove_node(obj,hObj,event)
