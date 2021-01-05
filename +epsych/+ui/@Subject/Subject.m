@@ -35,7 +35,7 @@ classdef Subject < handle
     end
 
     events
-        FieldUpdated
+        SubjectFieldUpdated
     end
     
     methods
@@ -74,7 +74,7 @@ classdef Subject < handle
             end
             
             ev = epsych.ui.evSubjectDialog(obj.SubjectObj,hObj,event);
-            notify(obj,'FieldUpdated',ev);
+            notify(obj,'SubjectFieldUpdated',ev);
         end
 
         function response_button(obj,hObj,event)

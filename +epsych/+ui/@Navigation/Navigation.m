@@ -160,7 +160,7 @@ classdef Navigation < handle
                     S = RUNTIME.Subject(ind);
                     sdh = epsych.ui.Subject(S,obj.mainPanel);
                     
-                    addlistener(sdh,'FieldUpdated',@obj.subject_updated);
+                    addlistener(sdh,'SubjectFieldUpdated',@obj.subject_updated);
                     
                     node.NodeData = sdh;
                     

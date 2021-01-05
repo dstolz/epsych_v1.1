@@ -34,9 +34,11 @@ classdef ControlPanel < handle
             
             obj.epsychObj = epsychObj;
             
-            addlistener(epsychObj.Runtime,'RuntimeConfigChange',@obj.listener_RuntimeConfigChange);
-            addlistener(epsychObj.Runtime,'PreStateChange',@obj.listener_PreStateChange);
-            addlistener(epsychObj.Runtime,'PostStateChange',@obj.listener_PostStateChange);
+            R = epsychObj.Runtime;
+            
+            addlistener(R,'RuntimeConfigChange',@obj.listener_RuntimeConfigChange);
+            addlistener(R,'PreStateChange',     @obj.listener_PreStateChange);
+            addlistener(R,'PostStateChange',    @obj.listener_PostStateChange);
             
             for i = 1:length(varargin)
                 v = varargin{i};
@@ -230,11 +232,13 @@ classdef ControlPanel < handle
             
             load(ffn,'-mat','RUNTIME');
             
-            RUNTIME.Log = copy(log);
             obj.epsychObj.Runtime = RUNTIME;
+            obj.epsychObj.Runtime.Log = copy(log);
+            
+            R = obj.epsychObj.Runtime;
 
             for i = 1:length(hl)
-                addlistener(obj.epsychObj.Runtime,hl{i}.EventName,hl{i}.Callback);
+                addlistener(R,hl{i}.EventName,hl{i}.Callback);
             end
 
             log_write('Verbose','Loaded Runtime Config file: %s',ffn)
@@ -246,9 +250,11 @@ classdef ControlPanel < handle
             
             
             log_write('Debug','notify "RuntimeConfigChange" after load config')
-            notify(obj.epsychObj.Runtime,'RuntimeConfigLoaded');
+            notify(R,'RuntimeConfigLoaded');
             
-            notify(obj.epsychObj.Runtime,'RuntimeConfigChange');
+            notify(R,'RuntimeConfigChange');
+            cellfun(@(a) obj.Navigation.load_node(a),R.Hardware);
+%             arrayfun(@(a) notify(a,'SubjectFieldUpdated'),R.Subject);
             
             figure(fig); % unhide gui
             fig.Pointer = 'arrow';
