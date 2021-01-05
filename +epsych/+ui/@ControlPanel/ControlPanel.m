@@ -253,7 +253,7 @@ classdef ControlPanel < handle
             notify(R,'RuntimeConfigLoaded');
             
             notify(R,'RuntimeConfigChange');
-            cellfun(@(a) obj.Navigation.load_node(a),R.Hardware);
+            cellfun(@(a) obj.Navigation.add_hardware_node(a),R.Hardware);
 %             arrayfun(@(a) notify(a,'SubjectFieldUpdated'),R.Subject);
             
             figure(fig); % unhide gui
