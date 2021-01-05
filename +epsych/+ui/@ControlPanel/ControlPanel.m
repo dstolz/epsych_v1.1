@@ -7,6 +7,7 @@ classdef ControlPanel < handle
     properties (Access = protected)
         RuntimePanel        matlab.ui.container.Panel
         ToolbarPanel        matlab.ui.container.Panel
+        Navigation          % epsych.ui.Navigation
 
         LoadButton          matlab.ui.control.Button
         SaveButton          matlab.ui.control.Button
