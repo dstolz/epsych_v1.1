@@ -92,6 +92,9 @@ classdef (ConstructOnLoad) Config < handle & dynamicprops & matlab.mixin.Copyabl
             if isempty(obj.DataDirectory)
                 obj.DataDirectory = fullfile(obj.UserDirectory,'Data');
             end
+            if ~isfolder(obj.DataDirectory)
+                mkdir(obj.DataDirectory);
+            end
             d = obj.DataDirectory;
         end
     end % methods (Access = public)
