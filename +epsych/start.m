@@ -1,4 +1,4 @@
-classdef epsych < handle
+classdef start < handle
     
     properties
         ControlPanel
@@ -10,7 +10,7 @@ classdef epsych < handle
     end
     
     methods
-        function obj = epsych(varargin)
+        function obj = start(varargin)
             global RUNTIME
             
             obj.Paths = obj.epsych_startup;
@@ -19,7 +19,6 @@ classdef epsych < handle
             % INITIALIZE RUNTIME OBJECT
             if isempty(RUNTIME) || ~isvalid(RUNTIME)
                 RUNTIME = epsych.expt.Runtime;
-                
             end
             
             % INITIALIZE SESSION LOG
