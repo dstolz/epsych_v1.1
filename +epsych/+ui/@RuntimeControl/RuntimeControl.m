@@ -43,38 +43,32 @@ classdef RuntimeControl < handle
                 case 'Run|Halt'
                     switch RUNTIME.State
                         case {epsych.enState.Ready epsych.enState.Error}
-                            log_write('Verbose','Updating State: %s -> Run',char(RUNTIME.State));
+                            RUNTIME.Log.write('Verbose','Updating State: %s -> Run',char(RUNTIME.State));
                             RUNTIME.State = epsych.enState.Run;
 
                         case {epsych.enState.Run, epsych.enState.Preview, epsych.enState.Pause, epsych.enState.Resume}
-                            log_write('Verbose','Updating State: %s -> Halt',char(RUNTIME.State));
+                            RUNTIME.Log.write('Verbose','Updating State: %s -> Halt',char(RUNTIME.State));
                             RUNTIME.State = epsych.enState.Halt;
 
                         case epsych.enState.Halt
-                            log_write('Verbose','Updating State: Halt -> Run');
+                            RUNTIME.Log.write('Verbose','Updating State: Halt -> Run');
                             RUNTIME.State = epsych.enState.Run;
                     end
 
                 case 'Pause'
                     switch RUNTIME.State
                         case epsych.enState.Pause
-                            log_write('Verbose','Updating State: Pause -> Resume');
+                            RUNTIME.Log.write('Verbose','Updating State: Pause -> Resume');
                             RUNTIME.State = epsych.enState.Resume;
 
                         case {epsych.enState.Run, epsych.enState.Preview, epsych.enState.Resume}
-                            log_write('Verbose','Updating State: %s -> Pause',char(RUNTIME.State));
+                            RUNTIME.Log.write('Verbose','Updating State: %s -> Pause',char(RUNTIME.State));
                             RUNTIME.State = epsych.enState.Pause;
                     end
             end
             
         end
-        
-    end % methods (Access = public)
-
     
-    
-    
-    methods (Access = private)
         function listener_PreStateChange(obj,hObj,event)
             if ~isvalid(obj.RunButton), return; end
             
@@ -159,5 +153,5 @@ classdef RuntimeControl < handle
             drawnow
             pause(.001);
         end
-    end % methods (Access = private)
+    end % methods (Access = public)
 end
