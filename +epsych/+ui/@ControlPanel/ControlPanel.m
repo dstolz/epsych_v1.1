@@ -93,8 +93,7 @@ classdef ControlPanel < handle
             
             clear global RUNTIME
             
-            drawnow
-                            
+            drawnow                
         end
         
         function closereq(obj,hObj,event)
@@ -252,12 +251,12 @@ classdef ControlPanel < handle
             
             
             log_write('Debug','notify "RuntimeConfigChange" after load config')
+            
+            cellfun(@(a) obj.Navigation.add_hardware(a),R.Hardware);
+            arrayfun(@(a) obj.Navigation.add_subject(a),R.Subject);
+            
             notify(R,'RuntimeConfigLoaded');
-            
-            notify(R,'RuntimeConfigChange');
-            cellfun(@(a) obj.Navigation.add_hardware_node(a),R.Hardware);
-%             arrayfun(@(a) notify(a,'SubjectFieldUpdated'),R.Subject);
-            
+
             figure(fig); % unhide gui
             fig.Pointer = 'arrow';
         end
