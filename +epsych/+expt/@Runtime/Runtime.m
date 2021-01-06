@@ -226,11 +226,12 @@ classdef Runtime < handle & dynamicprops
             obj.ReadyToBegin = c && all(h) && all(s);
             
             
-            
             if obj.ReadyToBegin
                 obj.Log.write('Verbose','Runtime is ready to begin');
+                obj.State = epsych.enState.Ready;
             else
                 obj.Log.write('Verbose','Runtime is not ready to begin');
+                obj.State = epsych.enState.Prep;
             end
             
             if nargin < 3
