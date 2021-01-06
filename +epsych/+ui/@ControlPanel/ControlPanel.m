@@ -91,6 +91,8 @@ classdef ControlPanel < handle
             
             log_write('Important','ControlPanel closing.')
             
+            clear global RUNTIME
+            
             drawnow
                             
         end
