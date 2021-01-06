@@ -39,13 +39,13 @@ classdef Subject < handle & dynamicprops & matlab.mixin.Copyable
         end
 
         function ready = get.isReady(obj)
-            f = {'Name','DOB','ID','Sex','ProtocolFile','BitmaskFile'};
+            f = {'Name','DOB','ID','Sex','ProtocolFile','BitmaskFile','Active'};
             
             e = cellfun(@(a) isempty(obj.(a)),f);
             
             cellfun(@(a,b) log_write('Verbose','Subject "%s" - "%s" ready = %s',obj.Name,a,mat2str(b)),f,num2cell(~e));
                         
-            ready = ~any(e);
+            ready = ~any(e) & obj.Active;
         end
 
         function age = get.Age(obj)
