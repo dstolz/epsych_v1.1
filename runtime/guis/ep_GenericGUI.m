@@ -111,12 +111,12 @@ sot = getpref('ep_GenericGUI','stayOnTop',false);
 h.stayOnTop.Value = sot;
 stay_on_top(h.stayOnTop);
 
+% TODO: Need to remake gui components for EPsych 2.0
+% % Setup h.tbl_Triggers
+% h.objTriggers = epsych.ui.comp.Triggers(h.panel_Triggers);
 
-% Setup h.tbl_Triggers
-h.objTriggers = epsych.ui.comp.Triggers(h.panel_Triggers);
-
-% Setup session info
-h.objTrialCount = epsych.ui.comp.TrialCount(h.panel_SessionInfo);
+% % Setup session info
+% h.objTrialCount = epsych.ui.comp.TrialCount(h.panel_SessionInfo);
 
 
 
