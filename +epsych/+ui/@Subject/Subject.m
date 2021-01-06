@@ -71,6 +71,7 @@ classdef Subject < handle
                 if isnumeric(s), s = num2str(s); end
                 uialert(obj.parent,'Invalid Entry', ...
                     'You entered an invalid value: %s',s);
+                log_write('Debug',me);
             end
             
             ev = epsych.ui.evSubjectDialog(obj.SubjectObj,hObj,event);
