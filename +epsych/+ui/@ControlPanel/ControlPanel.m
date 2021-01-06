@@ -257,6 +257,8 @@ classdef ControlPanel < handle
             
             notify(R,'RuntimeConfigLoaded');
 
+            R.update;
+            
             figure(fig); % unhide gui
             fig.Pointer = 'arrow';
         end
