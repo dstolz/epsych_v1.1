@@ -1,6 +1,6 @@
 function stopFcn(obj) % epsych.expt.Runtime
 
-% Setup hardware
+% Stop hardware
 for i = 1:numel(obj.Hardware)
     H = obj.Hardware{i};
     obj.Log.write('Verbose','Stopping Hardware: %s',H.Name);
