@@ -8,7 +8,7 @@ if obj.Status == epsych.hw.enStatus.Running
     return
 end
 
-if isempty(obj.emptyFig)
+if isempty(obj.emptyFig) || ~isvalid(obj.emptyFig)
     obj.emptyFig = figure('Visible','off','Name','RPfig');
 end
 obj.handle = actxcontrol('RPco.x','parent',obj.emptyFig);
