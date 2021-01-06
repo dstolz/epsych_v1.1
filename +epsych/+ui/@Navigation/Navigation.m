@@ -43,7 +43,7 @@ classdef Navigation < handle
             if nargout == 0, clear obj; end
         end
         
-        function add_subject_node(obj,S)
+        function add_subject(obj,S)
             global RUNTIME
             
             h = obj.treeSubject.Children;
@@ -96,7 +96,7 @@ classdef Navigation < handle
 
         end
         
-        function add_hardware_node(obj,hw)
+        function add_hardware(obj,hw)
 
             h = obj.treeHardware.Children;
             
@@ -208,7 +208,7 @@ classdef Navigation < handle
                     expand(node);
                     
                 case 'AddS' % AddSubject
-                    obj.add_subject_node;
+                    obj.add_subject;
                     
                 case 'Subj' % Subject_#
                     ind = ismember({RUNTIME.Subject.Name},event.SelectedNodes.Text);
@@ -251,7 +251,7 @@ classdef Navigation < handle
                     expand(node);
                    
                 case 'AddH' % AddHardware
-                    obj.add_hardware_node;
+                    obj.add_hardware;
                      
                 case 'Hard' % Hardware
                     ind = cellfun(@(a) startsWith(node.Text,a.Alias),RUNTIME.Hardware);
