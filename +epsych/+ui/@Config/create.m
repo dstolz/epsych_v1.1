@@ -18,12 +18,12 @@ switch lower(type)
         g = uigridlayout(parent);
         g.ColumnWidth = {'1x'};
         g.RowHeight = {'1x'};
-        str = sprintf(['_________________                     ______  \n', ...
-                       '___  ____/__  __ \\___________  __________  /_ \n', ...
-                       '__  __/  __  /_/ /_  ___/_  / / /  ___/_  __ \\\n', ...
-                       '_  /___  _  ____/_(__  )_  /_/ // /__ _  / / /\n', ...
-                       '/_____/  /_/     /____/ _\\__, / \\___/ /_/ /_/ \n', ...
-                       '                        /____/ ']); 
+        str = sprintf(['  _________________                     ______  \n', ...
+                       '  ___  ____/__  __ \\___________  __________  /_ \n', ...
+                       '  __  __/  __  /_/ /_  ___/_  / / /  ___/_  __ \\\n', ...
+                       '  _  /___  _  ____/_(__  )_  /_/ // /__ _  / / /\n', ...
+                       '  /_____/  /_/     /____/ _\\__, / \\___/ /_/ /_/ \n', ...
+                       '                          /____/ ']); 
         info = epsych.Info;
         str = sprintf('%s  version %s',str,info.Version);
 
@@ -41,23 +41,23 @@ switch lower(type)
     case 'behavior'
         % USER INTERFACE
         g = uigridlayout(parent);
-        g.ColumnWidth = {'.3x','.7x',50};
+        g.ColumnWidth = {25,100,250,50};
         g.RowHeight = {25,25,25,25};
         
         
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 1;
-        h.Layout.Column = 1;
+        h.Layout.Column = 2;
         h.Text = 'User Interface Fcn:';
         
         h = uieditfield(g,'Tag','UserInterface','CreateFcn',@obj.create_field);
         h.Layout.Row = 1;
-        h.Layout.Column = 2;
+        h.Layout.Column = 3;
         h.ValueChangedFcn = @obj.update_function;
         
         h = uibutton(g,'Tag','UserInterface');
         h.Layout.Row = 1;
-        h.Layout.Column = 3;
+        h.Layout.Column = 4;
         h.Text = '';
         h.Tooltip = 'Locate a Matlab file';
         h.Icon = epsych.Tool.icon('search_file');
@@ -68,18 +68,18 @@ switch lower(type)
         
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 2;
-        h.Layout.Column = 1;
+        h.Layout.Column = 2;
         h.Text = 'Save Function Fcn:';
         h.HorizontalAlignment = 'right';
         
         h = uieditfield(g,'Tag','SaveFcn','CreateFcn',@obj.create_field);
         h.Layout.Row = 2;
-        h.Layout.Column = 2;
+        h.Layout.Column = 3;
         h.ValueChangedFcn = @obj.update_function;
         
         h = uibutton(g,'Tag','SaveFcn');
         h.Layout.Row = 2;
-        h.Layout.Column = 3;
+        h.Layout.Column = 4;
         h.Text = '';
         h.Tooltip = 'Locate a Matlab file';
         h.Icon = epsych.Tool.icon('search_file');
@@ -90,18 +90,18 @@ switch lower(type)
         
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 3;
-        h.Layout.Column = 1;
+        h.Layout.Column = 2;
         h.Text = 'Data Directory';
         h.HorizontalAlignment = 'right';
         
         h = uieditfield(g,'Tag','DataDirectory','CreateFcn',@obj.create_field);
         h.Layout.Row = 3;
-        h.Layout.Column = 2;
+        h.Layout.Column = 3;
         h.ValueChangedFcn = @obj.update_directory;
         
         h = uibutton(g,'Tag','DataDirectory');
         h.Layout.Row = 3;
-        h.Layout.Column = 3;
+        h.Layout.Column = 4;
         h.Text = '';
         h.Tooltip = 'Locate a directory';
         h.Icon = epsych.Tool.icon('search_folder');
@@ -111,25 +111,25 @@ switch lower(type)
     case 'timer'
         % TIMER
         g = uigridlayout(parent);
-        g.ColumnWidth = {'.3x','.4x',30};
+        g.ColumnWidth = {25,100,250,50};
         g.RowHeight = repmat({25},1,6);
         
         
         
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 1;
-        h.Layout.Column = 1;
+        h.Layout.Column = 2;
         h.Text = 'Start Function:';
         h.HorizontalAlignment = 'right';
         
         h = uieditfield(g,'Tag','StartFcn','CreateFcn',@obj.create_field);
         h.Layout.Row = 1;
-        h.Layout.Column = 2;
+        h.Layout.Column = 3;
         h.ValueChangedFcn = @obj.update_function;
         
         h = uibutton(g,'Tag','StartFcn');
         h.Layout.Row = 1;
-        h.Layout.Column = 3;
+        h.Layout.Column = 4;
         h.Text = '';
         h.Tooltip = 'Locate a Matlab file';
         h.Icon = epsych.Tool.icon('search_file');
@@ -140,18 +140,18 @@ switch lower(type)
         
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 2;
-        h.Layout.Column = 1;
+        h.Layout.Column = 2;
         h.Text = 'Timer Function:';
         h.HorizontalAlignment = 'right';
         
         h = uieditfield(g,'Tag','TimerFcn','CreateFcn',@obj.create_field);
         h.Layout.Row = 2;
-        h.Layout.Column = 2;
+        h.Layout.Column = 3;
         h.ValueChangedFcn = @obj.update_function;
         
         h = uibutton(g,'Tag','TimerFcn');
         h.Layout.Row = 2;
-        h.Layout.Column = 3;
+        h.Layout.Column = 4;
         h.Text = '';
         h.Tooltip = 'Locate a Matlab file';
         h.Icon = epsych.Tool.icon('search_file');
@@ -162,18 +162,18 @@ switch lower(type)
         
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 3;
-        h.Layout.Column = 1;
+        h.Layout.Column = 2;
         h.Text = 'Stop Function:';
         h.HorizontalAlignment = 'right';
         
         h = uieditfield(g,'Tag','StopFcn','CreateFcn',@obj.create_field);
         h.Layout.Row = 3;
-        h.Layout.Column = 2;
+        h.Layout.Column = 3;
         h.ValueChangedFcn = @obj.update_function;
         
         h = uibutton(g,'Tag','StopFcn');
         h.Layout.Row = 3;
-        h.Layout.Column = 3;
+        h.Layout.Column = 4;
         h.Text = '';
         h.Tooltip = 'Locate a Matlab file';
         h.Icon = epsych.Tool.icon('search_file');
@@ -184,18 +184,18 @@ switch lower(type)
         
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 4;
-        h.Layout.Column = 1;
+        h.Layout.Column = 2;
         h.Text = 'Error Function:';
         h.HorizontalAlignment = 'right';
         
         h = uieditfield(g,'Tag','ErrorFcn','CreateFcn',@obj.create_field);
         h.Layout.Row = 4;
-        h.Layout.Column = 2;
+        h.Layout.Column = 3;
         h.ValueChangedFcn = @obj.update_function;
         
         h = uibutton(g,'Tag','ErrorFcn');
         h.Layout.Row = 4;
-        h.Layout.Column = 3;
+        h.Layout.Column = 4;
         h.Text = '';
         h.Tooltip = 'Locate a Matlab file';
         h.Icon = epsych.Tool.icon('search_file');
@@ -205,13 +205,13 @@ switch lower(type)
         
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 6;
-        h.Layout.Column = 1;
+        h.Layout.Column = 2;
         h.Text = 'Timer Period:';
         h.HorizontalAlignment = 'right';
                  
         h = uieditfield(g,'numeric','Tag','TimerPeriod','CreateFcn',@obj.create_field);
         h.Layout.Row = 6;
-        h.Layout.Column = 2;
+        h.Layout.Column = 3;
         h.Limits = [1e-3 1];
         h.ValueDisplayFormat = '%.3f seconds';
         h.ValueChangedFcn = @obj.update_function;
@@ -219,24 +219,24 @@ switch lower(type)
     case 'miscellaneous'
         % MISCELLANEOUS
         g = uigridlayout(parent);
-        g.ColumnWidth = {'.3x','.7x',50};
+        g.ColumnWidth = {25,100,250,50};
         g.RowHeight = {25,25,25,25};
         
         
         
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 1;
-        h.Layout.Column = 1;
+        h.Layout.Column = 2;
         h.Text = 'Log Directory';
         
         h = uieditfield(g,'Tag','LogDirectory','CreateFcn',@obj.create_field);
         h.Layout.Row = 1;
-        h.Layout.Column = 2;
+        h.Layout.Column = 3;
         h.ValueChangedFcn = @obj.update_directory;
         
         h = uibutton(g,'Tag','LogDirectory');
         h.Layout.Row = 1;
-        h.Layout.Column = 3;
+        h.Layout.Column = 4;
         h.Text = '';
         h.Tooltip = 'Locate a directory';
         h.Icon = epsych.Tool.icon('search_folder');
@@ -247,17 +247,17 @@ switch lower(type)
         
         h = uilabel(g,'HorizontalAlignment','right');
         h.Layout.Row = 2;
-        h.Layout.Column = 1;
+        h.Layout.Column = 2;
         h.Text = 'User Directory';
         
         h = uieditfield(g,'Tag','UserDirectory','CreateFcn',@obj.create_field);
         h.Layout.Row = 2;
-        h.Layout.Column = 2;
+        h.Layout.Column = 3;
         h.ValueChangedFcn = @obj.update_directory;
         
         h = uibutton(g,'Tag','UserDirectory');
         h.Layout.Row = 2;
-        h.Layout.Column = 3;
+        h.Layout.Column = 4;
         h.Text = '';
         h.Tooltip = 'Locate a directory';
         h.Icon = epsych.Tool.icon('search_folder');
@@ -268,13 +268,13 @@ switch lower(type)
         
         h = uicheckbox(g,'Tag','AutoSaveRuntimeConfig','CreateFcn',@obj.create_field);
         h.Layout.Row = 3;
-        h.Layout.Column = [2 3];
+        h.Layout.Column = [3 4];
         h.Text = 'Auto Save Runtime Config';
         h.ValueChangedFcn = @obj.update_checkbox;
         
         h = uicheckbox(g,'Tag','AutoLoadRuntimeConfig','CreateFcn',@obj.create_field);
         h.Layout.Row = 4;
-        h.Layout.Column = [2 3];
+        h.Layout.Column = [3 4];
         h.Text = 'Auto Load Runtime Config';
         h.ValueChangedFcn = @obj.update_checkbox;
         
