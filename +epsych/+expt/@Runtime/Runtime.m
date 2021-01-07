@@ -262,6 +262,7 @@ classdef Runtime < handle & dynamicprops
             T.StartFcn = @obj.call_StartFcn;
             T.StopFcn  = @obj.call_StopFcn;
             T.ErrorFcn = @obj.call_ErrorFcn;
+            T.UserData = obj; % supply Runtime object handle just in case
             obj.Timer = T;
         end
     end % methods (Access = protected)
