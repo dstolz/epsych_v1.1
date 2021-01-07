@@ -1,11 +1,14 @@
 classdef Info < handle
     % class contains general inormation for the EPsych software
     
-    properties (SetAccess = private)
+
+    
+    properties (Dependent)
         iconPath
-        chksum
         commitTimestamp
         meta
+        branch
+        chksum
     end
     
     properties (Constant)
@@ -32,8 +35,9 @@ classdef Info < handle
             m.Version     = obj.Version;
             m.DataVersion = obj.DataVersion;
             m.Website     = obj.Website;
+            m.Branch      = obj.branch;
             m.Checksum    = obj.chksum;
-            m.commitTimestamp = obj.commitTimestamp;
+            m.CommitTimestamp = obj.commitTimestamp;
             m.CurrentTimestamp = datestr(now);
         end
         
@@ -41,6 +45,12 @@ classdef Info < handle
             p = fullfile(obj.root,'icons');
         end
         
+        function b = get.branch(obj)
+            wd = cd(obj.root);
+            [~,b] = system('git branch --show-current');
+            b = deblank(b);
+            cd(wd);
+        end
             
         function chksum = get.chksum(obj)
             chksum = nan;
