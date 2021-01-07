@@ -27,8 +27,8 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
     
     % vvvvvvvvv Define module specific properties vvvvvvvvvvv
     properties
+        % TODO: HOW TO DEFINE/IDENTIFY DIGITAL LINES? CUSTOM MACRO?
         digLines    (1,:)   epsych.hw.comp.DigitalLine
-        DigIO       (1,1)   %epsych.ui.comp.DigIO
         Parameters  (1,:)   %epsych.par.Parameter (or inherited classes)
     end
     

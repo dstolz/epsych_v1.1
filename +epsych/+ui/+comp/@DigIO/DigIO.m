@@ -2,6 +2,7 @@ classdef DigIO < handle & dynamicprops
     
     
     properties (SetAccess = private)
+        Hardware     (1,1)
         digLines     (1,:)   epsych.hw.comp.DigitalLine
         hIndicator   (1,:)   matlab.ui.control.Lamp
         hOutputState (1,:)   matlab.ui.control.StateButton
@@ -15,13 +16,14 @@ classdef DigIO < handle & dynamicprops
     end
     
     methods
-        function obj = DigIO(parent,digLines)
-            narginchk(2,2);
-            
-            obj.digLines = digLines(:)';
-            
+        function obj = DigIO(Hardware,parent)
+            narginchk(1,2);
+
             if isempty(parent), parent = gcf; end
-            
+
+            obj.Hardware = Hardware;
+            obj.digLines = Hardware.digLines(:)';
+                        
             obj.parent = parent;
             
             obj.N    = numel(obj.digLines);
@@ -29,7 +31,6 @@ classdef DigIO < handle & dynamicprops
             obj.nIn  = sum(~[obj.digLines.isOutput]);
 
             obj.create;
-            
         end
         
         function update(obj,src,event)
