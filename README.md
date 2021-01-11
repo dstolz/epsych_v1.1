@@ -11,7 +11,7 @@ Currently documentation is weak, but a brief introduction can be found in  Intro
 While all files in this toolbox are free to view and use for learning, please contact me (daniel.stolzberg@gmail.com) if you have any questions on how to get started.
 
 **Requirements**
-* Matlab R2014b or newer (recommended 2018b or later)
+* Matlab R2014b or newer (recommended 2018b or later; currently being developed on 2020a)
 * Software available for purchase from TDT http://www.tdt.com
 	* Behavior experiments (no electrophysiology):	*TDT ActiveX Controls*
 	* Electrophysiology experiments:  *TDT OpenEx* and *TDT OpenDeveloper Controls*
