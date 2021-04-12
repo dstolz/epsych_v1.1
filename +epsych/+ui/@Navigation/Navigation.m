@@ -112,7 +112,7 @@ classdef Navigation < handle
             
             if isempty(hw.HardwareObj) % user cancelled
                 obj.tree.SelectedNodes = obj.treeHardware;
-                obj.selection_changed(src,event);
+                obj.selection_changed([],event);
                 log_write('Verbose','No more hardware is available.')
                 return
             end
