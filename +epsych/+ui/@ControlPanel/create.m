@@ -3,7 +3,7 @@ function create(obj,parent,reset)
 if nargin == 3 && reset
     switch class(obj.parent)
         case 'matlab.ui.Figure'
-            delete(obj.parent.Childrend);
+            delete(obj.parent.Children);
 
         case 'matlab.ui.container.Panel'
             delete(obj.parent.Children)
@@ -21,6 +21,7 @@ end
 
 pos = getpref('epsych_ControlPanel','Position',[]);
 if ~isempty(pos), obj.parent.Position = pos; end
+movegui(obj.parent,'onscreen');
 
 g = uigridlayout(obj.parent);
 
