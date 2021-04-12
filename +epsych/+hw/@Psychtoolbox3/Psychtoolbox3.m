@@ -1,7 +1,7 @@
 classdef (ConstructOnLoad) Psychtoolbox3 < epsych.hw.Hardware
-
+    % vvvvvvvvvv Define abstract properties from superclass vvvvvvvv
     properties
-        Alias = 'PsychTbx';
+        Alias = 'PsychTlbx';
     end
     
     properties (Constant) % define constant abstract properties from superclass
@@ -13,18 +13,19 @@ classdef (ConstructOnLoad) Psychtoolbox3 < epsych.hw.Hardware
     end
     
     properties (SetAccess = protected)
-        isReady         % returns logical true if hardware is setup and configured properly
         Status          = epsych.hw.enStatus.InPrep;
+        isReady         % returns logical true if hardware is setup and configured properly
         ErrorME         % MException error message object    
     end
     
     properties (SetAccess = private)
         hwSetup         % handle to configuration gui
     end
+    % ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     
     
     
-    
+    % vvvvvvvvv Define module specific properties vvvvvvvvvvv
     properties (SetAccess = private,Transient)
         hScreen % handle to Screen element
     end
@@ -32,10 +33,11 @@ classdef (ConstructOnLoad) Psychtoolbox3 < epsych.hw.Hardware
 
     methods
         h = setup(obj,parent);      % minimal gui to set custom parameters
-        prepare(obj,varargin);      % complete any required tasks before run
-        start(obj,varargin);        % establish connection to hardware (if not already connected) and run
+        e = prepare(obj,varargin);      % complete any required tasks before run
+        e = start(obj,varargin);        % establish connection to hardware (if not already connected) and run
         e = runtime(obj,varargin);  % called on each tick of the master clock
-        stop(obj,varargin);         % stop running hardware
+        e = stop(obj,varargin);         % stop running hardware
+        e = error(obj,varargin);
 
         write(obj,parameter,value); % write (update) parameter value
         v = read(obj,parameter);    % read current parameter value
@@ -62,7 +64,7 @@ classdef (ConstructOnLoad) Psychtoolbox3 < epsych.hw.Hardware
                 obj.Alias,a,mat2str(b)),f,num2cell(~e));
                 
                         
-            e(end+1) = obj.Status ~= epsych.hw.enStatus.InPrep;
+%             e(end+1) = obj.Status ~= epsych.hw.enStatus.InPrep;
             
             ready = ~any(e);
         end
