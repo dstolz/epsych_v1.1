@@ -85,7 +85,7 @@ classdef ControlPanel < handle
         % Destructor
         function delete(obj)
             
-            if obj.epsychObj.Runtime.Config.AutoSaveRuntimeConfig
+            if isvalid(obj.epsychObj) && obj.epsychObj.Runtime.Config.AutoSaveRuntimeConfig
                 obj.save_config('default');
             end
             
