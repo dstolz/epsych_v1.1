@@ -17,7 +17,7 @@ classdef ControlPanel < handle
         AlwaysOnTopCheckbox     % epsych.ui.FigOnTop
     end
     
-    properties (SetAccess = private, Hidden)
+    properties (SetAccess = private)
         parent              % any (?) matlab.ui.container handle
     end
     
