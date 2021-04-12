@@ -61,8 +61,8 @@ classdef PumpCom < handle
             try
                 delete(obj.Device);
                 clear global PUMPCOMSERIAL
-            catch me
-                warning(me.identifier,me.message)
+%             catch me
+%                 warning(me.identifier,me.message)
             end
 %             
 %             try
