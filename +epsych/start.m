@@ -39,6 +39,7 @@ classdef start < handle
             [~,msg] = dos(sprintf('wmic process where processid=%d CALL setpriority 128',pid));
             log_write('Debug',msg);
             
+            if nargout == 0, clear obj; end
         end
         
         function delete(obj)
