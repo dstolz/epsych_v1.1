@@ -56,17 +56,15 @@ classdef (ConstructOnLoad) Psychtoolbox3 < epsych.hw.Hardware
         
         
         function ready = get.isReady(obj)
-            f = {'hScreen'};
-            
-            e = cellfun(@(a) isempty(obj.(a)),f);
-            
-            cellfun(@(a,b) log_write('Verbose','Hardware "%s" - "%s" ready = %s', ...
-                obj.Alias,a,mat2str(b)),f,num2cell(~e));
-                
-                        
-%             e(end+1) = obj.Status ~= epsych.hw.enStatus.InPrep;
-            
-            ready = ~any(e);
+%             f = {'hScreen'};
+%             
+%             e = cellfun(@(a) isempty(obj.(a)),f);
+%             
+%             cellfun(@(a,b) log_write('Verbose','Hardware "%s" - "%s" ready = %s', ...
+%                 obj.Alias,a,mat2str(b)),f,num2cell(~e));
+%                             
+%             ready = all(e);
+            ready = true;
         end
         
         

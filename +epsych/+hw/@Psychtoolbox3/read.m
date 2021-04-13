@@ -1,0 +1,1 @@
+function v = read(obj,parameter)
