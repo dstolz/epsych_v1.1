@@ -29,7 +29,7 @@ classdef AMnoise < stimtype.Noise & stimtype.StimType
             
             am = cos(2.*pi.*obj.AMRate.*obj.Time+deg2rad(obj.OnsetPhase));
             am = (am + 1)./2;
-            am = am .* obj.AMDepth + obj.AMDepth;
+            am = am .* obj.AMDepth + 1 - obj.AMDepth;
             
             if obj.ApplyViemeisterCorrection
                 am = am .* sqrt(1/(obj.AMDepth^2/2+1));

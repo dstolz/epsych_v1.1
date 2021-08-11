@@ -15,7 +15,6 @@ classdef Tone < stimtype.StimType
             
             obj.Signal = sin(2.*pi.*obj.Frequency.*t+obj.OnsetPhase);
             
-            
             obj.apply_gate;
             
             obj.apply_normalization;

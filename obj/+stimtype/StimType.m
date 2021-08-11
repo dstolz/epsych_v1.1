@@ -10,12 +10,10 @@ classdef StimType < handle
         
         Normalization (1,1) string {mustBeMember(Normalization,["none","absmax","rms","max","min"])} = "absmax"
         
-        AutoUpdateSignal (1,1) logical = true;
     end
     
     properties (SetAccess = protected, SetObservable)
         Signal       (1,:) = [];
-        
     end
     
     
