@@ -62,7 +62,7 @@ if strcmp(PRGMSTATE,'RUNNING')
         'Experiment','Close Experiment','Cancel','Cancel');
     if strcmp(b,'Cancel'), return; end
     
-    if isfield(RUNTIME,'TIMER') && timerfind('Name','PsychTimer')
+    if isfield(RUNTIME,'TIMER') && isvalid(timerfind('Name','PsychTimer'))
         stop(RUNTIME.TIMER);
         delete(RUNTIME.TIMER);
     end    
@@ -85,9 +85,10 @@ global PRGMSTATE CONFIG AX RUNTIME
 
 COMMAND = get(hObj,'String');
 
+
 switch COMMAND
     case {'Run','Preview'}
-        set(h.figure1,'pointer','watch'); drawnow
+        set(h.figure1,'pointer','watch'); drawnow nocallbacks
         
         % elevate Matlab.exe process to a high priority in Windows
         [~,~] = dos('wmic process where name="MATLAB.exe" CALL setpriority "high priority"');
@@ -156,7 +157,7 @@ switch COMMAND
             try
                 [AX,RUNTIME] = SetupRPexpt(CONFIG);
             catch me
-                set(h.figure1,'pointer','arrow'); drawnow
+                set(h.figure1,'pointer','arrow'); drawnow nocallbacks
                 rethrow(me);
             end
             if isempty(AX), return; end
@@ -229,27 +230,29 @@ switch COMMAND
         end
 
 
-    
+        RUNTIME.HELPER = epsych.Helper;
+
 
         RUNTIME.TIMER = CreateTimer(h.figure1);
                 
         start(RUNTIME.TIMER); % Begin Experiment
                
         
-        set(h.figure1,'pointer','arrow'); drawnow
-        
+        set(h.figure1,'pointer','arrow'); drawnow nocallbacks
+
         
     case 'Pause'
         
     case 'Stop'
-        set(h.figure1,'pointer','watch'); drawnow
+        PRGMSTATE = 'STOP';
+        set(h.figure1,'pointer','watch'); %drawnow nocallbacks
         t = timerfind('Name','PsychTimer');
         if ~isempty(t), stop(t); delete(t); end
         t = timerfind('Name','BoxTimer');
         if ~isempty(t), stop(t); delete(t); end
         vprintf(0,'Experiment stopped at %s',datestr(now,'dd-mmm-yyyy HH:MM'))
-        PRGMSTATE = 'STOP';
-        set(h.figure1,'pointer','arrow'); drawnow
+        
+        set(h.figure1,'pointer','arrow'); %drawnow nocallbacks 
 end
 
 
@@ -453,8 +456,7 @@ switch PRGMSTATE
         set([h.save_data,h.ctrl_run,h.ctrl_preview,hSetup],'Enable','on');     
 end
     
-drawnow
-
+drawnow nocallbacks 
 
 
 
@@ -589,7 +591,7 @@ if STATEID >= 4, return; end
 if nargin == 0
     pn = getpref('ep_RunExpt_Setup','PDir',cd);
     if ~exist(pn,'dir'), pn = cd; end
-    drawnow
+    drawnow nocallbacks
     [fn,pn] = uigetfile('*.prot','Locate Protocol',pn);
     if ~fn, return; end
     setpref('ep_RunExpt_Setup','PDir',pn);
@@ -651,7 +653,7 @@ end
 
 pn = getpref('ep_RunExpt_Setup','PDir',cd);
 if ~exist(pn,'dir'), pn = cd; end
-drawnow
+drawnow nocallbacks
 [fn,pn] = uigetfile('*.prot','Locate Protocol',pn);
 if ~fn, return; end
 setpref('ep_RunExpt_Setup','PDir',pn);

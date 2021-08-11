@@ -352,7 +352,7 @@ h.btn_commitChanges.BackgroundColor = [0.2 1 0.2];
 h.btn_resetChanges.Enable = 'on';
 h.btn_resetChanges.BackgroundColor = [1 0.2 0.2];
 
-drawnow
+% drawnow
 
 
 function commit_changes(h)

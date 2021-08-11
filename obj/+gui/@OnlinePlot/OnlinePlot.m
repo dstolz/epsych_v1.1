@@ -72,6 +72,9 @@ classdef OnlinePlot < gui.Helper & handle
             
             obj.add_context_menu;
             
+            
+            
+            
             % set default trial-based parameter tag to use.
             % > #TrigState~1 is contained in the standard epsych RPvds
             % macros and is assigned an integer id after the ~ based on the
@@ -183,7 +186,13 @@ classdef OnlinePlot < gui.Helper & handle
             global PRGMSTATE
             
             % stop if the program state has changed
-            if ismember(PRGMSTATE,{'STOP','ERROR'}), stop(obj.Timer); return; end
+            if ismember(PRGMSTATE,{'STOP','ERROR'})
+                try
+                    stop(obj.Timer);
+                    delete(obj.Timer);
+                end
+                return
+            end
             
             if ~isempty(obj.trialParam)
                 try

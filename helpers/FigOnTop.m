@@ -14,7 +14,7 @@ assert(ishandle(figh),'The first input (figh) must be a valid figure handle');
 assert(islogical(state)||isscalar(state),'The second input (state) must be true (1) or false (0)');
 
 
-drawnow expose
+drawnow nocallbacks 
 
 try %#ok<TRYNC>
     warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');

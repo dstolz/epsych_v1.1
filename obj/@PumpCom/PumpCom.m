@@ -1,7 +1,7 @@
 classdef PumpCom < handle
     
     properties (SetObservable = true,GetObservable = true)
-        PumpRate                (1,1) double {mustBePositive} = 6;
+        PumpRate                (1,1) double {mustBePositive} = 0.7;
         PumpUnits               (1,2) char {mustBeMember(PumpUnits,{'UM','MM','UH','MH'})} = 'MM'; % see page 38 in manual
         PumpOperationalTrigger  (1,2) char = 'LE'; % see page 44 in manual
         SyringeDiameter         (1,1) double {mustBePositive} = 21.69;
@@ -62,7 +62,7 @@ classdef PumpCom < handle
                 delete(obj.Device);
                 clear global PUMPCOMSERIAL
             catch me
-                warning(me.identifier,me.message)
+                warning(me.identifier,me.message) %#ok<MEXCEP>
             end
 %             
 %             try
@@ -244,7 +244,7 @@ classdef PumpCom < handle
                 'BusyMode',     'drop',      ...
                 'ExecutionMode','fixedSpacing', ...
                 'TasksToExecute',inf, ...
-                'Period',        0.5, ...
+                'Period',        1, ...
                 'Name',         'PumpComTimer', ...
                 'Tag',          'PumpComTimer', ...
                 'TimerFcn',     @obj.gui_update, ...

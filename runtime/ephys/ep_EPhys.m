@@ -844,7 +844,7 @@ end
 
 
 
-set(h.trigger_indicator,'BackgroundColor',[0 1 0]); drawnow expose
+set(h.trigger_indicator,'BackgroundColor',[0 1 0]); drawnow nocallbacks 
 
 
 if G_COMPILED.OPTIONS.optcontrol
@@ -862,7 +862,7 @@ else
     
 end
 
-set(h.trigger_indicator,'BackgroundColor',[0.95 0.95 0.95]); drawnow expose
+set(h.trigger_indicator,'BackgroundColor',[0.95 0.95 0.95]); drawnow nocallbacks 
 
 
 
