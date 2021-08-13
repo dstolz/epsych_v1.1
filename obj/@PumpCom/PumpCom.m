@@ -276,7 +276,17 @@ classdef PumpCom < handle
         
         
         function gui_update(obj,hObj,event)
+            global PRGMSTATE
+            
             persistent VD
+            
+            if isequal(PRGMSTATE,'STOP')
+                if ~isempty(obj.Device) && isvalid(obj.Device)
+                    vprintf(2,'Closing Pump serial port connection on "%s"',obj.Port)
+                    delete(obj.Device);
+                end
+                return 
+            end
             
             switch hObj.Tag
                 case 'PumpRate'
@@ -292,6 +302,7 @@ classdef PumpCom < handle
                                 h.Text = 'ERROR';
                                 return
                             end
+                            % only update field when pump value changes
                             if isempty(VD) || cvd ~= VD
                                 VD = cvd;
                                 h.Text = num2str(cvd,'%.3f mL');
