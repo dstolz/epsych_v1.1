@@ -1,4 +1,4 @@
-classdef Tone < stimtype.StimType
+classdef Tone < stimgen.StimType
     
     properties
         Frequency (1,1) double {mustBePositive,mustBeFinite} = 1000; % Hz
@@ -7,7 +7,7 @@ classdef Tone < stimtype.StimType
     
     methods
         function obj = Tone(varargin)
-            obj = obj@stimtype.StimType(varargin{:});
+            obj = obj@stimgen.StimType(varargin{:});
         end
         
         function update_signal(obj)

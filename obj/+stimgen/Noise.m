@@ -1,4 +1,4 @@
-classdef Noise < stimtype.StimType
+classdef Noise < stimgen.StimType
     
     properties
         HighPass  (1,1) double {mustBeNonnegative,mustBeFinite} = 500; % Hz
@@ -12,7 +12,7 @@ classdef Noise < stimtype.StimType
     methods
                 
         function obj = Noise(varargin)
-            obj = obj@stimtype.StimType(varargin{:});
+            obj = obj@stimgen.StimType(varargin{:});
         end
 
         function set.HighPass(obj,fc)

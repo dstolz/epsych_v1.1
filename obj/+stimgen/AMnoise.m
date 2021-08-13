@@ -1,7 +1,7 @@
-classdef AMnoise < stimtype.Noise & stimtype.StimType
+classdef AMnoise < stimgen.Noise & stimgen.StimType
     
     properties
-        AMDepth (1,1) double {mustBeInRange(AMDepth,0,1)} = 1; % [0 1] 
+        AMDepth (1,1) double {mustBeGreaterThanOrEqual(AMDepth,0),mustBeLessThanOrEqual(AMDepth,1)} = 1; % [0 1] 
         AMRate  (1,1) double {mustBePositive,mustBeFinite} = 5; % Hz
         OnsetPhase (1,1) double = 0; % degrees
         
@@ -12,7 +12,7 @@ classdef AMnoise < stimtype.Noise & stimtype.StimType
     methods
                 
         function obj = AMnoise(varargin)
-            obj = obj@stimtype.StimType(varargin{:});
+            obj = obj@stimgen.StimType(varargin{:});
             
             obj.create_listeners;
         end
@@ -21,7 +21,7 @@ classdef AMnoise < stimtype.Noise & stimtype.StimType
         function update_signal(obj)
             obj.temporarilyDisableSignalMods = true;
             
-            update_signal@stimtype.Noise(obj);
+            update_signal@stimgen.Noise(obj);
             noise = obj.Signal;
             
             obj.temporarilyDisableSignalMods = false;
