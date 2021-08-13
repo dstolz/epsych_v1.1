@@ -36,7 +36,7 @@ end
 function ep_RunExpt_OpeningFcn(hObj, ~, h, varargin)
 global STATEID FUNCS GVerbosity
 
-GVerbosity = 1; % for modifying behavior of vprintf
+if isempty(GVerbosity), GVerbosity = 1; end % for modifying behavior of vprintf
 
 STATEID = 0;
 
@@ -88,7 +88,7 @@ COMMAND = get(hObj,'String');
 
 switch COMMAND
     case {'Run','Preview'}
-        set(h.figure1,'pointer','watch'); drawnow nocallbacks
+        set(h.figure1,'pointer','watch'); drawnow
         
         % elevate Matlab.exe process to a high priority in Windows
         [~,~] = dos('wmic process where name="MATLAB.exe" CALL setpriority "high priority"');
@@ -157,7 +157,7 @@ switch COMMAND
             try
                 [AX,RUNTIME] = SetupRPexpt(CONFIG);
             catch me
-                set(h.figure1,'pointer','arrow'); drawnow nocallbacks
+                set(h.figure1,'pointer','arrow'); drawnow
                 rethrow(me);
             end
             if isempty(AX), return; end
@@ -238,21 +238,26 @@ switch COMMAND
         start(RUNTIME.TIMER); % Begin Experiment
                
         
-        set(h.figure1,'pointer','arrow'); drawnow nocallbacks
+        set(h.figure1,'pointer','arrow'); drawnow
 
         
     case 'Pause'
         
     case 'Stop'
         PRGMSTATE = 'STOP';
-        set(h.figure1,'pointer','watch'); %drawnow nocallbacks
+        set(h.figure1,'pointer','watch'); %drawnow
+        
+        vprintf(3,'ExptDispatch: Stopping PsychTimer')
         t = timerfind('Name','PsychTimer');
         if ~isempty(t), stop(t); delete(t); end
+        
+        vprintf(3,'ExptDispatch: Stopping BoxTimer')
         t = timerfind('Name','BoxTimer');
         if ~isempty(t), stop(t); delete(t); end
+        
         vprintf(0,'Experiment stopped at %s',datestr(now,'dd-mmm-yyyy HH:MM'))
         
-        set(h.figure1,'pointer','arrow'); %drawnow nocallbacks 
+        set(h.figure1,'pointer','arrow'); %drawnow 
 end
 
 
@@ -344,12 +349,16 @@ function PsychTimerStop(~,~,f)
 global AX PRGMSTATE RUNTIME FUNCS
 PRGMSTATE = 'STOP';
 
+vprintf(3,'PsychTimerStop:Calling timer Stop function: %s',FUNCS.TIMERfcn.Stop)
 RUNTIME = feval(FUNCS.TIMERfcn.Stop,RUNTIME,AX);
 
 h = guidata(f);
 
+vprintf(3,'PsychTimerStop:Calling UpdateGUIstate');
 UpdateGUIstate(h);
+vprintf(3,'PsychTimerStop:Calling SaveDataCallback');
 SaveDataCallback(h);
+
 
 
 
@@ -378,9 +387,11 @@ global FUNCS PRGMSTATE RUNTIME
 oldstate = PRGMSTATE;
 
 PRGMSTATE = ''; %#ok<NASGU> % turn GUI off while saving
+vprintf(3,'SaveDataCallback: Calling UpdateGUIstate')
 UpdateGUIstate(h);
 
-state = AlwaysOnTop(h,false);
+% vprintf(3,'SaveDataCallback: Calling AlwaysOnTop')
+% state = AlwaysOnTop(h,false);
 
 try
     vprintf(1,'Calling Saving Function: %s',FUNCS.SavingFcn)
@@ -389,9 +400,11 @@ catch me
     vprintf(-1,me)
 end
 
-AlwaysOnTop(h,state);
+% vprintf(3,'SaveDataCallback: Calling AlwaysOnTop')
+% AlwaysOnTop(h,state);
 
 PRGMSTATE = oldstate;
+vprintf(3,'SaveDataCallback: Calling UpdateGUIstate')
 UpdateGUIstate(h);
 
 
@@ -456,7 +469,7 @@ switch PRGMSTATE
         set([h.save_data,h.ctrl_run,h.ctrl_preview,hSetup],'Enable','on');     
 end
     
-drawnow nocallbacks 
+% drawnow 
 
 
 
@@ -591,7 +604,7 @@ if STATEID >= 4, return; end
 if nargin == 0
     pn = getpref('ep_RunExpt_Setup','PDir',cd);
     if ~exist(pn,'dir'), pn = cd; end
-    drawnow nocallbacks
+    drawnow
     [fn,pn] = uigetfile('*.prot','Locate Protocol',pn);
     if ~fn, return; end
     setpref('ep_RunExpt_Setup','PDir',pn);
@@ -653,7 +666,7 @@ end
 
 pn = getpref('ep_RunExpt_Setup','PDir',cd);
 if ~exist(pn,'dir'), pn = cd; end
-drawnow nocallbacks
+drawnow
 [fn,pn] = uigetfile('*.prot','Locate Protocol',pn);
 if ~fn, return; end
 setpref('ep_RunExpt_Setup','PDir',pn);
