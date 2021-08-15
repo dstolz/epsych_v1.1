@@ -91,7 +91,7 @@ classdef OnlinePlotBM < gui.Helper & handle
             obj.trialParam = sprintf('#TrigState~%d',BoxID);
             
             obj.Timer = ep_GenericGUITimer(obj.figH,sprintf('OnlinePlot~%d',BoxID));
-            obj.Timer.StartFcn = @obj.setup_plot; % THESE MIGHT NEED TO BE STATIC FUNCTIONS?!
+            obj.Timer.StartFcn = @obj.setup_plot;
             obj.Timer.TimerFcn = @obj.update;
             obj.Timer.ErrorFcn = @obj.error;
             obj.Timer.Period = 0.05;
