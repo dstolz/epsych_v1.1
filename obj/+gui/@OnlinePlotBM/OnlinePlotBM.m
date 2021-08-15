@@ -341,9 +341,15 @@ classdef OnlinePlotBM < gui.Helper & handle
                     c.Parent = obj.figH;
             end
             
+            if obj.trialLocked
+                lbl = 'Set Plot to Free-Running';
+            else
+                lbl = 'Set Plot to Trial-Locked';
+            end
+            
             uimenu(c,'Tag','uic_stayOnTop','Label','Keep Window on Top','Callback',@obj.stay_on_top);
             uimenu(c,'Tag','uic_pause','Label','Pause ||','Callback',@obj.pause);
-            uimenu(c,'Tag','uic_plotType','Label','Set Plot to Trial-Locked','Callback',{@obj.plot_type,true});
+            uimenu(c,'Tag','uic_plotType','Label',lbl,'Callback',{@obj.plot_type,true});
             uimenu(c,'Tag','uic_timeWindow','Label',sprintf('Time Window = [%.1f %.1f] seconds',obj.timeWindow2number),'Callback',@obj.update_window);
             obj.ax.UIContextMenu = c;
         end
