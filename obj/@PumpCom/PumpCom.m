@@ -5,6 +5,10 @@ classdef PumpCom < handle
         PumpUnits               (1,2) char {mustBeMember(PumpUnits,{'UM','MM','UH','MH'})} = 'MM'; % see page 38 in manual
         PumpOperationalTrigger  (1,2) char = 'LE'; % see page 44 in manual
         SyringeDiameter         (1,1) double {mustBePositive} = 21.69;
+        
+        
+        hVolumeDispensed
+        hPumpRate
     end
     
     
@@ -19,7 +23,7 @@ classdef PumpCom < handle
         BaudRate = 19200;
         DataBits = 8
         StopBits = 1;
-        TimerPeriod = 0.1;
+        
         
     end
     
@@ -58,16 +62,16 @@ classdef PumpCom < handle
         end
         
         function delete(obj)
+            
             try
-                delete(obj.Device);
-                clear global PUMPCOMSERIAL
+                obj.kill_gui_timer;
             catch me
                 warning(me.identifier,me.message) %#ok<MEXCEP>
             end
-%             
-%             try
-%                 obj.kill_gui_timer;
-%             end
+            
+            clear global PUMPCOMSERIAL
+            
+            
         end
         
         
@@ -227,8 +231,8 @@ classdef PumpCom < handle
             g.ColumnWidth = {'1x'};
             g.RowHeight   = {25, 25};
             
-            obj.create_VolumeDispensed_field(g);
-            obj.create_PumpRate_field(g);
+            obj.hVolumeDispensed = obj.create_VolumeDispensed_field(g);
+            obj.hPumpRate = obj.create_PumpRate_field(g);
             
         end
         
@@ -256,11 +260,10 @@ classdef PumpCom < handle
         function h = create_PumpRate_field(obj,parent)
             if nargin < 2 || isempty(parent), parent = gcf; end
             
-            pu = obj.PumpUnits;
-            m = 'mL';
-            t = 'min';
-            if pu(1) == 'U', m = 'µ'; end
-            if pu(2) == 'H', t = 'hour'; end
+%             pu = obj.PumpUnits;
+            m = 'mL'; t = 'min';
+%             if pu(1) == 'U', m = 'µ'; end
+%             if pu(2) == 'H', t = 'hour'; end
             
             s = [m '/' t];
             
@@ -269,6 +272,7 @@ classdef PumpCom < handle
                 'Value',obj.PumpRate, ...
                 'Limits',[0 10], ...
                 'LowerLimitInclusive','off', ...
+                'UpperLimitInclusive','off', ...
                 'ValueDisplayFormat',['%03.2f ' s], ...
                 'Tooltip','Enter new value and hit "Enter" or click outside the field', ...
                 'ValueChangedFcn',@obj.gui_update);
@@ -329,7 +333,6 @@ classdef PumpCom < handle
                 stop(t)
                 delete(t);
             end
-            delete(hObj)
         end
     end
 end
