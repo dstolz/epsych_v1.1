@@ -1,4 +1,4 @@
-classdef StimType < handle
+classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous
     
     properties (SetObservable = true)
         Duration     (1,1) double {mustBePositive,mustBeFinite} = 0.1;  % seconds
@@ -30,7 +30,9 @@ classdef StimType < handle
     end
     
     methods (Abstract)
-        obj = update_signal(obj,src,evnt); % updates obj.Signal
+        update_signal(obj,src,evnt); % updates obj.Signal
+        h = create_gui(obj,src,evnt);
+        interpret_gui(obj,src,evnt);        
     end
     
     methods
@@ -122,6 +124,17 @@ classdef StimType < handle
                 e(i) = addlistener(obj,p(i).Name,'PostSet',@(~,~) obj.update_signal);
             end
             obj.els = e;
+        end
+    end
+    
+    methods (Static)
+        function c = list
+            r = which('stimgen.StimType');
+            pth = fileparts(r);
+            d = dir(fullfile(pth,'*.m'));
+            f = {d.name};
+            f(ismember(f,'StimType.m')) = [];
+            c = cellfun(@(a) a(1:end-2),f,'uni',0);
         end
     end
 end

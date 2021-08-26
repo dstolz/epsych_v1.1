@@ -14,7 +14,11 @@ classdef Noise < stimgen.StimType
         function obj = Noise(varargin)
             obj = obj@stimgen.StimType(varargin{:});
         end
-
+        
+        function h = create_gui(obj,src,evnt)
+            disp(src)
+        end
+        
         function set.HighPass(obj,fc)
             obj.HighPass = fc;
             obj.update_digFilter;
@@ -62,6 +66,19 @@ classdef Noise < stimgen.StimType
                     'CutoffFrequency1',obj.HighPass, ...
                     'CutoffFrequency2',obj.LowPass, ...
                     'SampleRate',obj.Fs);
+        end
+        
+        
+        
+        function create_gui(obj,src,evnt)
+           
+            
+        end
+        
+        
+        function interpret_gui(obj,src,evnt)
+           
+            
         end
     end
     

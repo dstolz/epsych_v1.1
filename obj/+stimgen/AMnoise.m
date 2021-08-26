@@ -1,4 +1,4 @@
-classdef AMnoise < stimgen.Noise & stimgen.StimType
+classdef AMnoise < stimgen.Noise
     
     properties
         AMDepth (1,1) double {mustBeGreaterThanOrEqual(AMDepth,0),mustBeLessThanOrEqual(AMDepth,1)} = 1; % [0 1] 
@@ -12,7 +12,7 @@ classdef AMnoise < stimgen.Noise & stimgen.StimType
     methods
                 
         function obj = AMnoise(varargin)
-            obj = obj@stimgen.StimType(varargin{:});
+            obj = obj@stimgen.Noise(varargin{:});
             
             obj.create_listeners;
         end
@@ -42,6 +42,16 @@ classdef AMnoise < stimgen.Noise & stimgen.StimType
             obj.apply_normalization;
         end
     
+        function create_gui(obj,src,evnt)
+           
+            
+        end
+        
+        
+        function interpret_gui(obj,src,evnt)
+           
+            
+        end
     end
     
 end
