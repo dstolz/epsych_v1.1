@@ -9,10 +9,16 @@ classdef StimGenInterface < handle
         handles
         sgTypes
         sgObjs
+        CurrentSignal
+        
     end
     
     properties (Access = private)
         els
+    end
+    
+    properties (Dependent)
+        CurrentSGObj
     end
     
     methods
@@ -23,8 +29,9 @@ classdef StimGenInterface < handle
             obj.sgTypes = stimgen.StimType.list;
             obj.sgObjs = cellfun(@(a) stimgen.(a),obj.sgTypes,'uni',0);
             
-            
             obj.create;
+            
+            if nargout == 0, clear obj; end
         end
         
         
@@ -39,7 +46,22 @@ classdef StimGenInterface < handle
         
         
         function commit_changes(obj,src,event)
-                        
+            obj.CurrentSGObj.update_signal;
+            
+            obj.update_signal_plot;
+        end
+        
+        function update_signal_plot(obj)
+            h = obj.handles.SignalPlotLine;
+            h.XData = obj.CurrentSGObj.Time;
+            h.YData = obj.CurrentSGObj.Signal;
+        end
+        
+        
+        function sobj = get.CurrentSGObj(obj)
+            st = obj.handles.TabGroup.SelectedTab;
+            ind = ismember(obj.sgTypes,st.Title);
+            sobj = obj.sgObjs{ind};
         end
         
     end
@@ -73,8 +95,20 @@ classdef StimGenInterface < handle
             
             g = uigridlayout(f);
             g.ColumnWidth = {250,'1x',250};
-            g.RowHeight   = {150,'1x',100};
+            g.RowHeight   = {200,'1x',75};
             
+            
+            % signal plot
+            ax = uiaxes(g);
+            ax.Layout.Column = [1 2];
+            ax.Layout.Row = 1;
+            grid(ax,'on');
+            box(ax,'on');
+            xlabel(ax,'time (s)');
+            obj.handles.SignalPlotAx = ax;
+            
+            h = line(ax,nan,nan);
+            obj.handles.SignalPlotLine = h;
             
             % stimgen interface
             tg = uitabgroup(g);
@@ -83,7 +117,6 @@ classdef StimGenInterface < handle
             tg.Tag = 'StimGenTabs';
             tg.TabLocation = 'left';
             tg.SelectionChangedFcn = @obj.stimtype_changed;
-            
             obj.handles.TabGroup = tg;
             
             for i = 1:length(obj.sgTypes)
@@ -107,7 +140,6 @@ classdef StimGenInterface < handle
             h.Layout.Column = 3;
             h.Layout.Row = 3;
             h.Text = 'Commit';
-            h.Enable = 'off';
             h.FontSize = 20;
             h.FontWeight = 'bold';
             h.FontAngle = 'italic';

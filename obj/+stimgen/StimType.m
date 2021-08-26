@@ -1,6 +1,6 @@
 classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous
     
-    properties (SetObservable = true)
+    properties (SetObservable,AbortSet)
         Duration     (1,1) double {mustBePositive,mustBeFinite} = 0.1;  % seconds
         
         GateDuration (1,1) double {mustBeNonnegative,mustBeFinite} = 0.002; % seconds
@@ -27,6 +27,7 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous
     properties (Hidden,Access = protected)
         temporarilyDisableSignalMods (1,1) logical = false;
         els
+        GUIHandles
     end
     
     methods (Abstract)
@@ -56,6 +57,7 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous
        
         
         function g = get.Gate(obj)
+            
             n = round(obj.GateDuration.*obj.Fs);
             n = n + rem(n,2);
             
@@ -75,8 +77,8 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous
             
             h = plot(ax,obj.Time,obj.Signal);
             grid(ax,'on');
-            xlabel('time (s)');
-            ylabel('amplitude');
+            xlabel(ax,'time (s)');
+
         end
     end
     
@@ -87,6 +89,7 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous
             if obj.temporarilyDisableSignalMods, return; end
             
             g = obj.Gate;
+            
             
             n = length(g);
             ga = g(1:n/2);

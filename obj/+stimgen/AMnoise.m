@@ -1,6 +1,6 @@
 classdef AMnoise < stimgen.Noise
     
-    properties
+    properties (SetObservable,AbortSet)
         AMDepth (1,1) double {mustBeGreaterThanOrEqual(AMDepth,0),mustBeLessThanOrEqual(AMDepth,1)} = 1; % [0 1] 
         AMRate  (1,1) double {mustBePositive,mustBeFinite} = 5; % Hz
         OnsetPhase (1,1) double = 0; % degrees
