@@ -9,6 +9,8 @@ classdef AttackModNoise < stimgen.Noise
         
         AddOnOffperiods (1,1) logical = false;
         
+        EnvelopeOnly (1,1) logical = false;
+        
         ApplyViemeisterCorrection (1,1) logical = true;
     end
     
@@ -23,14 +25,16 @@ classdef AttackModNoise < stimgen.Noise
         
         
         function update_signal(obj)
-            obj.temporarilyDisableSignalMods = true;
-            
-            update_signal@stimgen.Noise(obj);
-            noise = obj.Signal;
-            
-            obj.temporarilyDisableSignalMods = false;
+            if ~obj.EnvelopeOnly
+                
+                obj.temporarilyDisableSignalMods = true;
+                
+                update_signal@stimgen.Noise(obj);
+                noise = obj.Signal;
+                obj.temporarilyDisableSignalMods = false;
+                
+            end
 
-            
             z = obj.Z;
             isRamped = z < 0;
             
@@ -61,7 +65,11 @@ classdef AttackModNoise < stimgen.Noise
                 am = am .* sqrt(1/(obj.AMDepth^2/2+1));
             end
             
-            obj.Signal = noise .* am;
+            if obj.EnvelopeOnly
+                obj.Signal = am;
+            else
+                obj.Signal = noise .* am;
+            end
             
             obj.apply_gate;
             
