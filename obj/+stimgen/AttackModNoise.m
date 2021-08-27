@@ -161,6 +161,21 @@ classdef AttackModNoise < stimgen.Noise
                         
             R = R + 1;
             
+            x = uilabel(g,'Text','Only Use Envelope:');
+            x.Layout.Column = 1;
+            x.Layout.Row    = R;
+            x.HorizontalAlignment = 'right';
+            
+            
+            x = uicheckbox(g,'Tag','EnvelopeOnly');
+            x.Layout.Column = 2;
+            x.Layout.Row = R;
+            x.Text = '';
+            x.Value = obj.EnvelopeOnly;
+            h.EnvelopeOnly = x;
+            
+            R = R + 1;
+            
             x = uilabel(g,'Text','Gate Duration:');
             x.Layout.Column = 1;
             x.Layout.Row    = R;
