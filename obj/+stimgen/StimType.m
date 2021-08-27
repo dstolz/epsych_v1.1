@@ -78,7 +78,12 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous
             h = plot(ax,obj.Time,obj.Signal);
             grid(ax,'on');
             xlabel(ax,'time (s)');
-
+        end
+        
+        function play(obj)
+            ap = audioplayer(obj.Signal,obj.Fs);
+            playblocking(ap);
+            delete(ap);
         end
     end
     
