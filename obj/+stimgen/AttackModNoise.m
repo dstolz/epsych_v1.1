@@ -194,14 +194,6 @@ classdef AttackModNoise < stimgen.Noise
             obj.GUIHandles = h;
         end
         
-        
-        function interpret_gui(obj,src,event)
-            try
-                obj.(src.Tag) = event.Value;
-            catch
-                obj.(src.Tag) = event.PreviousValue;
-            end
-        end
     end
     
 end

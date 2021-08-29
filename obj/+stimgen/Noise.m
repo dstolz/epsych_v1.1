@@ -131,13 +131,6 @@ classdef Noise < stimgen.StimType
         end
         
         
-        function interpret_gui(obj,src,event)
-            try
-                obj.(src.Tag) = event.Value;
-            catch
-                obj.(src.Tag) = event.PreviousValue;
-            end
-        end
     end
     
 end

@@ -30,10 +30,10 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous
         GUIHandles
     end
     
+    
     methods (Abstract)
         update_signal(obj,src,evnt); % updates obj.Signal
         h = create_gui(obj,src,evnt);
-        interpret_gui(obj,src,evnt);        
     end
     
     methods
@@ -132,6 +132,16 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous
                 e(i) = addlistener(obj,p(i).Name,'PostSet',@(~,~) obj.update_signal);
             end
             obj.els = e;
+        end
+        
+        
+        function interpret_gui(obj,src,event)
+            try
+                obj.(src.Tag) = event.Value;
+                obj.update_signal;
+            catch
+                obj.(src.Tag) = event.PreviousValue;
+            end
         end
     end
     

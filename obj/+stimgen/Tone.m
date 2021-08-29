@@ -94,7 +94,9 @@ classdef Tone < stimgen.StimType
             obj.GUIHandles = h;
         end
         
-        
+    end
+    
+    methods (Access = protected)
         function interpret_gui(obj,src,event)
             try
                 obj.(src.Tag) = event.Value;
