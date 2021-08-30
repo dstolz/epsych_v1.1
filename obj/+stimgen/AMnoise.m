@@ -15,6 +15,8 @@ classdef AMnoise < stimgen.Noise
             obj = obj@stimgen.Noise(varargin{:});
             
             obj.create_listeners;
+            
+            obj.Duration = 1;
         end
         
         
