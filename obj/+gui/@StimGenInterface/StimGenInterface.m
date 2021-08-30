@@ -4,6 +4,7 @@ classdef StimGenInterface < handle & gui.Helper
         StimList % stimgen objects
         StimListIdx (1,1) double {mustBeInteger} = 0;
         StimReps (:,1) double {mustBeInteger} = 0;
+        ISI      (1,:) double {mustBePositive,mustBeFinite} = 1;
     end
     
     properties (SetAccess = private)
@@ -71,7 +72,7 @@ classdef StimGenInterface < handle & gui.Helper
         
         
         function stimtype_changed(obj,src,event)
-            
+            obj.update_signal_plot;
         end
         
         function add_stim_to_list(obj,src,event)
@@ -102,6 +103,26 @@ classdef StimGenInterface < handle & gui.Helper
             
         end
         
+        function update_isi(obj,src,event)
+            h = obj.handles;
+            v = h.ISI.Value;
+            v = str2num(v);
+            try
+                obj.ISI = v;
+            catch me
+                uialert(obj.parent,me.message,'InvalidEntry','modal',true)
+                h.ISI.Value = num2str(event.Previous);
+            end
+        end
+        
+        function set.ISI(obj,v)
+            v = v(:)';
+            v = sort(v);
+            assert(~isempty(v) & numel(v)<=2, ...
+                'gui:StimGenInterface:update_isi:InvalidEntry', ...
+                'Values for ISI must be either 1x1 or 1x2 range of numbers');
+            obj.ISI = v;
+        end
         
         
         function play_current_stim_audio(obj,src,event)
@@ -111,10 +132,12 @@ classdef StimGenInterface < handle & gui.Helper
         
         
         function update_signal_plot(obj,src,event)
+            obj.CurrentSGObj.update_signal;
             h = obj.handles.SignalPlotLine;
             h.XData = obj.CurrentSGObj.Time;
             h.YData = obj.CurrentSGObj.Signal;
         end
+        
         
         
         function sobj = get.CurrentSGObj(obj)
@@ -185,6 +208,7 @@ classdef StimGenInterface < handle & gui.Helper
             tg.SelectionChangedFcn = @obj.stimtype_changed;
             obj.handles.TabGroup = tg;
             
+            flag = 1;
             for i = 1:length(obj.sgTypes)
                 try
                     sgt = obj.sgTypes{i};
@@ -193,6 +217,7 @@ classdef StimGenInterface < handle & gui.Helper
                     t = uitab(tg,'Title',sgt,'CreateFcn',fnc);
                     t.Scrollable = 'on';
                     addlistener(sgo,'Signal','PostSet',@obj.update_signal_plot);
+                    if flag, obj.update_signal_plot; flag = 0; end
                 catch me
                     t.Title = sprintf('%s ERROR',sgt);
                     disp(me)
@@ -277,12 +302,11 @@ classdef StimGenInterface < handle & gui.Helper
             h.HorizontalAlignment = 'right';
             obj.handles.ISILabel = h;
             
-            h = uieditfield(sbg,'numeric','Tag','ISI');
+            h = uieditfield(sbg,'Tag','ISI');
             h.Layout.Column = 2;
             h.Layout.Row = R;
-            h.Limits = [.1 1e6];
-            h.ValueDisplayFormat = '%.2f sec';
-            h.Value = 1;
+            h.Value = '1.00';
+            h.ValueChangedFcn = @obj.update_isi;
             obj.handles.ISI = h;
             
             
