@@ -3,7 +3,7 @@ classdef StimGenInterface < handle & gui.Helper
     properties
         StimObjList % stimgen objects
         StimListIdx (1,1) double {mustBeInteger} = 0;
-        StimReps    (:,1) double {mustBeInteger} = 1;
+        StimReps    (:,1) double {mustBeInteger};
         StimNames   (:,1) string
         StimISI     {}
     end
