@@ -1,10 +1,11 @@
 classdef StimGenInterface < handle & gui.Helper
     
     properties
-        StimList % stimgen objects
+        StimObjList % stimgen objects
         StimListIdx (1,1) double {mustBeInteger} = 0;
-        StimReps (:,1) double {mustBeInteger} = 0;
-        ISI      (1,:) double {mustBePositive,mustBeFinite} = 1;
+        StimReps    (:,1) double {mustBeInteger} = 1;
+        StimNames   (:,1) string
+        StimISI     {}
     end
     
     properties (SetAccess = private)
@@ -80,23 +81,33 @@ classdef StimGenInterface < handle & gui.Helper
             
             n = h.Reps.Value;
             
-            obj.StimList{end+1} = obj.CurrentSGObj;
+            sn = h.StimName.Value;
+            
+            v = h.ISI.Value;
+            v = str2num(v);
+            
+            obj.StimObjList{end+1} = obj.CurrentSGObj;
             obj.StimReps(end+1) = n;
+            obj.StimNames{end+1} = sn;
+            obj.StimISI{end+1} = v;
             
             c = class(obj.CurrentSGObj);
             c = c(find(c=='.',1,'last')+1:end);
             
-            % TODO: Make string more informative about stimulus
-            str = sprintf('%02dx %s',n,c);
+            str = sprintf('%02dx %s - %s',n,c,sn);
             
-            h.StimList.Items{end+1} = str;
+            h.StimObjList.Items{end+1} = str;
         end
         
         function rem_stim_from_list(obj,src,event)
             h = obj.handles;
             
-            ind = ismember(h.StimList.Items,h.StimList.Value);
-            h.StimList.Items(ind) = [];
+            ind = ismember(h.StimObjList.Items,h.StimObjList.Value);
+            h.StimObjList.Items(ind) = [];
+            obj.StimObjList(ind) = [];
+            obj.StimReps(ind) = [];
+            obj.StimNames(ind) = [];
+            obj.StimISI(ind) = [];
         end
         
         function update_playmode(obj,src,event)
@@ -107,22 +118,23 @@ classdef StimGenInterface < handle & gui.Helper
             h = obj.handles;
             v = h.ISI.Value;
             v = str2num(v);
+            v = sort(v(:)');
             try
-                obj.ISI = v;
+                src.Value = mat2str(v);
             catch me
                 uialert(obj.parent,me.message,'InvalidEntry','modal',true)
-                h.ISI.Value = num2str(event.Previous);
+                h.ISI.Value = vent.Previous;
             end
         end
         
-        function set.ISI(obj,v)
-            v = v(:)';
-            v = sort(v);
-            assert(~isempty(v) & numel(v)<=2, ...
-                'gui:StimGenInterface:update_isi:InvalidEntry', ...
-                'Values for ISI must be either 1x1 or 1x2 range of numbers');
-            obj.ISI = v;
-        end
+%         function set.ISI(obj,v)
+%             v = v(:)';
+%             v = sort(v);
+%             assert(~isempty(v) & numel(v)<=2, ...
+%                 'gui:StimGenInterface:update_isi:InvalidEntry', ...
+%                 'Values for ISI must be either 1x1 or 1x2 range of numbers');
+%             obj.ISI = v;
+%         end
         
         
         function play_current_stim_audio(obj,src,event)
@@ -253,7 +265,7 @@ classdef StimGenInterface < handle & gui.Helper
             sbg.Layout.Column = 3;
             sbg.Layout.Row = [1 3];
             sbg.ColumnWidth = {'1x', '1x'};
-            sbg.RowHeight = repmat({40},1,7);
+            sbg.RowHeight = repmat({30},1,9);
             
             R = 1;
             
@@ -268,37 +280,22 @@ classdef StimGenInterface < handle & gui.Helper
             
             R = R + 1;
             
-            % rep field
-            h = uieditfield(sbg,'numeric','Tag','Reps');
+            % stim name field
+            h = uilabel(sbg);
             h.Layout.Column = 1;
             h.Layout.Row = R;
-            h.Limits = [1 1e6];
-            h.ValueDisplayFormat = '%d reps';
-            h.Value = 20;
-            obj.handles.Reps = h;
-                        
-
-            % add stim button
-            h = uibutton(sbg,'Tag','AddStimToList');
+            h.Text = 'Stim Name:';
+            h.HorizontalAlignment = 'right';
+            h.FontSize = 16;
+            obj.handles.StimulusCounter = h;
+            
+            h = uieditfield(sbg,'Tag','StimName');
             h.Layout.Column = 2;
             h.Layout.Row = R;
-            h.Text = 'Add';
-            h.FontSize = 16;
-            h.FontWeight = 'bold';
-            h.ButtonPushedFcn = @obj.add_stim_to_list;
-            obj.handles.AddStimToList = h;
+            h.Value = '';
+            obj.handles.StimName = h;
             
-            
-            R = R + 1;
-            
-            % stimulus list
-            h = uilistbox(sbg,'Tag','StimList');
-            h.Layout.Column = [1 2];
-            h.Layout.Row = [R R+2];
-            h.Items = {};
-            obj.handles.StimList = h;
-            
-            R = R + 3;
+            R = R + 1;            
             
             % inter-stimulus interval
             h = uilabel(sbg,'Text','ISI');
@@ -314,9 +311,39 @@ classdef StimGenInterface < handle & gui.Helper
             h.ValueChangedFcn = @obj.update_isi;
             obj.handles.ISI = h;
             
+            R = R + 1;
+            
+            % rep field
+            h = uieditfield(sbg,'numeric','Tag','Reps');
+            h.Layout.Column = 1;
+            h.Layout.Row = R;
+            h.Limits = [1 1e6];
+            h.RoundFractionalValues = 'on';
+            h.ValueDisplayFormat = '%d reps';
+            h.Value = 20;
+            obj.handles.Reps = h;
+                        
+
+            % add stim button
+            h = uibutton(sbg,'Tag','AddStimToList');
+            h.Layout.Column = 2;
+            h.Layout.Row = R;
+            h.Text = 'Add';
+            h.FontSize = 16;
+            h.FontWeight = 'bold';
+            h.ButtonPushedFcn = @obj.add_stim_to_list;
+            obj.handles.AddStimToList = h;
             
             R = R + 1;
             
+            % stimulus list
+            h = uilistbox(sbg,'Tag','StimObjList');
+            h.Layout.Column = [1 2];
+            h.Layout.Row = [R R+2];
+            h.Items = {};
+            obj.handles.StimObjList = h;
+            
+            R = R + 3;            
             
             % playmode dropdown
             h = uidropdown(sbg,'Tag','PlayMode');
