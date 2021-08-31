@@ -126,8 +126,13 @@ classdef StimGenInterface < handle & gui.Helper
         
         
         function play_current_stim_audio(obj,src,event)
-%             obj.CurrentSGObj.update_signal;
+            h = obj.handles.PlayStimAudio;
+            
+            c = h.BackgroundColor;
+            h.BackgroundColor = [.2 1 .2];
+            drawnow
             play(obj.CurrentSGObj);
+            h.BackgroundColor = c;
         end
         
         
@@ -239,7 +244,7 @@ classdef StimGenInterface < handle & gui.Helper
             h.Layout.Column = 2;
             h.Text = 'Play Stim';
             h.ButtonPushedFcn = @obj.play_current_stim_audio;
-            
+            obj.handles.PlayStimAudio = h;
             
             
             
