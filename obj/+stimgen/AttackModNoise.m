@@ -38,14 +38,12 @@ classdef AttackModNoise < stimgen.Noise
             end
 
             z = obj.Z;
-            isRamped = z < 0;
             
             period = 1/obj.AMRate;
             t = linspace(0,1,round(period*obj.Fs));
-            am = t.^(abs(z)+1).*(1-t);
+            am = t.^(1-abs(z)).*(1-t);
             
-            
-            if isRamped
+            if z < 0 % Ramped
                 am = fliplr(am);
             end
 

@@ -73,8 +73,8 @@ classdef AMnoise < stimgen.Noise
             x = uieditfield(g,'numeric','Tag','OnsetPhase');
             x.Layout.Column = 2;
             x.Layout.Row = R;
-            x.Limits = [-pi pi];
-            x.ValueDisplayFormat = '%.2f rad';
+            x.Limits = [-180 180];
+            x.ValueDisplayFormat = '%.2f deg';
             x.Value = obj.OnsetPhase;
             h.OnsetPhase = x;
             
