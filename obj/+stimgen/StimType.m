@@ -1,4 +1,4 @@
-classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous
+classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
     
     properties (SetObservable,AbortSet)
         Duration     (1,1) double {mustBePositive,mustBeFinite} = 0.1;  % seconds
@@ -27,6 +27,7 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous
     properties (Hidden,Access = protected)
         temporarilyDisableSignalMods (1,1) logical = false;
         els
+        hels
         GUIHandles
     end
     
@@ -95,7 +96,6 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous
             
             g = obj.Gate;
             
-            
             n = length(g);
             ga = g(1:n/2);
             gb = g(n/2+1:end);
@@ -134,6 +134,24 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous
             obj.els = e;
         end
         
+        function create_handle_listeners(obj)
+            m = metaclass(obj);
+            p = m.PropertyList;
+            ind = [p.SetObservable] & string({p.SetAccess}) == "public";
+            p(~ind) = [];
+            
+
+            for i = 1:length(p)
+                e(i) = addlistener(obj,p(i).Name,'PostSet',@obj.update_handle_value);
+            end
+            obj.hels = e;       
+        end
+        
+        function update_handle_value(obj,src,event)
+            h = obj.GUIHandles;
+                        
+            h.(src.Name).Value = obj.(src.Name);
+        end
         
         function interpret_gui(obj,src,event)
             try

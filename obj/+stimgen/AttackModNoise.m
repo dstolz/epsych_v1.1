@@ -60,7 +60,6 @@ classdef AttackModNoise < stimgen.Noise
                 am = [am(i+1:end) am am(1:i)];
             end
 
-
             if obj.ApplyViemeisterCorrection
                 am = am .* sqrt(1/(obj.AMDepth^2/2+1));
             end
@@ -192,6 +191,8 @@ classdef AttackModNoise < stimgen.Noise
             structfun(@(a) set(a,'ValueChangedFcn',@obj.interpret_gui),h);
             
             obj.GUIHandles = h;
+            
+            obj.create_handle_listeners;
         end
         
     end

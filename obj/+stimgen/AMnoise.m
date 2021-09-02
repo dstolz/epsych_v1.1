@@ -3,7 +3,12 @@ classdef AMnoise < stimgen.Noise
     properties (SetObservable,AbortSet)
         AMDepth (1,1) double {mustBeGreaterThanOrEqual(AMDepth,0),mustBeLessThanOrEqual(AMDepth,1)} = 1; % [0 1] 
         AMRate  (1,1) double {mustBePositive,mustBeFinite} = 5; % Hz
-        OnsetPhase (1,1) double = 0; % degrees
+        
+        OnsetPhase (1,1) double = 180; % degrees
+        
+%         AMExponential (1,1) double
+        
+        EnvelopeOnly (1,1) logical = false;
         
         ApplyViemeisterCorrection (1,1) logical = true;
     end
@@ -37,7 +42,11 @@ classdef AMnoise < stimgen.Noise
                 am = am .* sqrt(1/(obj.AMDepth^2/2+1));
             end
             
-            obj.Signal = noise .* am;
+            if obj.EnvelopeOnly
+                obj.Signal = am;
+            else
+                obj.Signal = noise .* am;
+            end
             
             obj.apply_gate;
             
@@ -142,6 +151,8 @@ classdef AMnoise < stimgen.Noise
             structfun(@(a) set(a,'ValueChangedFcn',@obj.interpret_gui),h);
             
             obj.GUIHandles = h;
+            
+            obj.create_handle_listeners;
         end
         
     end

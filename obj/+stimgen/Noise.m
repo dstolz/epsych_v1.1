@@ -128,6 +128,8 @@ classdef Noise < stimgen.StimType
             structfun(@(a) set(a,'ValueChangedFcn',@obj.interpret_gui),h);
             
             obj.GUIHandles = h;
+            
+            obj.create_handle_listeners;
         end
         
         
