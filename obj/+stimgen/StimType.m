@@ -27,7 +27,6 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
     properties (Hidden,Access = protected)
         temporarilyDisableSignalMods (1,1) logical = false;
         els
-        hels
         GUIHandles
     end
     
@@ -134,18 +133,18 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
             obj.els = e;
         end
         
-        function create_handle_listeners(obj)
-            m = metaclass(obj);
-            p = m.PropertyList;
-            ind = [p.SetObservable] & string({p.SetAccess}) == "public";
-            p(~ind) = [];
-            
-
-            for i = 1:length(p)
-                e(i) = addlistener(obj,p(i).Name,'PostSet',@obj.update_handle_value);
-            end
-            obj.hels = e;       
-        end
+%         function create_handle_listeners(obj)
+%             m = metaclass(obj);
+%             p = m.PropertyList;
+%             ind = [p.SetObservable] & string({p.SetAccess}) == "public";
+%             p(~ind) = [];
+%             
+% 
+%             for i = 1:length(p)
+%                 e(i) = addlistener(obj,p(i).Name,'PostSet',@obj.update_handle_value);
+%             end
+%             obj.hels = e;       
+%         end
         
         function update_handle_value(obj,src,event)
             h = obj.GUIHandles;
@@ -169,7 +168,7 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
             pth = fileparts(r);
             d = dir(fullfile(pth,'*.m'));
             f = {d.name};
-            f(ismember(f,'StimType.m')) = [];
+            f(ismember(f,{'StimType.m','StimPlay.m'})) = [];
             c = cellfun(@(a) a(1:end-2),f,'uni',0);
         end
     end

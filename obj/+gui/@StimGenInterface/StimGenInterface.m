@@ -1,11 +1,7 @@
 classdef StimGenInterface < handle & gui.Helper
     
     properties
-        StimObjList % stimgen objects
-        StimListIdx (1,1) double {mustBeInteger} = 0;
-        StimReps    (:,1) double {mustBeInteger};
-        StimNames   (:,1) string
-        StimISI     {}
+        StimPlayObjs (:,1) stimgen.StimPlay
     end
     
     properties (SetAccess = private)
@@ -16,6 +12,8 @@ classdef StimGenInterface < handle & gui.Helper
         CurrentSignal
         
         StimRepsRemaining (:,1) double {mustBeInteger} = 0;
+        
+        FileLoaded (1,1) string
     end
     
     properties (Access = private)
@@ -37,6 +35,7 @@ classdef StimGenInterface < handle & gui.Helper
             
             % get a list of available stimgen objects
             obj.sgTypes = stimgen.StimType.list;
+            
             obj.sgObjs = cellfun(@(a) stimgen.(a),obj.sgTypes,'uni',0);
             
             obj.create;
@@ -77,6 +76,7 @@ classdef StimGenInterface < handle & gui.Helper
             obj.update_signal_plot;
         end
         
+        
         function add_stim_to_list(obj,src,event)
             h = obj.handles;
             
@@ -87,18 +87,17 @@ classdef StimGenInterface < handle & gui.Helper
             v = h.ISI.Value;
             v = str2num(v);
             
-            obj.StimObjList{end+1} = copy(obj.CurrentSGObj);
-            obj.StimReps(end+1) = n;
-            obj.StimNames{end+1} = sn;
-            obj.StimISI{end+1} = v;
-            
             c = class(obj.CurrentSGObj);
-            c = c(find(c=='.',1,'last')+1:end);
+            c(1:find(c=='.')) = [];
             
-            str = sprintf('%02dx %s - %s',n,c,sn);
+            obj.StimPlayObjs(end+1).StimObj = copy(obj.CurrentSGObj);
+            obj.StimPlayObjs(end).Reps = n;
+            obj.StimPlayObjs(end).Name = sn;
+            obj.StimPlayObjs(end).ISI  = v;
+                        
             
-            h.StimObjList.Items{end+1} = str;
-            h.StimObjList.ItemsData = 1:length(obj.StimObjList);
+            h.StimObjList.Items     = [obj.StimPlayObjs.DisplayName];
+            h.StimObjList.ItemsData = 1:length(h.StimObjList.Items);
         end
         
         function rem_stim_from_list(obj,src,event)
@@ -106,10 +105,7 @@ classdef StimGenInterface < handle & gui.Helper
             
             ind = h.StimObjList.ItemsData == h.StimObjList.Value;
             
-            obj.StimObjList(ind)     = [];
-            obj.StimReps(ind)        = [];
-            obj.StimNames(ind)       = [];
-            obj.StimISI(ind)         = [];
+            obj.StimPlayObjs(ind) = [];
             
             h.StimObjList.Items(ind) = [];
             h.StimObjList.ItemsData = 1:length(obj.StimObjList);
@@ -118,7 +114,7 @@ classdef StimGenInterface < handle & gui.Helper
         function stim_list_item_selected(obj,src,event)
             h = obj.handles;
             
-            co = obj.StimObjList{event.Value};
+            co = obj.StimPlayObjs(event.Value).StimObj;
             
             tp = class(co);
             tp = tp(find(tp=='.',1)+1:end);
@@ -204,8 +200,61 @@ classdef StimGenInterface < handle & gui.Helper
             end
         end
         
+        function load_config(obj,ffn)
+            
+            if nargin < 2 || isempty(ffn)
+                pn = getpref('StimGenInterface','path',cd);
+                [fn,pn] = uigetfile(pn);
+                if isequal(fn,0), return; end
+                
+                ffn = fullfile(pn,fn);
+                
+                setpref('StimGenInterface','path',pn);
+            end
+            
+            load(ffn,'SGI','-mat');
+                       
+            obj.StimPlayObjs = SGI;
+            
+            h = obj.handles;
+            
+            h.StimObjList.Items = [obj.StimPlayObjs.DisplayName];
+            h.StimObjList.ItemsData = 1:length(h.StimObjList.Items);
+            
+            event.Value = 1;
+            obj.stim_list_item_selected(h.StimObjList,event);
+        end
         
-    end
+        
+        function save_config(obj,ffn)
+            
+            if nargin < 2 || isempty(ffn)
+                pn = getpref('StimGenInterface','path',cd);
+                [fn,pn] = uiputfile({'*.sgi','StimGenInterface Config (*.sgi)'},pn);
+                if isequal(fn,0), return; end
+                
+                ffn = fullfile(pn,fn);
+                
+                setpref('StimGenInterface','path',pn);
+            end
+            
+            SGI = obj.StimPlayObjs;
+            
+            [~,~,ext] = fileparts(ffn);
+            if ~isequal(ext,'.sgi')
+                ffn = [ffn '.sgi'];
+            end
+            
+            save(ffn,'SGI','-mat');
+            
+            uialert(ancestor(obj.parent,'figure'), ...
+                sprintf('Saved curent configuration to: "%s"',ffn), ...
+                'StimGenInterface','Icon','success','Modal',true);
+            
+            obj.FileLoaded = string(ffn);
+        end
+        
+    end % methods (Access = public)
     
     methods (Access = private)
         function delete_main_figure(obj,src,event)
@@ -429,25 +478,17 @@ classdef StimGenInterface < handle & gui.Helper
             
             
             % toolbar
-            hf = uimenu(obj.parent,'Text','File');
+            hf = uimenu(obj.parent,'Text','&File','Accelerator','F');
             
-            h = uimenu(hf,'Tag','menu_Load','Text','Load','Accelerator','L');            
-            h = uimenu(hf,'Tag','menu_Save','Text','Save','Accelerator','S');
+            h = uimenu(hf,'Tag','menu_Load','Text','&Load','Accelerator','L', ...
+                'MenuSelectedFcn',@(~,~) obj.load_config);
+            h = uimenu(hf,'Tag','menu_Save','Text','&Save','Accelerator','S', ...
+                'MenuSelectedFcn',@(~,~) obj.save_config);
 
-            set(hf.Children,'MenuSelectedFcn',@obj.menu_fnc);
+
 
             
             movegui(f,'onscreen');
-        end
-        
-        function menu_fnc(obj,src,event)
-            
-            switch src.Tag
-                case 'menu_Load'
-                    disp('load')
-                case 'menu_Save'
-                    disp('save')
-            end
         end
         
     end

@@ -93,7 +93,7 @@ classdef Tone < stimgen.StimType
             
             obj.GUIHandles = h;
             
-            obj.create_handle_listeners;
+%             obj.create_handle_listeners;
         end
         
     end
