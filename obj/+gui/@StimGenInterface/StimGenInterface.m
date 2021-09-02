@@ -35,6 +35,7 @@ classdef StimGenInterface < handle & gui.Helper
             
             if nargin > 0, obj.parent = parent; end
             
+            % get a list of available stimgen objects
             obj.sgTypes = stimgen.StimType.list;
             obj.sgObjs = cellfun(@(a) stimgen.(a),obj.sgTypes,'uni',0);
             
@@ -86,7 +87,7 @@ classdef StimGenInterface < handle & gui.Helper
             v = h.ISI.Value;
             v = str2num(v);
             
-            obj.StimObjList{end+1} = obj.CurrentSGObj;
+            obj.StimObjList{end+1} = copy(obj.CurrentSGObj);
             obj.StimReps(end+1) = n;
             obj.StimNames{end+1} = sn;
             obj.StimISI{end+1} = v;
@@ -97,19 +98,53 @@ classdef StimGenInterface < handle & gui.Helper
             str = sprintf('%02dx %s - %s',n,c,sn);
             
             h.StimObjList.Items{end+1} = str;
+            h.StimObjList.ItemsData = 1:length(obj.StimObjList);
         end
         
         function rem_stim_from_list(obj,src,event)
             h = obj.handles;
             
-            ind = ismember(h.StimObjList.Items,h.StimObjList.Value);
+            ind = h.StimObjList.ItemsData == h.StimObjList.Value;
+            
+            obj.StimObjList(ind)     = [];
+            obj.StimReps(ind)        = [];
+            obj.StimNames(ind)       = [];
+            obj.StimISI(ind)         = [];
+            
             h.StimObjList.Items(ind) = [];
-            obj.StimObjList(ind) = [];
-            obj.StimReps(ind) = [];
-            obj.StimNames(ind) = [];
-            obj.StimISI(ind) = [];
+            h.StimObjList.ItemsData = 1:length(obj.StimObjList);
         end
         
+        function stim_list_item_selected(obj,src,event)
+            h = obj.handles;
+            
+            co = obj.StimObjList{event.Value};
+            
+            tp = class(co);
+            tp = tp(find(tp=='.',1)+1:end);
+            
+            ind = ismember(obj.sgTypes,tp);
+            
+            obj.sgObjs{ind} = copy(co);
+                        
+            h.TabGroup.SelectedTab = h.Tabs.(tp);
+                        
+            
+            tg = h.TabGroup;
+            
+            st = tg.SelectedTab;
+            
+            delete(st.Children);
+            
+            co.create_gui(st);
+                        
+            addlistener(co,'Signal','PostSet',@obj.update_signal_plot);
+
+            
+            obj.update_signal_plot;
+        end
+        
+    
         function update_playmode(obj,src,event)
             
         end
@@ -195,7 +230,7 @@ classdef StimGenInterface < handle & gui.Helper
             f.Position = pos;
             f.Scrollable = 'on';
             f.DeleteFcn = @obj.delete_main_figure;
-            movegui(f,'onscreen');
+            %movegui(f,'onscreen'); % do this after all gui components have loaded
             
             
             
@@ -233,6 +268,7 @@ classdef StimGenInterface < handle & gui.Helper
                     fnc = @sgo.create_gui;
                     t = uitab(tg,'Title',sgt,'CreateFcn',fnc);
                     t.Scrollable = 'on';
+                    obj.handles.Tabs.(sgt) = t;
                     addlistener(sgo,'Signal','PostSet',@obj.update_signal_plot);
                     if flag, obj.update_signal_plot; flag = 0; end
                 catch me
@@ -341,9 +377,22 @@ classdef StimGenInterface < handle & gui.Helper
             h.Layout.Column = [1 2];
             h.Layout.Row = [R R+2];
             h.Items = {};
+            h.ValueChangedFcn = @obj.stim_list_item_selected;
             obj.handles.StimObjList = h;
             
             R = R + 3;            
+            
+            % remove stim button
+            h = uibutton(sbg,'Tag','RemStimFromList');
+            h.Layout.Column = 2;
+            h.Layout.Row = R;
+            h.Text = 'Remove';
+            h.FontSize = 16;
+            h.FontWeight = 'bold';
+            h.ButtonPushedFcn = @obj.rem_stim_from_list;
+            obj.handles.RemStimFromList = h;
+            
+            R = R + 1;
             
             % playmode dropdown
             h = uidropdown(sbg,'Tag','PlayMode');
@@ -378,6 +427,28 @@ classdef StimGenInterface < handle & gui.Helper
             obj.handles.PauseButton = h;
             
             
+            
+            % toolbar
+            hf = uimenu(obj.parent,'Text','File');
+            
+            h = uimenu(hf,'Tag','menu_Load','Text','Load','Accelerator','L');            
+            h = uimenu(hf,'Tag','menu_Save','Text','Save','Accelerator','S');
+
+            set(hf.Children,'MenuSelectedFcn',@obj.menu_fnc);
+
+            
+            movegui(f,'onscreen');
         end
+        
+        function menu_fnc(obj,src,event)
+            
+            switch src.Tag
+                case 'menu_Load'
+                    disp('load')
+                case 'menu_Save'
+                    disp('save')
+            end
+        end
+        
     end
 end
