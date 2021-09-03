@@ -5,7 +5,7 @@ classdef AttackModNoise < stimgen.Noise
         AMRate  (1,1) double {mustBePositive,mustBeFinite} = 5; % Hz
         OnsetPhase (1,1) double = 0; % degrees
         
-        Z     (1,1) double {mustBeGreaterThanOrEqual(Z,-1),mustBeLessThanOrEqual(Z,1)} = 1; % note that this gets converted to ramped/damped z = [1 2]
+        Z     (1,1) double {mustBeGreaterThanOrEqual(Z,-1),mustBeLessThanOrEqual(Z,1)} = .4; % note that this gets converted to ramped/damped z = [1 2]
         
         AddOnOffperiods (1,1) logical = false;
         
