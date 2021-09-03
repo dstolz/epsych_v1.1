@@ -187,6 +187,22 @@ classdef AttackModNoise < stimgen.Noise
             x.ValueDisplayFormat = '%.4f s';
             x.Value = obj.GateDuration;
             h.GateDuration = x;
+                 
+            R = R + 1;
+            
+            x = uilabel(g,'Text','Normalization:');
+            x.Layout.Column = 1;
+            x.Layout.Row    = R;
+            x.HorizontalAlignment = 'right';
+            
+            x = uidropdown(g,'Tag','Normalization');
+            x.Layout.Column = 2;
+            x.Layout.Row = R;
+            x.Items = ["none","absmax","rms","max","min"];
+            x.Value = obj.Normalization;
+            h.Normalization = x;
+            
+            
             
             structfun(@(a) set(a,'ValueChangedFcn',@obj.interpret_gui),h);
             

@@ -26,12 +26,13 @@ classdef StimGenInterface < handle & gui.Helper
     
     methods
         
-        function obj = StimGenInterface(parent)
+        function obj = StimGenInterface(parent,ffn)
 %             global AX
             
 %             obj.TDTActiveX = AX;
             
             if nargin > 0, obj.parent = parent; end
+            
             
             % get a list of available stimgen objects
             obj.sgTypes = stimgen.StimType.list;
@@ -39,6 +40,10 @@ classdef StimGenInterface < handle & gui.Helper
             obj.sgObjs = cellfun(@(a) stimgen.(a),obj.sgTypes,'uni',0);
             
             obj.create;
+            
+            if nargin > 1 && ~isempty(ffn)
+                obj.load_config(ffn);
+            end
             
             if nargout == 0, clear obj; end
         end
@@ -87,9 +92,6 @@ classdef StimGenInterface < handle & gui.Helper
             v = h.ISI.Value;
             v = str2num(v);
             
-            c = class(obj.CurrentSGObj);
-            c(1:find(c=='.')) = [];
-            
             obj.StimPlayObjs(end+1).StimObj = copy(obj.CurrentSGObj);
             obj.StimPlayObjs(end).Reps = n;
             obj.StimPlayObjs(end).Name = sn;
@@ -107,24 +109,22 @@ classdef StimGenInterface < handle & gui.Helper
             
             obj.StimPlayObjs(ind) = [];
             
-            h.StimObjList.Items(ind) = [];
-            h.StimObjList.ItemsData = 1:length(obj.StimObjList);
+            h.StimObjList.Items     = [obj.StimPlayObjs.DisplayName];
+            h.StimObjList.ItemsData = 1:length(obj.StimPlayObjs);
         end
         
         function stim_list_item_selected(obj,src,event)
             h = obj.handles;
             
-            co = obj.StimPlayObjs(event.Value).StimObj;
-            
-            tp = class(co);
-            tp = tp(find(tp=='.',1)+1:end);
-            
-            ind = ismember(obj.sgTypes,tp);
-            
-            obj.sgObjs{ind} = copy(co);
+            spo = obj.StimPlayObjs(event.Value);
                         
-            h.TabGroup.SelectedTab = h.Tabs.(tp);
+            ind = ismember(obj.sgTypes,spo.Type);
+            
+            co = copy(spo.StimObj);
+            
+            obj.sgObjs{ind} = co;
                         
+            h.TabGroup.SelectedTab = h.Tabs.(spo.Type);
             
             tg = h.TabGroup;
             
@@ -136,7 +136,6 @@ classdef StimGenInterface < handle & gui.Helper
                         
             addlistener(co,'Signal','PostSet',@obj.update_signal_plot);
 
-            
             obj.update_signal_plot;
         end
         
@@ -204,16 +203,22 @@ classdef StimGenInterface < handle & gui.Helper
             
             if nargin < 2 || isempty(ffn)
                 pn = getpref('StimGenInterface','path',cd);
-                [fn,pn] = uigetfile(pn);
+                [fn,pn] = uigetfile({'*.sgi','StimGenInterface Config (*.sgi)'},pn);
                 if isequal(fn,0), return; end
                 
                 ffn = fullfile(pn,fn);
                 
                 setpref('StimGenInterface','path',pn);
             end
+
+            f = ancestor(obj.parent,'figure');
             
+            figure(f);
+            
+            warning('off','MATLAB:class:LoadInvalidDefaultElement');
             load(ffn,'SGI','-mat');
-                       
+            warning('on','MATLAB:class:LoadInvalidDefaultElement');
+
             obj.StimPlayObjs = SGI;
             
             h = obj.handles;
@@ -247,7 +252,11 @@ classdef StimGenInterface < handle & gui.Helper
             
             save(ffn,'SGI','-mat');
             
-            uialert(ancestor(obj.parent,'figure'), ...
+            f = ancestor(obj.parent,'figure');
+            
+            figure(f);
+            
+            uialert(f, ...
                 sprintf('Saved curent configuration to: "%s"',ffn), ...
                 'StimGenInterface','Icon','success','Modal',true);
             

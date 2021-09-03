@@ -81,7 +81,7 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
         end
         
         function play(obj)
-            ap = audioplayer(obj.Signal,obj.Fs);
+            ap = audioplayer(obj.Signal./max(abs(obj.Signal)),obj.Fs);
             playblocking(ap);
             delete(ap);
         end
