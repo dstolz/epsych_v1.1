@@ -27,9 +27,9 @@ classdef StimGenInterface < handle & gui.Helper
     methods
         
         function obj = StimGenInterface(parent,ffn)
-%             global AX
+            global AX
             
-%             obj.TDTActiveX = AX;
+            obj.TDTActiveX = AX;
             
             if nargin > 0, obj.parent = parent; end
             

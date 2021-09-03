@@ -18,7 +18,7 @@ classdef Helper < handle
         end
         
         function set.TDTActiveX(obj,TDTActiveX)
-            assert(gui.Helper.isRPcox(TDTActiveX)|gui.Helper.isOpenEx(TDTActiveX), ...
+            assert(isempty(TDTActiveX)||gui.Helper.isRPcox(TDTActiveX)||gui.Helper.isOpenEx(TDTActiveX), ...
                 'epsych:epGenericHelper:TDTActiveX','TDTActiveX must be COM.RPco_X or COM.TDevAcc_X')
             obj.TDTActiveX = TDTActiveX;
         end
