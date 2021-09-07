@@ -4,7 +4,7 @@ classdef Tone < stimgen.StimType
         Frequency (1,1) double {mustBePositive,mustBeFinite} = 1000; % Hz
         OnsetPhase (1,1) double = 0;
         
-        GateMethod   (1,1) string {mustBeMember(GateMethod,["Duration" "Proportional" "#Periods"])} = "Duration"
+        WindowMethod   (1,1) string {mustBeMember(WindowMethod,["Duration" "Proportional" "#Periods"])} = "Duration"
     end
     
     methods
@@ -18,13 +18,13 @@ classdef Tone < stimgen.StimType
             obj.Signal = sin(2.*pi.*obj.Frequency.*t+obj.OnsetPhase);
             
             
-            switch obj.GateMethod
+            switch obj.WindowMethod
                 case 'Duration'
                     % no conversion needed
                 case 'Proportional'
-                    obj.GateDuration = obj.GateDuration/100*t(end);
+                    obj.WindowDuration = obj.WindowDuration/100*t(end);
                 case '#Periods'
-                    obj.GateDuration = 2*obj.GateDuration/obj.Frequency;
+                    obj.WindowDuration = 2*obj.WindowDuration/obj.Frequency;
             end
             
             
@@ -69,25 +69,25 @@ classdef Tone < stimgen.StimType
                         
             R = R + 1;
             
-            x = uilabel(g,'Text','Gate Duration:');
+            x = uilabel(g,'Text','Window Duration:');
             x.Layout.Column = 1;
             x.Layout.Row    = R;
             x.HorizontalAlignment = 'right';
             
-            x = uieditfield(g,'numeric','Tag','GateDuration');
+            x = uieditfield(g,'numeric','Tag','WindowDuration');
             x.Layout.Column = 2;
             x.Layout.Row = R;
             x.Limits = [1e-6 10];
             x.ValueDisplayFormat = '%.4f s';
-            x.Value = obj.GateDuration;
-            h.GateDuration = x;
+            x.Value = obj.WindowDuration;
+            h.WindowDuration = x;
             
-            x = uidropdown(g,'Tag','GateMethod');
+            x = uidropdown(g,'Tag','WindowMethod');
             x.Layout.Column = 3;
             x.Layout.Row = R;
             x.Items = ["Duration" "Proportional" "#Periods"];
-            x.Value = obj.GateMethod;
-            h.GateDurationMethod = x;
+            x.Value = obj.WindowMethod;
+            h.WindowDurationMethod = x;
             
             structfun(@(a) set(a,'ValueChangedFcn',@obj.interpret_gui),h);
             
@@ -106,7 +106,7 @@ classdef Tone < stimgen.StimType
                 obj.(src.Tag) = event.PreviousValue;
             end
             
-            if isequal(src.Tag,'GateMethod')
+            if isequal(src.Tag,'WindowMethod')
                 switch src.Value
                     case 'Proportional'
                         fmt = '%.2f%%';
@@ -115,7 +115,7 @@ classdef Tone < stimgen.StimType
                     case '#Periods'
                         fmt = '%.1f periods';
                 end
-                obj.GUIHandles.GateDuration.ValueDisplayFormat = fmt;
+                obj.GUIHandles.WindowDuration.ValueDisplayFormat = fmt;
             end
         end
         

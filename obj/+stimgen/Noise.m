@@ -112,18 +112,18 @@ classdef Noise < stimgen.StimType
                         
             R = R + 1;
             
-            x = uilabel(g,'Text','Gate Duration:');
+            x = uilabel(g,'Text','Window Duration:');
             x.Layout.Column = 1;
             x.Layout.Row    = R;
             x.HorizontalAlignment = 'right';
             
-            x = uieditfield(g,'numeric','Tag','GateDuration');
+            x = uieditfield(g,'numeric','Tag','WindowDuration');
             x.Layout.Column = 2;
             x.Layout.Row = R;
             x.Limits = [1e-6 10];
             x.ValueDisplayFormat = '%.4f s';
-            x.Value = obj.GateDuration;
-            h.GateDuration = x;
+            x.Value = obj.WindowDuration;
+            h.WindowDuration = x;
             
                      
             R = R + 1;

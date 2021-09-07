@@ -3,9 +3,9 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
     properties (SetObservable,AbortSet)
         Duration     (1,1) double {mustBePositive,mustBeFinite} = 0.1;  % seconds
         
-        GateDuration (1,1) double {mustBeNonnegative,mustBeFinite} = 0.002; % seconds
-        GateFcn      (1,1) string = "cos2";
-        ApplyGate    (1,1) logical = true;
+        WindowDuration (1,1) double {mustBeNonnegative,mustBeFinite} = 0.002; % seconds
+        WindowFcn      (1,1) string = "cos2";
+        ApplyWindow    (1,1) logical = true;
         
         Fs           (1,1) double {mustBePositive,mustBeFinite} = 97656.25; % Hz
         
@@ -20,7 +20,7 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
     properties (Dependent)
         N
         Time
-        Gate
+        Window
     end
     
 
@@ -56,18 +56,18 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
         end
        
         
-        function g = get.Gate(obj)
-            n = round(obj.GateDuration.*obj.Fs);
+        function g = get.Window(obj)
+            n = round(obj.WindowDuration.*obj.Fs);
             n = n + rem(n,2);
             
-            if obj.ApplyGate
-                switch obj.GateFcn
+            if obj.ApplyWindow
+                switch obj.WindowFcn
                     case ""
                         g = ones(1,n);
                     case "cos2"
                         g = hann(n);
                     otherwise
-                        g = feval(obj.GateFcn,n);
+                        g = feval(obj.WindowFcn,n);
                 end
                 g = g(:)'; % conform to row vector
             else
@@ -96,7 +96,7 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
         function apply_gate(obj)
             if obj.temporarilyDisableSignalMods, return; end
             
-            g = obj.Gate;
+            g = obj.Window;
             
             n = length(g);
             ga = g(1:n/2);
