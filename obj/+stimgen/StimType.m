@@ -5,11 +5,11 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
         
         GateDuration (1,1) double {mustBeNonnegative,mustBeFinite} = 0.002; % seconds
         GateFcn      (1,1) string = "cos2";
+        ApplyGate    (1,1) logical = true;
         
-        Fs           (1,1) double {mustBePositive,mustBeFinite} = 48828.125; % Hz
+        Fs           (1,1) double {mustBePositive,mustBeFinite} = 97656.25; % Hz
         
         Normalization (1,1) string {mustBeMember(Normalization,["none","absmax","rms","max","min"])} = "absmax"
-        
     end
     
     properties (SetAccess = protected, SetObservable)
@@ -57,19 +57,22 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
        
         
         function g = get.Gate(obj)
-            
             n = round(obj.GateDuration.*obj.Fs);
             n = n + rem(n,2);
             
-            switch obj.GateFcn
-                case ""
-                    g = [1 1];
-                case "cos2"
-                    g = hann(n);
-                otherwise
-                    g = feval(obj.GateFcn,n);
+            if obj.ApplyGate
+                switch obj.GateFcn
+                    case ""
+                        g = ones(1,n);
+                    case "cos2"
+                        g = hann(n);
+                    otherwise
+                        g = feval(obj.GateFcn,n);
+                end
+                g = g(:)'; % conform to row vector
+            else
+                g = ones(1,n);
             end
-            g = g(:)';
         end
         
         function h = plot(obj,ax)
