@@ -14,6 +14,11 @@ classdef StimGenInterface < handle & gui.Helper
         StimRepsRemaining (:,1) double {mustBeInteger} = 0;
         
         FileLoaded (1,1) string
+        
+        Timer
+        
+        timeObj = tic;
+        
     end
     
     properties (Access = private)
@@ -53,8 +58,69 @@ classdef StimGenInterface < handle & gui.Helper
             
         end
         
+        function trigger_stim_playback(obj)
+            AX = obj.TDTActiveX;
+            
+            s(1) = AX.SetTagVal('!Trigger',1);
+            obj.timeObj = tic;
+            pause(0.001);
+            s(2) = AX.SetTagVal('!Trigger',0);
+            
+            if ~all(s)
+                warning('StimGenInterface:update_buffer:RPvdsFail','Failed to trigger Stim buffer')
+            end
+        end
+        
+        function update_buffer(obj)
+            AX = obj.TDTActiveX;
+            
+            Buffer = obj.CurrentSignal;
+            
+            % write constructed Stim to RPvds circuit buffer
+            nSamps = length(Buffer);
+            AX.SetTagVal('BufferSize',nSamps);
+            s = AX.WriteTagV('Stim',0,Buffer);
+            if ~s
+                warning('StimGenInterface:update_buffer:RPvdsFail','Failed to write Stim buffer')
+            end
+        end
+        
+        function timer_startfcn(obj,src,event)
+            
+            idx = obj.nextSPOIdx;
+            obj.CurrentSignal = obj.StimPlayObjs(idx);
+            
+            obj.update_buffer;
+            
+            obj.trigger_stim_playback;
+        end
         
         
+        function timer_runtimefcn(obj,src,event)
+            stimOn = obj.getParamVals(obj.TDTActiveX,'StimOn');
+            
+            if ~stimOn % wait until current buffer is finished playing to write the next
+                % SHOULD WE USE A DOUBLE BUFFER??? PROBABLY
+                
+            end
+            
+            if toc(obj.timeObj) - isi < 2*src.Period
+                if 
+                return
+            end
+            
+            while toc(obj.timeObj) - isi < 0, end
+            
+            idx = obj.nextSPOIdx;
+            obj.CurrentSignal = obj.StimPlayObjs(idx);
+            
+            obj.update_buffer;
+            
+            obj.trigger_stim_playback;
+        end
+        
+        function timer_stopfcn(obj,src,event)
+        end
         
         function playback_control(obj,src,event)
             
@@ -63,6 +129,21 @@ classdef StimGenInterface < handle & gui.Helper
             switch lower(c)
                 
                 case 'run'
+                    
+                    t = timerfindall('Tag','StimGenInterfaceTimer');
+                    if ~isempty(t)
+                        stop(t);
+                        delete(t);
+                    end
+                    t = timer('Tag','StimGenInterfaceTimer', ...
+                        'Period',0.1, ...
+                        'ExecutionMode', 'fixedRate',...
+                        'BusyMode', 'drop', ...
+                        'StartFcn',@obj.timer_startfcn, ...
+                        'TimerFcn',@obj.timer_runtimefcn, ...
+                        'StopFcn', @obj.timer_stopfcn);
+                    
+                    start(t);
                     
                 case 'stop'
                     

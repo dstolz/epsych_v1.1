@@ -14,9 +14,3 @@ function TRIALS = StimGenInterface_TrialSelectFcn(TRIALS)
 TRIALS.NextTrialID = 1;
 
 
-
-
-
-
-
-
