@@ -54,6 +54,7 @@ classdef AttackModNoise < stimgen.Noise
             am = repmat(am,1,nperiods);
             
             am(obj.N+1:end) = [];
+            am(end+1:obj.N) = 0;
             
             if obj.AddOnOffperiods
                 [~,i] = max(am);

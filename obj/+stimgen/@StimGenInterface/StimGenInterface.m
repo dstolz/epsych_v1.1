@@ -19,13 +19,22 @@ classdef StimGenInterface < handle & gui.Helper
         
         timeObj = tic;
         
+        
+        TrigBufferID
+        
+        nextSPOIdx
     end
     
     properties (Access = private)
         els
     end
     
+    properties (Constant)
+        
+    end
+    
     properties (Dependent)
+        currentTrialNumber
         CurrentSGObj
     end
     
@@ -61,6 +70,7 @@ classdef StimGenInterface < handle & gui.Helper
         function trigger_stim_playback(obj)
             AX = obj.TDTActiveX;
             
+            AX.SetTagVal('Buffer_ID',obj.TrigBufferID);
             s(1) = AX.SetTagVal('!Trigger',1);
             obj.timeObj = tic;
             pause(0.001);
@@ -69,52 +79,58 @@ classdef StimGenInterface < handle & gui.Helper
             if ~all(s)
                 warning('StimGenInterface:update_buffer:RPvdsFail','Failed to trigger Stim buffer')
             end
+            
+            obj.update_buffer;
         end
         
         function update_buffer(obj)
             AX = obj.TDTActiveX;
             
+            
+            obj.TrigBufferID = mod(obj.currentTrialNumber,2);          
+            
+            idx = obj.nextSPOIdx;
+            obj.CurrentSignal = obj.StimPlayObjs(idx);
+            
             Buffer = obj.CurrentSignal;
             
             % write constructed Stim to RPvds circuit buffer
             nSamps = length(Buffer);
-            AX.SetTagVal('BufferSize',nSamps);
-            s = AX.WriteTagV('Stim',0,Buffer);
+            
+            
+            obj.(sprintf('BufferNeedsUpdating_%d',obj.TrigBufferID)) = false;
+        
+            bstrSze = sprintf('BufferSize_%d',obj.TrigBufferID);
+            bstr    = sprintf('Buffer_%d',obj.TrigBufferID);
+            bstrRst = sprintf('BufferReset_%d',obj.TrigBufferID);
+           
+                       
+            AX.SetTagVal(bstrRst,1); pause(0.001); AX.SetTagVal(bstrRst,0);
+            AX.SetTagVal(bstrSze,nSamps);
+            s = AX.WriteTagV(bstr,0,Buffer);
             if ~s
                 warning('StimGenInterface:update_buffer:RPvdsFail','Failed to write Stim buffer')
             end
         end
         
         function timer_startfcn(obj,src,event)
-            
-            idx = obj.nextSPOIdx;
-            obj.CurrentSignal = obj.StimPlayObjs(idx);
-            
-            obj.update_buffer;
+            obj.select_next_spo_idx;
+
+            obj.update_buffer; % update the buffer for the first stimulus
             
             obj.trigger_stim_playback;
         end
         
         
         function timer_runtimefcn(obj,src,event)
-            stimOn = obj.getParamVals(obj.TDTActiveX,'StimOn');
-            
-            if ~stimOn % wait until current buffer is finished playing to write the next
-                % SHOULD WE USE A DOUBLE BUFFER??? PROBABLY
-                
-            end
-            
+            % wait until ISI has elapsed 
             if toc(obj.timeObj) - isi < 2*src.Period
-                if 
                 return
-            end
+            end            
             
             while toc(obj.timeObj) - isi < 0, end
             
-            idx = obj.nextSPOIdx;
-            obj.CurrentSignal = obj.StimPlayObjs(idx);
-            
-            obj.update_buffer;
+            obj.select_next_spo_idx;
             
             obj.trigger_stim_playback;
         end
@@ -136,7 +152,7 @@ classdef StimGenInterface < handle & gui.Helper
                         delete(t);
                     end
                     t = timer('Tag','StimGenInterfaceTimer', ...
-                        'Period',0.1, ...
+                        'Period',0.01, ...
                         'ExecutionMode', 'fixedRate',...
                         'BusyMode', 'drop', ...
                         'StartFcn',@obj.timer_startfcn, ...
@@ -153,10 +169,15 @@ classdef StimGenInterface < handle & gui.Helper
             
         end
         
+        function select_next_spo_idx(obj)
+            h = obj.handles;
+            fnc = h.SelectionTypeList.Value;
+            obj.nextSPOIdx = feval(fnc);
+        end
         
-        
-        
-        
+        function n = get.currentTrialNumber(obj)
+            n = obj.TDTActiveX.GetTagVal('TrialNumber');
+        end
         
         function stimtype_changed(obj,src,event)
             obj.update_signal_plot;
@@ -238,14 +259,6 @@ classdef StimGenInterface < handle & gui.Helper
             end
         end
         
-%         function set.ISI(obj,v)
-%             v = v(:)';
-%             v = sort(v);
-%             assert(~isempty(v) & numel(v)<=2, ...
-%                 'gui:StimGenInterface:update_isi:InvalidEntry', ...
-%                 'Values for ISI must be either 1x1 or 1x2 range of numbers');
-%             obj.ISI = v;
-%         end
         
         
         function play_current_stim_audio(obj,src,event)
@@ -537,9 +550,15 @@ classdef StimGenInterface < handle & gui.Helper
             h = uidropdown(sbg,'Tag','PlayMode');
             h.Layout.Column = [1 2];
             h.Layout.Row = R;
-            h.Items = ["Normal" "Shuffle" "Blockwise"];
-            h.ValueChangedFcn = @obj.update_playmode;
-            obj.handles.ShuffleList = h;
+            w = which('stimgen.StimGenInterface');
+            p = fileparts(w);
+            d = dir(fullfile(p,'stimselect_*.m'));
+            itmr = cellfun(@(a) a(1:end-2),{d.name},'uni',0);
+            itm  = cellfun(@(a) a(find(a=='_',1)+1:end),itmr,'uni',0);
+            itmf = cellfun(@(a) str2func(['obj.' a]),itmr,'uni',0);
+            h.Items = itm;
+            h.ItemsData = itmf;
+            obj.handles.SelectionTypeList = h;
             
             
             R = R + 1;
