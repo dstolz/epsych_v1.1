@@ -1,4 +1,4 @@
-classdef (Hidden) StimPlay < handle
+classdef (Hidden) StimPlay < handle & matlab.mixin.SetGet
     
     
     properties (AbortSet,SetObservable)
@@ -10,10 +10,12 @@ classdef (Hidden) StimPlay < handle
         Name    (1,1) string
         DisplayName (1,1) string
         
+        RepsPresented (1,1) double {mustBeInteger,mustBeFinite} = 0;
     end
     
     properties (Dependent)
         Type
+        Signal
     end
     
     methods
@@ -36,5 +38,21 @@ classdef (Hidden) StimPlay < handle
                 n = obj.DisplayName;
             end
         end
+        
+        function increment(obj)
+            obj.RepsPresented = obj.RepsPresented + 1;
+        end
+        
+        function y = get.Signal(obj)
+            y = obj.StimObj.Signal;
+        end
+               
+        
+%         function i = get_isi(obj)
+%             d = diff(obj.ISI);
+%             i = rand(d)*d+obj.ISI(1);
+%         end
+        
+        
     end
 end

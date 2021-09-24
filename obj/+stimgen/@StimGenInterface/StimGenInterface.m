@@ -4,21 +4,18 @@ classdef StimGenInterface < handle & gui.Helper
         StimPlayObjs (:,1) stimgen.StimPlay
     end
     
-    properties (SetAccess = private)
+    properties (SetAccess = private,SetObservable = true)
         parent
         handles
         sgTypes
         sgObjs
-        CurrentSignal
         
-        StimRepsRemaining (:,1) double {mustBeInteger} = 0;
-        
+                
         FileLoaded (1,1) string
         
         Timer
         
-        timeObj = tic;
-        
+        lastTrigTime = tic;
         
         TrigBufferID
         
@@ -27,6 +24,7 @@ classdef StimGenInterface < handle & gui.Helper
     
     properties (Access = private)
         els
+        elsnsspi
     end
     
     properties (Constant)
@@ -36,9 +34,13 @@ classdef StimGenInterface < handle & gui.Helper
     properties (Dependent)
         currentTrialNumber
         CurrentSGObj
+        CurrentSPObj
     end
     
     methods
+        
+        idx = stimselect_Serial(obj);
+        idx = stimselect_Shuffle(obj);
         
         function obj = StimGenInterface(parent,ffn)
             global AX
@@ -68,74 +70,90 @@ classdef StimGenInterface < handle & gui.Helper
         end
         
         function trigger_stim_playback(obj)
+            if obj.nextSPOIdx < 1, return; end % flag to finish playback
+            
             AX = obj.TDTActiveX;
             
             AX.SetTagVal('Buffer_ID',obj.TrigBufferID);
             s(1) = AX.SetTagVal('!Trigger',1);
-            obj.timeObj = tic;
+            obj.lastTrigTime = tic;
             pause(0.001);
             s(2) = AX.SetTagVal('!Trigger',0);
+            vprintf(3,'trigger_stim_playback: TrigBufferID = %d; nextSPOidx = %d',obj.TrigBufferID,obj.nextSPOIdx)
             
             if ~all(s)
                 warning('StimGenInterface:update_buffer:RPvdsFail','Failed to trigger Stim buffer')
             end
             
-            obj.update_buffer;
         end
         
         function update_buffer(obj)
-            AX = obj.TDTActiveX;
-            
+            AX = obj.TDTActiveX;    
             
             obj.TrigBufferID = mod(obj.currentTrialNumber,2);          
+            vprintf(3,'update_buffer START: TrigBufferID = %d; nextSPOidx = %d',obj.TrigBufferID,obj.nextSPOIdx)
+            t = tic;
             
-            idx = obj.nextSPOIdx;
-            obj.CurrentSignal = obj.StimPlayObjs(idx);
-            
-            Buffer = obj.CurrentSignal;
+            buffer = obj.CurrentSPObj.Signal;
             
             % write constructed Stim to RPvds circuit buffer
-            nSamps = length(Buffer);
+            nSamps = length(buffer);
             
             
-            obj.(sprintf('BufferNeedsUpdating_%d',obj.TrigBufferID)) = false;
         
-            bstrSze = sprintf('BufferSize_%d',obj.TrigBufferID);
-            bstr    = sprintf('Buffer_%d',obj.TrigBufferID);
-            bstrRst = sprintf('BufferReset_%d',obj.TrigBufferID);
+            bstrSze  = sprintf('BufferSize_%d',obj.TrigBufferID);
+            bstrRst  = sprintf('BufferReset_%d',obj.TrigBufferID);
+            bstrData = sprintf('Buffer_%d',obj.TrigBufferID);
            
                        
             AX.SetTagVal(bstrRst,1); pause(0.001); AX.SetTagVal(bstrRst,0);
             AX.SetTagVal(bstrSze,nSamps);
-            s = AX.WriteTagV(bstr,0,Buffer);
+            s = AX.WriteTagV(bstrData,0,buffer);
             if ~s
                 warning('StimGenInterface:update_buffer:RPvdsFail','Failed to write Stim buffer')
             end
+            
+            vprintf(3,'update_buffer END:   TrigBufferID = %d; nextSPOidx = %d; took %.2f seconds',obj.TrigBufferID,obj.nextSPOIdx, toc(t))
         end
         
         function timer_startfcn(obj,src,event)
-            obj.select_next_spo_idx;
-
-            obj.update_buffer; % update the buffer for the first stimulus
+            % reset reps for all StimPlay objects
+            set(obj.StimPlayObjs,'RepsPresented',0);
             
-            obj.trigger_stim_playback;
+            obj.select_next_spo_idx; % select the first idx
+
+            obj.update_buffer; % update the buffer with the first stimulus
+            
         end
         
         
         function timer_runtimefcn(obj,src,event)
+            
+            if obj.nextSPOIdx < 1, return; end % flag to finish playback
+            
+            SO = obj.CurrentSPObj;
+            
             % wait until ISI has elapsed 
-            if toc(obj.timeObj) - isi < 2*src.Period
+            if toc(obj.lastTrigTime) - SO.ISI < 2*src.Period
                 return
             end            
             
-            while toc(obj.timeObj) - isi < 0, end
+            while toc(obj.lastTrigTime) - SO.ISI < 0, end
             
-            obj.select_next_spo_idx;
+            obj.trigger_stim_playback; % trigger playback of the obj.nextSPIdx buffer
             
-            obj.trigger_stim_playback;
+            obj.CurrentSPObj.increment; % increment the StimPlay object
+            
+            obj.select_next_spo_idx; % select the obj.nextSPOIdx 
+            
+            if obj.nextSPOIdx < 1, return; end % flag less than 1 means session is complete
+            
+            obj.update_buffer; % update the non-triggered buffer with the nextSPOIdx stimulus
         end
         
         function timer_stopfcn(obj,src,event)
+            h = obj.handles;
+            h.RunStopButton.Text = 'Run';
         end
         
         function playback_control(obj,src,event)
@@ -145,6 +163,10 @@ classdef StimGenInterface < handle & gui.Helper
             switch lower(c)
                 
                 case 'run'
+                   
+                    delete(obj.elsnsspi);
+                    
+                    obj.elsnsspi = addlistener(obj,'nextSPOIdx','PostSet',@obj.stim_list_item_selected);
                     
                     t = timerfindall('Tag','StimGenInterfaceTimer');
                     if ~isempty(t)
@@ -159,9 +181,17 @@ classdef StimGenInterface < handle & gui.Helper
                         'TimerFcn',@obj.timer_runtimefcn, ...
                         'StopFcn', @obj.timer_stopfcn);
                     
+                    obj.Timer = t;
+                    
+                    src.Text = 'Stop';
+                    
                     start(t);
                     
                 case 'stop'
+                    
+                    stop(obj.Timer);
+                    
+                    src.Text = 'Run';
                     
                 case 'pause'
                     
@@ -172,7 +202,11 @@ classdef StimGenInterface < handle & gui.Helper
         function select_next_spo_idx(obj)
             h = obj.handles;
             fnc = h.SelectionTypeList.Value;
-            obj.nextSPOIdx = feval(fnc);
+            obj.nextSPOIdx = fnc(obj);
+            
+            if obj.nextSPOIdx < 1 % flag to finish playback
+                stop(obj.Timer);
+            end
         end
         
         function n = get.currentTrialNumber(obj)
@@ -182,7 +216,6 @@ classdef StimGenInterface < handle & gui.Helper
         function stimtype_changed(obj,src,event)
             obj.update_signal_plot;
         end
-        
         
         function add_stim_to_list(obj,src,event)
             h = obj.handles;
@@ -218,7 +251,15 @@ classdef StimGenInterface < handle & gui.Helper
         function stim_list_item_selected(obj,src,event)
             h = obj.handles;
             
-            spo = obj.StimPlayObjs(event.Value);
+            if isprop(src,'Name') && isequal(src.Name,'nextSPOIdx')
+                value = obj.nextSPOIdx;
+            else
+                value = event.Value;
+            end
+            
+            if value == -1, return; end
+            
+            spo = obj.StimPlayObjs(value);
                         
             ind = ismember(obj.sgTypes,spo.Type);
             
@@ -241,7 +282,6 @@ classdef StimGenInterface < handle & gui.Helper
             obj.update_signal_plot;
         end
         
-    
         function update_playmode(obj,src,event)
             
         end
@@ -259,8 +299,6 @@ classdef StimGenInterface < handle & gui.Helper
             end
         end
         
-        
-        
         function play_current_stim_audio(obj,src,event)
             h = obj.handles.PlayStimAudio;
             
@@ -271,20 +309,21 @@ classdef StimGenInterface < handle & gui.Helper
             h.BackgroundColor = c;
         end
         
-        
         function update_signal_plot(obj,src,event)
             obj.CurrentSGObj.update_signal;
             h = obj.handles.SignalPlotLine;
             h.XData = obj.CurrentSGObj.Time;
             h.YData = obj.CurrentSGObj.Signal;
         end
-        
-        
-        
+                
         function sobj = get.CurrentSGObj(obj)
             st = obj.handles.TabGroup.SelectedTab;
             ind = ismember(obj.sgTypes,st.Title);
             sobj = obj.sgObjs{ind};
+        end
+        
+        function sp = get.CurrentSPObj(obj)
+            sp = obj.StimPlayObjs(obj.nextSPOIdx);
         end
         
         function update_samplerate(obj,src,event)
@@ -534,6 +573,16 @@ classdef StimGenInterface < handle & gui.Helper
             
             R = R + 3;            
             
+%             % advance stim button
+%             h = uibutton(sbg,'Tag','AdvanceStimFromList');
+%             h.Layout.Column = 2;
+%             h.Layout.Row = R;
+%             h.Text = 'Remove';
+%             h.FontSize = 16;
+%             h.FontWeight = 'bold';
+%             h.ButtonPushedFcn = @obj.advance_stim;
+%             obj.handles.AdvanceStimFromList = h;
+            
             % remove stim button
             h = uibutton(sbg,'Tag','RemStimFromList');
             h.Layout.Column = 2;
@@ -555,7 +604,7 @@ classdef StimGenInterface < handle & gui.Helper
             d = dir(fullfile(p,'stimselect_*.m'));
             itmr = cellfun(@(a) a(1:end-2),{d.name},'uni',0);
             itm  = cellfun(@(a) a(find(a=='_',1)+1:end),itmr,'uni',0);
-            itmf = cellfun(@(a) str2func(['obj.' a]),itmr,'uni',0);
+            itmf = cellfun(@str2func,itmr,'uni',0);
             h.Items = itm;
             h.ItemsData = itmf;
             obj.handles.SelectionTypeList = h;
