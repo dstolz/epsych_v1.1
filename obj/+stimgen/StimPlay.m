@@ -48,10 +48,14 @@ classdef (Hidden) StimPlay < handle & matlab.mixin.SetGet
         end
                
         
-%         function i = get_isi(obj)
-%             d = diff(obj.ISI);
-%             i = rand(d)*d+obj.ISI(1);
-%         end
+        function i = get_isi(obj)
+            d = diff(obj.ISI);
+            if d > 0
+                i = rand(1)*d+obj.ISI(1);
+            else
+                i = obj.ISI(1);
+            end
+        end
         
         
     end

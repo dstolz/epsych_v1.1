@@ -4,6 +4,10 @@ classdef StimGenInterface < handle & gui.Helper
         StimPlayObjs (:,1) stimgen.StimPlay
     end
     
+    properties (Hidden)
+        isiAdjustment = 0; % seconds
+    end
+    
     properties (SetAccess = private,SetObservable = true)
         parent
         handles
@@ -15,11 +19,12 @@ classdef StimGenInterface < handle & gui.Helper
         
         Timer
         
-        lastTrigTime = tic;
+        lastTrigTic = tic;
         
         TrigBufferID
         
         nextSPOIdx
+        currentISI
     end
     
     properties (Access = private)
@@ -61,6 +66,9 @@ classdef StimGenInterface < handle & gui.Helper
                 obj.load_config(ffn);
             end
             
+            % FOR TESTING!!!
+            assignin('base','S',obj);
+            
             if nargout == 0, clear obj; end
         end
         
@@ -74,17 +82,25 @@ classdef StimGenInterface < handle & gui.Helper
             
             AX = obj.TDTActiveX;
             
+            
             AX.SetTagVal('Buffer_ID',obj.TrigBufferID);
+            
+            lastToc = toc(obj.lastTrigTic);
             s(1) = AX.SetTagVal('!Trigger',1);
-            obj.lastTrigTime = tic;
+            obj.lastTrigTic = tic;
+            
             pause(0.001);
             s(2) = AX.SetTagVal('!Trigger',0);
-            vprintf(3,'trigger_stim_playback: TrigBufferID = %d; nextSPOidx = %d',obj.TrigBufferID,obj.nextSPOIdx)
+            tdiff = lastToc-obj.currentISI;
+            vprintf(3,'trigger_stim_playback: TrigBufferID = %d; nextSPOidx = %d; ITI diff = %.4f sec', ...
+                obj.TrigBufferID,obj.nextSPOIdx,tdiff)
             
             if ~all(s)
-                warning('StimGenInterface:update_buffer:RPvdsFail','Failed to trigger Stim buffer')
+                warning('StimGenInterface:trigger_stim_playback:RPvdsFail','Failed to trigger Stim buffer')
             end
             
+            obj.currentISI = obj.CurrentSPObj.get_isi - tdiff;
+            vprintf(3,'trigger_stim_playback: obj.currentISI = %.3f s',obj.currentISI)
         end
         
         function update_buffer(obj)
@@ -96,11 +112,13 @@ classdef StimGenInterface < handle & gui.Helper
             
             buffer = obj.CurrentSPObj.Signal;
             
+            % make first and last samples 0 since RPvds circuit uses SerSource
+            % components
+            buffer = [0, buffer, 0]; 
+            
             % write constructed Stim to RPvds circuit buffer
             nSamps = length(buffer);
-            
-            
-        
+                    
             bstrSze  = sprintf('BufferSize_%d',obj.TrigBufferID);
             bstrRst  = sprintf('BufferReset_%d',obj.TrigBufferID);
             bstrData = sprintf('Buffer_%d',obj.TrigBufferID);
@@ -130,15 +148,17 @@ classdef StimGenInterface < handle & gui.Helper
         function timer_runtimefcn(obj,src,event)
             
             if obj.nextSPOIdx < 1, return; end % flag to finish playback
-            
-            SO = obj.CurrentSPObj;
+                                    
+            isi = obj.currentISI;
             
             % wait until ISI has elapsed 
-            if toc(obj.lastTrigTime) - SO.ISI < 2*src.Period
+            if toc(obj.lastTrigTic) - isi < 2*src.Period
                 return
             end            
             
-            while toc(obj.lastTrigTime) - SO.ISI < 0, end
+            % hold the computer hostage until ISI has expired
+            
+            while toc(obj.lastTrigTic)+obj.isiAdjustment < isi, end
             
             obj.trigger_stim_playback; % trigger playback of the obj.nextSPIdx buffer
             
@@ -174,7 +194,7 @@ classdef StimGenInterface < handle & gui.Helper
                         delete(t);
                     end
                     t = timer('Tag','StimGenInterfaceTimer', ...
-                        'Period',0.01, ...
+                        'Period',0.005, ...
                         'ExecutionMode', 'fixedRate',...
                         'BusyMode', 'drop', ...
                         'StartFcn',@obj.timer_startfcn, ...
@@ -242,10 +262,17 @@ classdef StimGenInterface < handle & gui.Helper
             
             ind = h.StimObjList.ItemsData == h.StimObjList.Value;
             
+            
+            if isempty(obj.StimPlayObjs), return; end
             obj.StimPlayObjs(ind) = [];
             
-            h.StimObjList.Items     = [obj.StimPlayObjs.DisplayName];
-            h.StimObjList.ItemsData = 1:length(obj.StimPlayObjs);
+            if isempty(obj.StimPlayObjs)
+                h.StimObjList.Items = "";
+                h.StimObjList.ItemsData = 1;
+            else
+                h.StimObjList.Items     = [obj.StimPlayObjs.DisplayName];
+                h.StimObjList.ItemsData = 1:length(obj.StimPlayObjs);
+            end
         end
         
         function stim_list_item_selected(obj,src,event)
