@@ -92,6 +92,7 @@ classdef StimGenInterface < handle & gui.Helper
             pause(0.001);
             s(2) = AX.SetTagVal('!Trigger',0);
             tdiff = lastToc-obj.currentISI;
+            if isempty(tdiff), tdiff = 0; end
             vprintf(3,'trigger_stim_playback: TrigBufferID = %d; nextSPOidx = %d; ITI diff = %.4f sec', ...
                 obj.TrigBufferID,obj.nextSPOIdx,tdiff)
             
@@ -142,6 +143,7 @@ classdef StimGenInterface < handle & gui.Helper
 
             obj.update_buffer; % update the buffer with the first stimulus
             
+            obj.lastTrigTic = tic;
         end
         
         
