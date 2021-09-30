@@ -32,6 +32,10 @@ classdef AMnoise < stimgen.Noise
             noise = obj.Signal;
             
             obj.temporarilyDisableSignalMods = false;
+           
+            
+%             x(t) = A(t) sin(2 pi fc t)
+%             A(t) = A [1 + m sin(2 pi fm t)]
 
             
             am = cos(2.*pi.*obj.AMRate.*obj.Time+deg2rad(obj.OnsetPhase));
