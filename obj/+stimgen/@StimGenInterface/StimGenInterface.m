@@ -5,7 +5,7 @@ classdef StimGenInterface < handle & gui.Helper
     end
     
     properties (Hidden)
-        isiAdjustment = 0; % seconds
+        isiAdjustment = 0.0405; % seconds
     end
     
     properties (SetAccess = private,SetObservable = true)
@@ -33,7 +33,9 @@ classdef StimGenInterface < handle & gui.Helper
     end
     
     properties (Constant)
-        
+        TrigParamStr = {'!Trigger_0','!Trigger_1'};
+        BufferSize = {'BufferSize_0','BufferSize_1'};
+        BufferData = {'BufferData_0','BufferData_1'};
     end
     
     properties (Dependent)
@@ -79,18 +81,16 @@ classdef StimGenInterface < handle & gui.Helper
         
         function trigger_stim_playback(obj)
             if obj.nextSPOIdx < 1, return; end % flag to finish playback
-            
-            AX = obj.TDTActiveX;
-            
-            
-            AX.SetTagVal('Buffer_ID',obj.TrigBufferID);
+                                    
+            s(1) = obj.TDTActiveX.SetTagVal(obj.TrigParamStr{obj.TrigBufferID+1},1);
             
             lastToc = toc(obj.lastTrigTic);
-            s(1) = AX.SetTagVal('!Trigger',1);
             obj.lastTrigTic = tic;
             
             pause(0.001);
-            s(2) = AX.SetTagVal('!Trigger',0);
+            
+            s(2) = obj.TDTActiveX.SetTagVal(obj.TrigParamStr{obj.TrigBufferID+1},0);
+            
             tdiff = lastToc-obj.currentISI;
             if isempty(tdiff), tdiff = 0; end
             vprintf(3,'trigger_stim_playback: TrigBufferID = %d; nextSPOidx = %d; ITI diff = %.4f sec', ...
@@ -101,39 +101,46 @@ classdef StimGenInterface < handle & gui.Helper
             end
             
             obj.currentISI = obj.CurrentSPObj.get_isi - tdiff;
+            
             vprintf(3,'trigger_stim_playback: obj.currentISI = %.3f s',obj.currentISI)
         end
         
-        function update_buffer(obj)
-            AX = obj.TDTActiveX;    
+        function update_buffer(obj)            
+            obj.TrigBufferID = mod(obj.currentTrialNumber,2);  
             
-            obj.TrigBufferID = mod(obj.currentTrialNumber,2);          
             vprintf(3,'update_buffer START: TrigBufferID = %d; nextSPOidx = %d',obj.TrigBufferID,obj.nextSPOIdx)
-            t = tic;
             
-            buffer = obj.CurrentSPObj.Signal;
+            t = tic;
             
             % make first and last samples 0 since RPvds circuit uses SerSource
             % components
-            buffer = [0, buffer, 0]; 
+            buffer = [0, obj.CurrentSPObj.Signal, 0]; 
             
             % write constructed Stim to RPvds circuit buffer
             nSamps = length(buffer);
                     
-            bstrSze  = sprintf('BufferSize_%d',obj.TrigBufferID);
-            bstrRst  = sprintf('BufferReset_%d',obj.TrigBufferID);
-            bstrData = sprintf('Buffer_%d',obj.TrigBufferID);
-           
-                       
-            AX.SetTagVal(bstrRst,1); pause(0.001); AX.SetTagVal(bstrRst,0);
-            AX.SetTagVal(bstrSze,nSamps);
-            s = AX.WriteTagV(bstrData,0,buffer);
+            bid = obj.TrigBufferID + 1;
+            
+            obj.TDTActiveX.SetTagVal(obj.BufferSize{bid},nSamps);
+            s = obj.TDTActiveX.WriteTagV(obj.BufferData{bid},0,buffer);
             if ~s
                 warning('StimGenInterface:update_buffer:RPvdsFail','Failed to write Stim buffer')
             end
             
             vprintf(3,'update_buffer END:   TrigBufferID = %d; nextSPOidx = %d; took %.2f seconds',obj.TrigBufferID,obj.nextSPOIdx, toc(t))
         end
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         function timer_startfcn(obj,src,event)
             % reset reps for all StimPlay objects
@@ -154,7 +161,7 @@ classdef StimGenInterface < handle & gui.Helper
             isi = obj.currentISI;
             
             % wait until ISI has elapsed 
-            if toc(obj.lastTrigTic) - isi < 2*src.Period
+            if toc(obj.lastTrigTic) - isi < src.Period - obj.isiAdjustment
                 return
             end            
             
