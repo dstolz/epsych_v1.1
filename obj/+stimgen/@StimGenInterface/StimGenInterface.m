@@ -25,6 +25,8 @@ classdef StimGenInterface < handle & gui.Helper
         
         nextSPOIdx
         currentISI
+        
+        Fs
     end
     
     properties (Access = private)
@@ -40,8 +42,8 @@ classdef StimGenInterface < handle & gui.Helper
     
     properties (Dependent)
         currentTrialNumber
-        CurrentSGObj
-        CurrentSPObj
+        CurrentSGObj % stimgen obj
+        CurrentSPObj % stimplay obj
     end
     
     methods
@@ -193,6 +195,11 @@ classdef StimGenInterface < handle & gui.Helper
                 
                 case 'run'
                    
+                    obj.Fs = obj.TDTActiveX.GetSFreq;
+                    set(obj.StimPlayObjs,'Fs',obj.Fs);
+                    vprintf(3,'Module sampling rate = %.3f Hz',obj.Fs);
+                    arrayfun(@update_signal,obj.StimPlayObjs);
+                    
                     delete(obj.elsnsspi);
                     
                     obj.elsnsspi = addlistener(obj,'nextSPOIdx','PostSet',@obj.stim_list_item_selected);
