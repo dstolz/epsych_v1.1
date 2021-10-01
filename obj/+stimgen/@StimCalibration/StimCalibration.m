@@ -44,6 +44,9 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             end
             
             obj.create_gui;
+            
+            addlistener(obj,{'ExcitationSignal','ReferenceSignal','ResponseSignal'},'PostSet',@obj.plot_signal);
+            addlistener(obj,{'ExcitationSignal','ReferenceSignal','ResponseSignal'},'PostSet',@obj.plot_spectrum);
         end
         
         
@@ -52,11 +55,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             
         end
         
-        function plot_amp_spectrum(obj,type,ax)
-            
-        end
-        
-        function plot_phase_spectrum(obj,type,ax)
+        function plot_spectrum(obj,type,ax)
             
         end
         
@@ -107,9 +106,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             
             obj.ResponseSignal = obj.AX.ReadTagV('BufferIn',0,nsamps-1);
             
-            % TODO: add event listener to object signals to automate
-            % plotting
-            obj.plot_signal('Response',obj.handles.axResponseSignal);
+            
         end
         
         
@@ -124,7 +121,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         function create_gui(obj)
             if isempty(obj.handles.parent)
                 h = uifigure;
-                pos = getpref('StimCalibration','pos',[400 250 800 420]);
+                pos = getpref('StimCalibration','pos',[400 250 300 420]);
                 h.Position = pos;
                 obj.handles.parent = h;
             end
@@ -133,52 +130,13 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             
             movegui(parent,'onscreen')
             
-            g = uigridlayout(parent);
-            
-            g.ColumnWidth = {'1x',250};
-            g.RowHeight   = {'1x','1x'};
-            
-            obj.handles.MainGrid = g;
-            
-            % Excitation signal axis
-            ax = uiaxes(g);
-            ax.Layout.Column = 1;
-            ax.Layout.Row    = 1;
-            obj.handles.axExcitationSignal = ax;
-            
-            % Response signal axis
-            ax = uiaxes(g);
-            ax.Layout.Column = 1;
-            ax.Layout.Row    = 2;
-            obj.handles.axResponseSignal = ax;
-            
-            
             % Sidebar grid
-            sg = uigridlayout(g);
-            sg.ColumnWidth = {'1x' 100};
-            sg.RowHeight   = repmat({30},1,7);
-            sg.Layout.Column = 2;
-            sg.Layout.Row = [1 2];
+            sg = uigridlayout(parent);
+            sg.ColumnWidth = {'1x' '1x'};
+            sg.RowHeight   = [repmat({30},1,7) {'1x'}];
             obj.handles.SideGrid = sg;
             
             R = 1;
-            
-            % select stimulus type (from list of stimgen types) - dropdown
-            h = uilabel(sg);
-            h.Layout.Column = 1;
-            h.Layout.Row    = R;
-            h.Text = "Stim Type:";
-            h.HorizontalAlignment = 'right';
-            
-            types = stimgen.StimType.list;
-            h = uidropdown(sg);
-            h.Layout.Column = 2;
-            h.Layout.Row    = R;
-            h.Items = types;
-            h.ValueChangedFcn = @obj.stimtype_change;
-            obj.handles.StimType = h;
-            
-            R = R + 1;
             
             % calibration mode (CalibrationMode): rms or peak
             h = uilabel(sg);
@@ -207,6 +165,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             h.Layout.Column = 2;
             h.Layout.Row    = R;
             h.ValueDisplayFormat = '%.1f dB SPL';
+            h.Value = obj.ReferenceLevel;
             h.Limits = [1 160];
             obj.handles.RefSoundLevel = h;
             
@@ -224,7 +183,8 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             h.Layout.Column = 2;
             h.Layout.Row    = R;
             h.ValueDisplayFormat = '%.1f Hz';
-            h.Limits = [100 10000];
+            h.Value = 1000;
+            h.Limits = [100 100000];
             obj.handles.RefFrequency = h;
             
             R = R + 1;
@@ -238,7 +198,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             h.ButtonPushedFcn = @obj.measure_ref;
             obj.handles.RefMeasure = h;
             
-            
+            R = R + 1;
             % reference mic sensitivty (numeric) ReferenceMicSensitivity
             %   - either explicitly specified by user or result of
             %   measurement
@@ -256,7 +216,38 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             obj.handles.RefFrequency = h;
             
             R = R + 1;
-            %
+            
+            
+            
+            % select stimulus type (from list of stimgen types) - dropdown
+            h = uibutton(sg);
+            h.Layout.Column = 1;
+            h.Layout.Row    = R;
+            h.Text = "Parameterize";
+            h.HorizontalAlignment = 'right';
+            
+            types = stimgen.StimType.list;
+            h = uidropdown(sg);
+            h.Layout.Column = 2;
+            h.Layout.Row    = R;
+            h.Items = types;
+            h.ValueChangedFcn = @obj.stimtype_change;
+            obj.handles.StimType = h;
+            
+            R = R + 1;
+            
+            R = R + 1;
+            
+            
+            % run calibration
+            h = uibutton(sg);
+            h.Layout.Column = [1 2];
+            h.Layout.Row = [R R+1]; R = R + 1;
+            h.Text = {'Run'; 'Calibration'};
+            h.FontSize = 18;
+            h.FontWeight = 'bold';
+            h.ButtonPushedFcn = @obj.run_calibration;
+            obj.handles.RunCalibration = h;
             
             
             
