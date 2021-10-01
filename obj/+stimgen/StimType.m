@@ -16,7 +16,6 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
         Signal       (1,:) = [];
     end
     
-    
     properties (Dependent)
         N
         Time
@@ -31,6 +30,10 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
     end
     
     
+    properties (Abstract, Constant)
+        CalibrationType (1,1) string % "noise","tone","click"
+    end
+        
     methods (Abstract)
         update_signal(obj,src,evnt); % updates obj.Signal
         h = create_gui(obj,src,evnt);

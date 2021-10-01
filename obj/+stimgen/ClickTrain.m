@@ -6,6 +6,11 @@ classdef ClickTrain < stimgen.StimType
         ClickDuration (1,1) double {mustBePositive} = .1e-3; % s
     end
     
+    
+    properties (Constant)
+        CalibrationType = "click";
+    end
+    
     methods
         
         function obj = ClickTrain(varargin)

@@ -13,6 +13,9 @@ classdef AMnoise < stimgen.Noise
         ApplyViemeisterCorrection (1,1) logical = true;
     end
     
+    properties (Constant)
+        CalibrationType = "noise";
+    end
     
     methods
                 

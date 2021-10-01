@@ -7,6 +7,10 @@ classdef Tone < stimgen.StimType
         WindowMethod   (1,1) string {mustBeMember(WindowMethod,["Duration" "Proportional" "#Periods"])} = "Duration"
     end
     
+    properties (Constant)
+        CalibrationType = "tone";
+    end
+    
     methods
         function obj = Tone(varargin)
             obj = obj@stimgen.StimType(varargin{:});

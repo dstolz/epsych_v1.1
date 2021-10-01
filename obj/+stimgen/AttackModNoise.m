@@ -15,6 +15,10 @@ classdef AttackModNoise < stimgen.Noise
     end
     
     
+    properties (Constant)
+        CalibrationType = "noise";
+    end
+    
     methods
                 
         function obj = AttackModNoise(varargin)

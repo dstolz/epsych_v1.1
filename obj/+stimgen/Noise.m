@@ -9,6 +9,10 @@ classdef Noise < stimgen.StimType
     end
    
     
+    properties (Constant)
+        CalibrationType = "noise";
+    end
+    
     methods
                 
         function obj = Noise(varargin)
