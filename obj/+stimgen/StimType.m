@@ -1,4 +1,4 @@
-classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
+classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable & matlab.mixin.SetGet
     
     properties (SetObservable,AbortSet)
         Duration     (1,1) double {mustBePositive,mustBeFinite} = 0.1;  % seconds

@@ -1,6 +1,6 @@
 classdef StimCalibration < handle & matlab.mixin.SetGet
     
-    properties (SetAccess = protected)
+    properties (SetAccess = protected,SetObservable,AbortSet)
         StimTypeObj         (1,1)
         
         ExcitationSignal    (1,:) single
@@ -16,7 +16,11 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         
         CalibrationTimestamp (1,1) string
         
-        ResponseTHD         
+        ResponseTHD
+    end
+    
+    properties (SetAccess = private)
+        Fs
     end
     
     properties (Dependent)
@@ -65,28 +69,47 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         end
         
         
-        function run_calibration(obj)
-            signal = obj.ExcitationSignal;
+        function run_calibration(obj,acqonly)
+            if nargin < 2 || isempty(acqonly), acqonly = false; end
             
-            nsamps = length(signal);
+            obj.Fs = obj.AX.GetSFreq;
             
+            if acqonly
+                obj.ExcitationSignal = zeros(1,obj.Fs.*1); % one second acquistion
+            else
+                % TODO: create calibration signal for each stimtype
+                obj.StimTypeObj.Fs = obj.Fs;
+                obj.StimTypeObj.update_signal;
+                
+                obj.ExcitationSignal = obj.StimTypeObj.Signal;
+            end
+                        
+            nsamps = length(obj.ExcitationSignal);
+            
+            % update buffer
             obj.AX.SetTagVal('BufferSize',nsamps);
-            obj.AX.SetTagVal('BufferData',signal);
+            obj.AX.SetTagVal('BufferData',obj.ExcitationSignal);
             
+            
+            % trigger playback/recording
             obj.AX.SetTagVal('!Trigger',1);
             pause(0.001);
             obj.AX.SetTagVal('!Trigger',0);
             
+            % wait until the buffer is filled
+            t = tic;
+            timeout = nsamps / obj.Fs;
             bidx = obj.AX.GetTagVal('BufferIndex');
-            while bidx < nsamps
+            while bidx < nsamps || toc(t) < timeout
                 pause(0.05);
                 bidx = obj.AX.GetTagVal('BufferIndex');
             end
             
             obj.ResponseSignal = obj.AX.ReadTagV('BufferIn',0,nsamps-1);
             
+            % TODO: add event listener to object signals to automate
+            % plotting
             obj.plot_signal('Response',obj.handles.axResponseSignal);
-            
         end
         
         
