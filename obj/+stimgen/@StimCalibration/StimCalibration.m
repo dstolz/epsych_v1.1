@@ -18,7 +18,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         
         ResponseTHD
         
-        ResponseFilter
+        
     end
     
     properties (SetAccess = private, SetObservable, AbortSet)
@@ -49,13 +49,6 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             addlistener(obj,{'ExcitationSignal','ReferenceSignal','ResponseSignal'},'PostSet',@obj.plot_signal);
             addlistener(obj,{'ExcitationSignal','ReferenceSignal','ResponseSignal'},'PostSet',@obj.plot_spectrum);
             
-            obj.ResponseFilter = designfilt('highpassfir', ...
-                'StopbandFrequency',50, ...     % Frequency constraints
-                'PassbandFrequency',100, ...
-                'StopbandAttenuation',20, ...    % Magnitude constraints
-                'PassbandRipple',.1, ...
-                'DesignMethod','equiripple', ...  % Design method
-                'SampleRate',obj.Fs);              % Sample rate
         end
         
         
@@ -363,9 +356,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             % download the acquired signal
             y = obj.AX.ReadTagV('BufferIn',0,nsamps-1);
             
-            
-            y = filter(obj.ResponseFilter,y);
-            
+                        
             % calculate metric to return
             switch obj.CalibrationMode
                 case "rms"
@@ -374,9 +365,10 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                     r = max(abs(y));
             end
             
-            obj.ResponseTHD = thd(y, obj.Fs);
             
             obj.ResponseSignal = y;
+            
+            obj.ResponseTHD = thd(y, obj.Fs);
         end
     end
     
