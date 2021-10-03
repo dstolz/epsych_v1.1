@@ -43,12 +43,6 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                 obj.handles.parent = [];
             end
             
-            obj.create_gui;
-            
-            addlistener(obj,'STATE','PostSet',@obj.gui_state);
-            addlistener(obj,{'ExcitationSignal','ReferenceSignal','ResponseSignal'},'PostSet',@obj.plot_signal);
-            addlistener(obj,{'ExcitationSignal','ReferenceSignal','ResponseSignal'},'PostSet',@obj.plot_spectrum);
-            
         end
         
         
@@ -81,7 +75,8 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         
         
         
-        function create_gui(obj)
+        function gui(obj)
+            
             if isempty(obj.handles.parent)
                 h = uifigure;
                 pos = getpref('StimCalibration','pos',[400 250 300 420]);
@@ -222,13 +217,14 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             obj.STATE = "IDLE";
             
             
+            
+            addlistener(obj,'STATE','PostSet',@obj.calibration_state);
+            addlistener(obj,{'ExcitationSignal','ReferenceSignal','ResponseSignal'},'PostSet',@obj.plot_signal);
+            addlistener(obj,{'ExcitationSignal','ReferenceSignal','ResponseSignal'},'PostSet',@obj.plot_spectrum);
+            
         end
         
-%     end
-%     
-%     methods (Access = protected)
-        
-        function gui_state(obj,src,event)
+        function calibration_state(obj,src,event)
             h = obj.handles;
             hen = findobj(h.parent,'-property','Enable');
                         
