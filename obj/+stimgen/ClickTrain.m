@@ -18,6 +18,7 @@ classdef ClickTrain < stimgen.StimType
             obj = obj@stimgen.StimType(varargin{:});
 
             obj.Duration = 1;
+            obj.ApplyWindow = false;
             obj.WindowFcn = "";
             
             obj.create_listeners;
