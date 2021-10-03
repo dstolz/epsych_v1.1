@@ -12,13 +12,13 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         
         MicSensitivity      (1,1) double {mustBeFinite,mustBePositive} = 1; % V/Pa
         
-        CalibrationMode     (1,1) string {mustBeMember(CalibrationMode,["rms","peak"])} = "rms";
+        CalibrationMode     (1,1) string {mustBeMember(CalibrationMode,["rms","peak","specfreq"])} = "rms";
         
         CalibrationTimestamp (1,1) string
         
         ResponseTHD
         
-        
+        CalibratedLUT
     end
     
     properties (SetAccess = private, SetObservable, AbortSet)
@@ -247,9 +247,9 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                     
                     obj.MicSensitivity = nan;
                     try
-                        obj.CalibrationMode = "rms";
+                        obj.CalibrationMode = "specfreq";
                         vprintf(1,'Measuring microphone response')
-                        r = obj.calibrate(true);
+                        r = obj.calibrate;
                         obj.MicSensitivity = r;
                         h.RefMeasure.Text = 'Measure Reference';
                     catch me
@@ -273,16 +273,38 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                     
                     try
                         clickdur = 2.^(0:11)./obj.Fs;
-                        obj.StimTypeObj = stimgen.ClickTrain;
-                        obj.StimTypeObj.Fs = obj.Fs;
-                        obj.StimTypeObj.WindowFcn = "";
+                        so = stimgen.ClickTrain;
+                        so.Fs = obj.Fs;
+                        so.WindowFcn = "";
+                        obj.CalibrationMode = "peak";
+                        m = nan(size(clickdur));
                         for i = 1:length(clickdur)
-                            obj.StimTypeObj.ClickDuration = clickdur(i);
-                            vprintf(1,'Calibrating click of duration = %.2 μs',clickdur(i)*1e6);
-                            m(i) = obj.calibrate;
+                            vprintf(1,'Calibrating click of duration = %.2 μs - %d/%d',clickdur(i)*1e6i,length(clickdur));
+                            so.ClickDuration = clickdur(i);
+                            so.update_signal;                            
+                            m(i) = obj.calibrate(so.Signal);
                         end
+                        obj.CalibratedLUT.click = [clickdur(:) m(:)];
                         
+                        freqs = 100.*2.^(0:1/16:9);
+                        so = stimgen.Tone;
+                        so.Fs = obj.Fs;
+                        so.Duration = 0.2;
+                        obj.CalibrationMode = "specfreq";
+                        m = nan(size(freqs));
+                        for i = 1:length(freqs)
+                            vprintf(1,'Calibrating tone frequency = %.2f Hz - %d/%d',freqs(i),i,length(freqs))
+                            so.Frequency = freqs(i);
+                            so.WindowDuration = 2./freqs(i);
+                            so.update_signal;                            
+                            m(i) = obj.calibrate(so.Signal);
+                        end
+                        obj.CalibratedLUT.tone = [freqs(:) m(:)];
                         
+                        % TODO: Compute arbitrary magnitude filter for
+                        % non-LUT stimuli
+                        % see designfilt('arbmagfir', ...)
+
                         
                     catch me
                         vprintf(0,2,'An error occurded during calibration')
@@ -318,18 +340,14 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         end
         
         
-        function r = calibrate(obj,acqonly)
-            if nargin < 2 || isempty(acqonly), acqonly = false; end
+        function r = calibrate(obj,signal)
+            acqonly = nargin < 2 || isempty(signal);
                         
             
             if acqonly
                 obj.ExcitationSignal = zeros(1,obj.Fs.*1); % one second acquistion
             else
-                % TODO: create calibration signal for each stimtype
-                obj.StimTypeObj.Fs = obj.Fs;
-                obj.StimTypeObj.update_signal;
-                
-                obj.ExcitationSignal = obj.StimTypeObj.Signal;
+                obj.ExcitationSignal = signal;
             end
                         
             nsamps = length(obj.ExcitationSignal);
@@ -363,6 +381,8 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                     r = sqrt(mean(y.^2));
                 case "peak"
                     r = max(abs(y));
+                case "specfreq"
+                    r = obj.spectral_rms(y,obj.StimTypeObj.Frequency,obj.Fs);
             end
             
             
@@ -370,9 +390,20 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             
             obj.ResponseTHD = thd(y, obj.Fs);
         end
+        
+        
+        
     end
     
     methods (Static)
+        
+        function p = spectral_rms(x,freq,fs)
+            n = length(x);
+            w = flattopwin(n);
+            [pxx,f] = periodogram(x,w,2^nextpow2(n),fs,'power');
+            [~,idx] = min((f-freq).^2); % find nearest frequency bin to freq
+            p = sqrt(pxx(idx));
+        end
         
         function x = dBSPL2lin(y)
             x = 10^(y/20);
