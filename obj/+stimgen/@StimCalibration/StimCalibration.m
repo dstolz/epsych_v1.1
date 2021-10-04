@@ -3,12 +3,12 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
     properties (SetAccess = protected,SetObservable,AbortSet)
         StimTypeObj         (1,1)
         
-        ExcitationSignal    (1,:) single
-        ResponseSignal      (1,:) single
+        ExcitationSignal    (1,:) double
+        ResponseSignal      (1,:) double
         
         ReferenceLevel      (1,1) double {mustBeFinite,mustBePositive} = 94; % dBSPL
         ReferenceFrequency  (1,1) double {mustBeFinite,mustBePositive} = 1000; % Hz
-        ReferenceSignal     (1,:) single
+        ReferenceSignal     (1,:) double
         
         MicSensitivity      (1,1) double = 1; % V/Pa
         
@@ -18,7 +18,9 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         
         ResponseTHD
         
-        CalibratedLUT
+        CalibrationData
+        
+        NormativeValue      (1,1) {mustBePositive,mustBeFinite} = 80; % dB SPL
     end
     
     properties (SetAccess = private, SetObservable, AbortSet)
@@ -45,17 +47,15 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             else
                 obj.handles.parent = [];
             end
-                        
+            
             
             global AX
             
-            if isempty(AX)
-                error('stimgen:StimCalibration:ActiveX:DoesNotExist', ...
-                    'The global variable, ''AX'', should point to a RPco.X ActiveX object')
-            end
             obj.ActiveX = AX;
             
-            obj.Fs = obj.ActiveX.GetSFreq;
+            if ~isempty(AX)
+                obj.Fs = obj.ActiveX.GetSFreq;
+            end
         end
         
         
@@ -194,6 +194,22 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             
             R = R + 1;
             
+            % Normative value
+            h = uilabel(sg);
+            h.Layout.Column = 1;
+            h.Layout.Row    = R;
+            h.Text = "Normative Sound Level:";
+            h.HorizontalAlignment = 'right';
+            
+            h = uieditfield(sg,'numeric');
+            h.Layout.Column = 2;
+            h.Layout.Row    = R;
+            h.ValueDisplayFormat = '%d dB SPL';
+            h.Value = obj.NormativeValue;
+            h.Limits = [60 120];
+            obj.handles.RefSoundLevel = h;
+            
+            R = R + 1;
             
             % run calibration
             h = uibutton(sg);
@@ -290,7 +306,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                             so.update_signal;                            
                             m(i) = obj.calibrate(so.Signal);
                         end
-                        obj.CalibratedLUT.click = [clickdur(:) m(:)];
+                        obj.CalibrationData.click = [clickdur(:) m(:)];
                         
                         freqs = 100.*2.^(0:1/16:12);
                         freqs(freqs>obj.Fs*.45) = [];
@@ -307,12 +323,13 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                             so.update_signal;                            
                             m(i) = obj.calibrate(so.Signal);
                         end
-                        obj.CalibratedLUT.tone = [freqs(:) m(:)];
+                        obj.CalibrationData.tone = [freqs(:) m(:)];
                         
                         % TODO: Compute arbitrary magnitude filter for
                         % non-LUT stimuli
                         % see designfilt('arbmagfir', ...)
 
+                        obj.CalibrationTimestamp = datestr(now);
                         
                     catch me
                         vprintf(0,2,'An error occurded during calibration')
@@ -328,6 +345,17 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             
             drawnow
         end
+        
+        
+        
+        function s = saveobj(obj)
+            s.CalibrationData  = obj.CalibrationData;
+            s.NormativeValue = obj.NormativeValue;
+            s.ReferenceLevel = obj.ReferenceLevel;
+            s.ReferenceFrequency = obj.ReferenceFrequency;
+            s.CalibrationTimestamp = obj.CalibrationTimestamp;
+        end
+        
         
         
         function measure_ref(obj,src,event)
@@ -431,6 +459,20 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         function h = launch_gui
             h = stimgen.StimCalibration;
             h.gui;
+        end
+        
+        
+        function obj = loadobj(s)
+            if isstruct(s)
+                obj = stimgen.StimCalibration;
+                obj.CalibrationData  = s.CalibrationData;
+                obj.NormativeValue = s.NormativeValue;
+                obj.ReferenceLevel = s.ReferenceLevel;
+                obj.ReferenceFrequency = s.ReferenceFrequency;
+                obj.CalibrationTimestamp = s.CalibrationTimestamp;
+            else
+                obj = s;
+            end
         end
     end
 end
