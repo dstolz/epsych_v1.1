@@ -4,6 +4,7 @@ classdef ClickTrain < stimgen.StimType
         Rate        (1,1) double {mustBePositive,mustBeFinite} = 20; % Hz
         Polarity    (1,1) {mustBeMember(Polarity,[-1 0 1])} = 1;
         ClickDuration (1,1) double {mustBePositive} = .1e-3; % s
+        OnsetDelay  (1,1) double {mustBeNonnegative,mustBeFinite} = 0; % sec
     end
     
     
@@ -21,7 +22,7 @@ classdef ClickTrain < stimgen.StimType
             obj.ApplyWindow = false;
             obj.WindowFcn = "";
             
-            obj.create_listeners;
+%             obj.create_listeners;
             
         end
         
@@ -43,9 +44,12 @@ classdef ClickTrain < stimgen.StimType
             
             y = ones(1,round(obj.Fs*obj.ClickDuration));
             
-            y = [y zeros(1,round(obj.Fs*p)-length(y))];
+            
+            yoff = zeros(1,round(obj.Fs*p)-length(y));
+            y = [y yoff];
+            
             yd = length(y)/obj.Fs;
-            n = floor(d / yd);
+            n = max(floor(d / yd),1);
             
             if obj.Polarity == 0
                 x = -1;
@@ -59,8 +63,13 @@ classdef ClickTrain < stimgen.StimType
                 y = repmat(y,1,n);
             end
             
+            yon  = zeros(1,round(obj.Fs*obj.OnsetDelay-1/obj.Fs));
+            y = [yon y];
+            
             if obj.N > length(y)
                 y = [y,zeros(1,obj.N-length(y))];
+            elseif obj.N < length(y)
+                y(obj.N+1:end) = [];
             end
             
             obj.Signal = y;
