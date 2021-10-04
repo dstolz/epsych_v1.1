@@ -14,7 +14,7 @@ classdef AMnoise < stimgen.Noise
     end
     
     properties (Constant)
-        CalibrationType = "noise";
+        %CalibrationType = "noise"; % defined in stimgen.Noise superclass
     end
     
     methods
