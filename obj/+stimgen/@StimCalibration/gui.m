@@ -143,6 +143,4 @@ obj.STATE = "IDLE";
 
 
 addlistener(obj,'STATE','PostSet',@obj.calibration_state);
-addlistener(obj,{'ExcitationSignal','ReferenceSignal','ResponseSignal'},'PostSet',@obj.plot_signal);
-addlistener(obj,{'ExcitationSignal','ReferenceSignal','ResponseSignal'},'PostSet',@obj.plot_spectrum);
 

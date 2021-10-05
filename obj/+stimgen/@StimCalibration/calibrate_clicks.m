@@ -18,6 +18,9 @@ for i = 1:length(clickdur)
     so.ClickDuration = clickdur(i);
     so.update_signal;
     m(i) = obj.calibrate(so.Signal);
+    
+    obj.plot_signal;
+    obj.plot_spectrum;
 end
 % RMS -> peak
 mref = obj.MicSensitivity * sqrt(2);

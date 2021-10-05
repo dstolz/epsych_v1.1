@@ -61,7 +61,9 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             obj.ActiveX = AX;
             
             if ~isempty(AX)
-                obj.Fs = obj.ActiveX.GetSFreq;
+                try
+                    obj.Fs = obj.ActiveX.GetSFreq;
+                end
             end
         end
         
@@ -147,7 +149,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                     set(hen,'Enable','on');
                     h.RefMeasure.Text = 'Measure Reference';
                     h.RunCalibration.Text = 'Calibrate';
-                    h.RunCalibration.BackgroundColor = h.parent.BackgroundColor;
+%                     h.RunCalibration.BackgroundColor = h.parent.BackgroundColor;
 
                 case "REFERENCE"
                     set(hen,'Enable','off');
@@ -155,7 +157,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                     h.RefMeasure.Text = 'Stop';
                     drawnow
                     
-                    obj.MicSensitivity = nan;
+
                     try
                         obj.CalibrationMode = "specfreq";
                         so = stimgen.Tone;
@@ -182,6 +184,9 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                     set(hen,'Enable','on');
                     h.RefMeasure.Text = 'Measure Reference';
                     
+                    obj.plot_signal;
+                    obj.plot_spectrum;
+                    
                     obj.STATE = "IDLE";
                     
                     
@@ -193,9 +198,9 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                     
                     try
                         
-                        calibrate_clicks(obj,clickdur);
+                        calibrate_clicks(obj);
                         
-                        calibrate_tones(obj,freqs);
+                        calibrate_tones(obj);
                         
                         create_arbmag(obj);
                         
@@ -254,10 +259,10 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                         
             
             if acqonly
-                obj.ExcitationSignal = zeros(1,round(obj.Fs.*1)); % one second acquistion
-            else
-                obj.ExcitationSignal = signal;
+                signal = zeros(1,round(obj.Fs.*1)); % one second acquistion
             end
+            
+            obj.ExcitationSignal = signal;
                         
             nsamps = length(obj.ExcitationSignal)-1;
             

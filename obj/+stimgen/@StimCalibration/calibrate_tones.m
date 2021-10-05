@@ -1,8 +1,8 @@
 function calibrate_tones(obj,freqs)
 
 if nargin < 2 || isempty(freqs)
-    freqs = 100.*2.^(0:1/16:12);
-    freqs = freqs(freqs<obj.Fs*0.5);
+    freqs = 100.*2.^(linspace(0,9,50));
+    freqs(freqs>obj.Fs*.5) = [];
 end
 so = stimgen.Tone;
 so.Fs = obj.Fs;
@@ -17,6 +17,9 @@ for i = 1:length(freqs)
     so.WindowDuration = 4./freqs(i);
     so.update_signal;
     m(i) = obj.calibrate(so.Signal);
+    
+    obj.plot_signal;
+    obj.plot_spectrum;
 end
 c = 20*log10(m./obj.MicSensitivity) + obj.ReferenceLevel;
 v = 10.^((obj.NormativeValue-c)./20);
