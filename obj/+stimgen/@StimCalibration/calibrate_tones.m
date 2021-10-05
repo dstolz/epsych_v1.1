@@ -10,6 +10,7 @@ so.Duration = 0.1;
 obj.StimTypeObj = so;
 obj.CalibrationMode = "specfreq";
 m = nan(size(freqs));
+obj.CalibrationData.tone = nan(length(freqs),4);
 for i = 1:length(freqs)
     vprintf(1,'[%d/%d] Calibrating tone frequency = %.3f kHz', ...
         i,length(freqs),freqs(i)/1000)
@@ -18,9 +19,12 @@ for i = 1:length(freqs)
     so.update_signal;
     m(i) = obj.calibrate(so.Signal);
     
+    
+    c = 20*log10(m./obj.MicSensitivity) + obj.ReferenceLevel;
+    v = 10.^((obj.NormativeValue-c)./20).*obj.MicSensitivity;
+    obj.CalibrationData.tone = [freqs(:) m(:) c(:) v(:)];
+
     obj.plot_signal;
     obj.plot_spectrum;
+    obj.plot_transferfcn([],'tone');
 end
-c = 20*log10(m./obj.MicSensitivity) + obj.ReferenceLevel;
-v = 10.^((obj.NormativeValue-c)./20);
-obj.CalibrationData.tone = [freqs(:) m(:) c(:) v(:)];

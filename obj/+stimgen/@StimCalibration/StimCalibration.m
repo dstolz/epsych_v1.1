@@ -80,6 +80,8 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             
         end
         
+
+        
         function plot_spectrum(obj,ax)
             figure(999);
             
@@ -95,6 +97,17 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             xlabel('frequency (kHz)');
             ylabel('level (dB SPL)');
             xlim([min(f) max(f)]);
+            ylim([-20 120]);
+        end
+        
+        function plot_transferfcn(obj,ax,type)
+            figure(999);
+            
+            subplot(212)
+            d = obj.CalibrationData.(type);
+            hold on
+            plot(d(:,1)./1000,d(:,3),'x-r');
+            hold off
         end
         
         function t = get.Time(obj)
@@ -291,6 +304,8 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             % download the acquired signal
             y = obj.ActiveX.ReadTagV('BufferIn',0,nsamps-1);
             
+            t = obj.Time;
+            
                         
             % calculate metric to return
             switch obj.CalibrationMode
@@ -299,6 +314,8 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                 case "peak"
                     r = max(abs(y));
                 case "specfreq"
+                    ind = t<0.01;
+                    y(ind) = [];
                     r = obj.spectral_rms(y,obj.StimTypeObj.Frequency,obj.Fs);
             end
             
@@ -377,7 +394,9 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             w = flattopwin(n);
             [pxx,f] = periodogram(x,w,2^nextpow2(n),fs,'power');
             [~,idx] = min((f-freq).^2); % find nearest frequency bin to freq
-            p = sqrt(pxx(idx));
+            idx = find(f >= f(idx)*2^(-1/8) & f <= f(idx)*2^(1/8));
+            [~,lidx] = max(pxx(idx));
+            p = sqrt(pxx(idx(lidx)));
         end
         
         
