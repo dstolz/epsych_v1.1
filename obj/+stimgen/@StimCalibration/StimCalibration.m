@@ -192,14 +192,21 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                         obj.CalibrationMode = "peak";
                         m = nan(size(clickdur));
                         for i = 1:length(clickdur)
-                            vprintf(1,'Calibrating click of duration = %.2f μs (%d/%d)', ...
-                                clickdur(i)*1e6,i,length(clickdur));
+                            vprintf(1,'[%d/%d] Calibrating click of duration = %.2f μs', ...
+                                i,length(clickdur),clickdur(i)*1e6);
                             so.ClickDuration = clickdur(i);
                             so.update_signal;                            
                             m(i) = obj.calibrate(so.Signal);
                         end
-                        obj.CalibrationData.click = [clickdur(:) m(:)];
+                        % RMS -> peak
+                        mref = obj.MicSensitivity * sqrt(2);
+                        c = 20*log10(m./mref) + obj.ReferenceLevel + 20*log10(sqrt(2));
+                        v = 10.^((obj.NormativeValue-c)./20);
+                        obj.CalibrationData.click = [clickdur(:) m(:) c(:) v(:)];
                         
+                        
+                        
+                        % calibrate tones
                         freqs = 100.*2.^(0:1/16:12);
                         freqs(freqs>obj.Fs*.45) = [];
                         so = stimgen.Tone;
@@ -209,18 +216,33 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                         obj.CalibrationMode = "specfreq";
                         m = nan(size(freqs));
                         for i = 1:length(freqs)
-                            vprintf(1,'Calibrating tone frequency = %.2f Hz (%d/%d)',freqs(i),i,length(freqs))
+                            vprintf(1,'[%d/%d] Calibrating tone frequency = %.3f kHz', ...
+                                i,length(freqs),freqs(i)/1000)
                             so.Frequency = freqs(i);
                             so.WindowDuration = 4./freqs(i);
                             so.update_signal;                            
                             m(i) = obj.calibrate(so.Signal);
                         end
-                        obj.CalibrationData.tone = [freqs(:) m(:)];
+                        c = 20*log10(m./obj.MicSensitivity) + obj.ReferenceLevel;
+                        v = 10.^((obj.NormativeValue-c)./20);
+                        obj.CalibrationData.tone = [freqs(:) m(:) c(:) v(:)];
                         
-                        % TODO: Compute arbitrary magnitude filter for
-                        % non-LUT stimuli
-                        % see designfilt('arbmagfir', ...)
-
+                        % create arbitrary magnitude filter based on tone
+                        % calibration LUT
+                        vprintf(1,'Creating filter')
+                        arbFilt = designfilt( ...
+                            'arbmagfir', ...
+                            'FilterOrder',20, ...
+                            'Frequencies',freqs, ...
+                            'Amplitudes',v, ...
+                            'SampleRate',obj.Fs);
+                        gd = mean(grpdelay(arbFilt));
+                        
+                        obj.CalibrationData.filter = arbFilt;
+                        obj.CalibrationData.filterGrpDelay = gd;
+                        
+                        fprintf('<a href="matlab:fvtool(arbFilt)">View filter</a>\n')
+                        
                         obj.CalibrationTimestamp = datestr(now);
                         
                     catch me
@@ -337,14 +359,6 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             [pxx,f] = periodogram(x,w,2^nextpow2(n),fs,'power');
             [~,idx] = min((f-freq).^2); % find nearest frequency bin to freq
             p = sqrt(pxx(idx));
-        end
-        
-        function x = dBSPL2lin(y)
-            x = 10^(y/20);
-        end
-        
-        function y = lin2dBSPL(x,xref)            
-            y = 20 .* log10(x/xref);
         end
         
         
