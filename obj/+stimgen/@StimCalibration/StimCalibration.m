@@ -45,6 +45,8 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
     
     methods
         gui(obj);
+        calibrate_clicks(obj,clickdur);
+        calibrate_tones(obj,freqs);
         
         function obj = StimCalibration(parent)
             if nargin >= 1
