@@ -1,5 +1,10 @@
 classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable & matlab.mixin.SetGet
     
+    
+    properties
+        Calibration     (1,1) stimgen.StimCalibration
+    end
+    
     properties (SetObservable,AbortSet)
         Duration     (1,1) double {mustBePositive,mustBeFinite} = 0.1;  % seconds
         
@@ -125,6 +130,14 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
                 case "rms"
                     obj.Signal = obj.Signal ./ sqrt(mean(obj.Signal.^2));                
             end
+        end
+        
+        function apply_calibration(obj)
+            if obj.temporarilyDisableSignalMods, return; end
+            
+            y = obj.Signal;
+            
+            
         end
         
         function create_listeners(obj)            

@@ -47,6 +47,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         gui(obj);
         calibrate_clicks(obj,clickdur);
         calibrate_tones(obj,freqs);
+        v = compute_adjusted_voltage(obj,type,value,level);
         
         function obj = StimCalibration(parent)
             if nargin >= 1
@@ -327,6 +328,17 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             
             obj.ResponseTHD = thd(y, obj.Fs);
         end
+        
+        
+        
+        
+
+        
+        
+        
+        
+        
+        
         
         
         function load_calibration(obj,ffn)
