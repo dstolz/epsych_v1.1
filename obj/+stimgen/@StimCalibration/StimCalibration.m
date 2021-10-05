@@ -14,7 +14,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         
         CalibrationMode     (1,1) string {mustBeMember(CalibrationMode,["rms","peak","specfreq"])} = "rms";
         
-        CalibrationTimestamp (1,1) string
+        CalibrationTimestamp (1,1) string = "unknown"
         
         ResponseTHD
         
@@ -67,7 +67,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         
         
         
-        function plot_signal(obj,type,ax)
+        function plot_signal(obj,ax)
             figure(999);
             
             subplot(211)
@@ -78,7 +78,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             
         end
         
-        function plot_spectrum(obj,type,ax)
+        function plot_spectrum(obj,ax)
             figure(999);
             
             subplot(212)
@@ -99,36 +99,40 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             t = (0:length(obj.ResponseSignal)-1)./obj.Fs;
         end
         
-        
-        function set.ReferenceLevel(obj,r)
-            obj.ReferenceLevel = r;
-            if isfield(obj.handles,'RefSoundLevel')
-                obj.handles.RefSoundLevel.Value = r;
-            end
+        function set_prop(obj,src,event)
+            obj.(src.Tag) = event.Value;
         end
         
-        function r = get.ReferenceLevel(obj)
-            if isfield(obj,'handles') && isfield(obj.handles,'RefSoundLevel')
-                r = obj.handles.RefSoundLevel.Value;
-            else
-                r = obj.ReferenceLevel;
+        
+        
+        function set.MicSensitivity(obj,r)
+            if ~isempty(obj.handles)
+                obj.handles.MicSensitivity.Value = r;
             end
+            obj.MicSensitivity = r;
+        end
+        
+        
+        function set.ReferenceLevel(obj,r)
+            if ~isempty(obj.handles)
+                obj.handles.ReferenceLevel.Value = r;
+            end
+            obj.ReferenceLevel = r;
+        end
+        
+        function set.ReferenceFrequency(obj,r)
+            if ~isempty(obj.handles)
+                obj.handles.ReferenceFrequency.Value = r;
+            end
+            obj.ReferenceFrequency = r;
         end
         
         
         function set.NormativeValue(obj,r)
-            obj.NormativeValue = r;
-            if isfield(obj.handles,'NormativeValue')
+            if ~isempty(obj.handles)
                 obj.handles.NormativeValue.Value = r;
             end
-        end
-        
-        function r = get.NormativeValue(obj)
-            if isfield(obj,'handles') && isfield(obj.handles,'NormativeValue')
-                r = obj.handles.NormativeValue.Value;
-            else
-                r = obj.NormativeValue;
-            end
+            obj.NormativeValue = r;
         end
         
         
@@ -143,6 +147,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                     set(hen,'Enable','on');
                     h.RefMeasure.Text = 'Measure Reference';
                     h.RunCalibration.Text = 'Calibrate';
+                    h.RunCalibration.BackgroundColor = h.parent.BackgroundColor;
 
                 case "REFERENCE"
                     set(hen,'Enable','off');
@@ -168,7 +173,11 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                         rethrow(me);
                     end
                     
-                    h.MicSensitivity.Value = r;
+                    % convert to voltage/Pascal
+                    dv = 10^((obj.ReferenceLevel-94)./20);
+                    obj.MicSensitivity = r./dv;
+                    vprintf(1,'Mic sensitivity = %.4f V @ %.1f dB SPL = %.4f V/Pa', ...
+                        r,obj.ReferenceLevel,obj.MicSensitivity)
                     
                     set(hen,'Enable','on');
                     h.RefMeasure.Text = 'Measure Reference';
@@ -183,74 +192,22 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                     drawnow
                     
                     try
-                        clickdur = 2.^(0:7)./obj.Fs;
-                        so = stimgen.ClickTrain;
-                        so.Fs = obj.Fs;
-                        so.Duration = 0.05;
-                        so.Rate = 1;
-                        so.WindowFcn = "";
-                        so.OnsetDelay = 0.025;
-                        obj.StimTypeObj = so;
-                        obj.CalibrationMode = "peak";
-                        m = nan(size(clickdur));
-                        for i = 1:length(clickdur)
-                            vprintf(1,'[%d/%d] Calibrating click of duration = %.2f μs', ...
-                                i,length(clickdur),clickdur(i)*1e6);
-                            so.ClickDuration = clickdur(i);
-                            so.update_signal;                            
-                            m(i) = obj.calibrate(so.Signal);
-                        end
-                        % RMS -> peak
-                        mref = obj.MicSensitivity * sqrt(2);
-                        c = 20*log10(m./mref) + obj.ReferenceLevel + 20*log10(sqrt(2));
-                        v = 10.^((obj.NormativeValue-c)./20);
-                        obj.CalibrationData.click = [clickdur(:) m(:) c(:) v(:)];
                         
+                        calibrate_clicks(obj,clickdur);
                         
+                        calibrate_tones(obj,freqs);
                         
-                        % calibrate tones
-                        freqs = 100.*2.^(0:1/16:12);
-                        freqs(freqs>obj.Fs*.45) = [];
-                        so = stimgen.Tone;
-                        so.Fs = obj.Fs;
-                        so.Duration = 0.1;
-                        obj.StimTypeObj = so;
-                        obj.CalibrationMode = "specfreq";
-                        m = nan(size(freqs));
-                        for i = 1:length(freqs)
-                            vprintf(1,'[%d/%d] Calibrating tone frequency = %.3f kHz', ...
-                                i,length(freqs),freqs(i)/1000)
-                            so.Frequency = freqs(i);
-                            so.WindowDuration = 4./freqs(i);
-                            so.update_signal;                            
-                            m(i) = obj.calibrate(so.Signal);
-                        end
-                        c = 20*log10(m./obj.MicSensitivity) + obj.ReferenceLevel;
-                        v = 10.^((obj.NormativeValue-c)./20);
-                        obj.CalibrationData.tone = [freqs(:) m(:) c(:) v(:)];
-                        
-                        % create arbitrary magnitude filter based on tone
-                        % calibration LUT
-                        vprintf(1,'Creating filter')
-                        arbFilt = designfilt( ...
-                            'arbmagfir', ...
-                            'FilterOrder',20, ...
-                            'Frequencies',freqs, ...
-                            'Amplitudes',v, ...
-                            'SampleRate',obj.Fs);
-                        gd = mean(grpdelay(arbFilt));
-                        
-                        obj.CalibrationData.filter = arbFilt;
-                        obj.CalibrationData.filterGrpDelay = gd;
-                        
-                        fprintf('<a href="matlab:fvtool(arbFilt)">View filter</a>\n')
+                        create_arbmag(obj);
                         
                         obj.CalibrationTimestamp = datestr(now);
+                        
+                        h.MenuSaveCalibration.Enable = 'on';
                         
                     catch me
                         vprintf(0,2,'An error occurded during calibration')
                         set(hen,'Enable','on');
                         h.RunCalibration.Text = {'CALIBRATION','ERROR'};
+                        h.RunCalibration.BackgroundColor = 'r';
                         rethrow(me);
                     end
                     set(hen,'Enable','on');
@@ -350,7 +307,62 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         end
         
         
+        function load_calibration(obj,ffn)
+            
+            if nargin < 2 || isempty(ffn)
+                pn = getpref('StimCalibration','path',cd);
+                [fn,pn] = uigetfile({'*.sgc','StimCalibration (*.sgc)'},pn);
+                if isequal(fn,0), return; end
+                
+                ffn = fullfile(pn,fn);
+                
+                setpref('StimCalibration','path',pn);
+            end
+
+            f = ancestor(obj.handles.parent,'figure');
+            
+            figure(f);
+            
+            s = load(ffn,'-mat');
+            
+            obj.CalibrationData     = s.obj.CalibrationData;
+            obj.NormativeValue      = s.obj.NormativeValue;
+            obj.ReferenceLevel      = s.obj.ReferenceLevel;
+            obj.ReferenceFrequency  = s.obj.ReferenceFrequency;
+            obj.CalibrationTimestamp = s.obj.CalibrationTimestamp;
+            
+            calts = obj.CalibrationTimestamp;
+            if isequal(calts,"")
+                calts = "unknown";
+            end
+            vprintf(0,'Loaded calibration file from %s',calts)
+        end
         
+        function save_calibration(obj,ffn)
+            if nargin < 2 || isempty(ffn)
+                pn = getpref('StimCalibration','path',cd);
+                [fn,pn] = uiputfile({'*.sgc','StimCalibration (*.sgc)'},pn);
+                if isequal(fn,0), return; end
+                
+                ffn = fullfile(pn,fn);
+                
+                
+                [~,~,ext] = fileparts(ffn);
+                if ~isequal(ext,'.sgc')
+                    ffn = [ffn '.sgc'];
+                end
+                
+                save(ffn,'obj');
+                
+                setpref('StimCalibration','path',pn);
+                
+                f = ancestor(obj.handles.parent,'figure');
+                
+                figure(f);
+                
+                vprintf(0,'Saved Calibration to: "%s"',ffn)
+            end
+        end
     end
     
     methods (Static)
