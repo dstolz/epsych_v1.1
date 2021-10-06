@@ -17,9 +17,9 @@ function v = compute_adjusted_voltage(obj,type,value,level)
 
 
 x = obj.CalibrationData.(type)(:,1); % frequency or other parameter
-z = obj.CalibrationData.(type)(:,4); % normative value
+z = obj.CalibrationData.(type)(:,4); % normative voltage
 
-n = makima(x,z,value); % interpolate normative value at specified parameter
+n = makima(x,z,value); % interpolate normative voltage at specified parameter
 
 % compute requested voltage
 v = 10.^((level-obj.NormativeValue)./20).*n;

@@ -93,6 +93,20 @@ classdef Tone < stimgen.StimType
             x.Value = obj.WindowMethod;
             h.WindowDurationMethod = x;
             
+            
+            R = R + 1;
+            
+            x = uilabel(g,'Text','Sound Level:');
+            x.Layout.Column = 1;
+            x.Layout.Row    = R;
+            x.HorizontalAlignment = 'right';
+            
+            x = uieditfield(g,'Numeric','Tag','SoundLevel');
+            x.Layout.Column = 2;
+            x.Layout.Row = R;
+            x.Value = obj.SoundLevel;
+            h.SoundLevel = x;
+            
             structfun(@(a) set(a,'ValueChangedFcn',@obj.interpret_gui),h);
             
             obj.GUIHandles = h;
