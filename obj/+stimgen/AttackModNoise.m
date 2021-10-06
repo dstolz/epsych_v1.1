@@ -16,7 +16,8 @@ classdef AttackModNoise < stimgen.Noise
     
     
     properties (Constant)
-        CalibrationType = "noise";
+        %CalibrationType = "noise"; % defined in stimgen.Noise superclass
+        %Normalization = "rms"; % defined in stimgen.Noise superclass
     end
     
     methods
@@ -195,17 +196,29 @@ classdef AttackModNoise < stimgen.Noise
                  
             R = R + 1;
             
-            x = uilabel(g,'Text','Normalization:');
+            x = uilabel(g,'Text','Sound Level:');
             x.Layout.Column = 1;
             x.Layout.Row    = R;
             x.HorizontalAlignment = 'right';
             
-            x = uidropdown(g,'Tag','Normalization');
+            x = uieditfield(g,'Numeric','Tag','SoundLevel');
             x.Layout.Column = 2;
             x.Layout.Row = R;
-            x.Items = ["none","absmax","rms","max","min"];
-            x.Value = obj.Normalization;
-            h.Normalization = x;
+            x.Value = obj.SoundLevel;
+            h.SoundLevel = x;
+%             R = R + 1;
+            
+%             x = uilabel(g,'Text','Normalization:');
+%             x.Layout.Column = 1;
+%             x.Layout.Row    = R;
+%             x.HorizontalAlignment = 'right';
+%             
+%             x = uidropdown(g,'Tag','Normalization');
+%             x.Layout.Column = 2;
+%             x.Layout.Row = R;
+%             x.Items = ["none","absmax","rms","max","min"];
+%             x.Value = obj.Normalization;
+%             h.Normalization = x;
             
             
             

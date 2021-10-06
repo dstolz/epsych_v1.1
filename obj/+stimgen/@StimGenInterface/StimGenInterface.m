@@ -8,12 +8,13 @@ classdef StimGenInterface < handle & gui.Helper
         isiAdjustment = 0.0405; % seconds
     end
     
-    properties (SetAccess = private,SetObservable = true)
+    properties (SetAccess = protected, SetObservable = true)
         parent
         handles
         sgTypes
         sgObjs
         
+        Calibration (1,1) stimgen.StimCalibration
                 
         FileLoaded (1,1) string
         
@@ -70,8 +71,6 @@ classdef StimGenInterface < handle & gui.Helper
                 obj.load_config(ffn);
             end
             
-            % FOR TESTING!!!
-            assignin('base','S',obj);
             
             if nargout == 0, clear obj; end
         end
@@ -80,6 +79,20 @@ classdef StimGenInterface < handle & gui.Helper
         function delete(obj)
             
         end
+        
+        
+        
+        
+        function set.Calibration(obj,calObj)
+            
+            obj.Calibration = calObj;
+            
+            for i = 1:length(obj.StimPlayObjs)
+                obj.StimPlayObjs(i).StimObj.Calibration = calObj;
+            end
+            
+        end
+        
         
         function trigger_stim_playback(obj)
             if obj.nextSPOIdx < 1, return; end % flag to finish playback
@@ -250,7 +263,9 @@ classdef StimGenInterface < handle & gui.Helper
         end
         
         function stimtype_changed(obj,src,event)
+            warning('off','stimgen:StimType:apply_calibration:NoCalibration');
             obj.update_signal_plot;
+            warning('on','stimgen:StimType:apply_calibration:NoCalibration');
         end
         
         function add_stim_to_list(obj,src,event)
@@ -264,6 +279,7 @@ classdef StimGenInterface < handle & gui.Helper
             v = str2num(v);
             
             obj.StimPlayObjs(end+1).StimObj = copy(obj.CurrentSGObj);
+            obj.StimPlayObjs(end).StimObj.Calibration = obj.Calibration;
             obj.StimPlayObjs(end).Reps = n;
             obj.StimPlayObjs(end).Name = sn;
             obj.StimPlayObjs(end).ISI  = v;
@@ -296,6 +312,8 @@ classdef StimGenInterface < handle & gui.Helper
             
             if isprop(src,'Name') && isequal(src.Name,'nextSPOIdx')
                 value = obj.nextSPOIdx;
+            elseif isempty(event.Value)
+                return
             else
                 value = event.Value;
             end
@@ -395,7 +413,8 @@ classdef StimGenInterface < handle & gui.Helper
             load(ffn,'SGI','-mat');
             warning('on','MATLAB:class:LoadInvalidDefaultElement');
 
-            obj.StimPlayObjs = SGI;
+            obj.StimPlayObjs = SGI.StimPlayObjs;
+            obj.Calibration  = SGI.Calibration;
             
             h = obj.handles;
             
@@ -419,7 +438,8 @@ classdef StimGenInterface < handle & gui.Helper
                 setpref('StimGenInterface','path',pn);
             end
             
-            SGI = obj.StimPlayObjs;
+            SGI.StimPlayObjs = obj.StimPlayObjs;
+            SGI.Calibration  = obj.Calibration;
             
             [~,~,ext] = fileparts(ffn);
             if ~isequal(ext,'.sgi')
@@ -438,6 +458,33 @@ classdef StimGenInterface < handle & gui.Helper
             
             obj.FileLoaded = string(ffn);
         end
+        
+        
+        function set_calibration(obj,ffn)
+            
+            if nargin < 2 || isempty(ffn)
+                pn = getpref('StimGenInterface','calpath',cd);
+                [fn,pn] = uigetfile({'*.sgc','StimGenInterface Calibration (*.sgc)'},pn);
+                if isequal(fn,0), return; end
+                
+                ffn = fullfile(pn,fn);
+                
+                setpref('StimGenInterface','calpath',pn);
+            end
+            
+            x = load(ffn,'-mat');
+            obj.Calibration = x.obj;
+            
+            f = ancestor(obj.parent,'figure');
+            
+            figure(f);
+            
+            uialert(f, ...
+                sprintf('Updated Calibration: "%s"',ffn), ...
+                'StimGenInterface','Icon','success','Modal',true);
+            
+        end
+        
         
     end % methods (Access = public)
     
@@ -685,6 +732,9 @@ classdef StimGenInterface < handle & gui.Helper
                 'MenuSelectedFcn',@(~,~) obj.load_config);
             h = uimenu(hf,'Tag','menu_Save','Text','&Save','Accelerator','S', ...
                 'MenuSelectedFcn',@(~,~) obj.save_config);
+
+            h = uimenu(hf,'Tag','menu_Save','Text','&Calibration','Accelerator','C', ...
+                'MenuSelectedFcn',@(~,~) obj.set_calibration);
 
 
 

@@ -150,9 +150,11 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
                     value = obj.ClickDuration;
             end
             
-            if type == "filter" && isfield(obj.CalibrationData,'filter')
+            if type == "filter" && isfield(C.CalibrationData,'filter')
                 y = filter(C.CalibrationData.filter,obj.Signal);
-                y(1:C.CalibrationData.filterGrpDelay) = [];
+                gd = C.CalibrationData.filterGrpDelay;
+                y(1:gd) = [];
+                y(end+1:end+gd) = 0;
                 obj.Signal = y;
                 
             elseif type ~= "filter" % LUT
