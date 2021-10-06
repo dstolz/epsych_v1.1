@@ -212,11 +212,12 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                     
                     try
                         
-                        calibrate_clicks(obj);
+                        obj.calibrate_clicks;
                         
-                        calibrate_tones(obj);
+                        freqs = 100.*2.^(0:1/16:10);
+                        obj.calibrate_tones(freqs);
                         
-                        create_arbmag(obj);
+                        obj.create_arbmag;
                         
                         obj.CalibrationTimestamp = datestr(now);
                         
