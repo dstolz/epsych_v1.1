@@ -6,13 +6,16 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
     end
     
     properties (SetObservable,AbortSet)
-        Duration     (1,1) double {mustBePositive,mustBeFinite} = 0.1;  % seconds
+        SoundLevel     (1,1) double {mustBeFinite} = 60; % dB SPL if calibrated
+        Duration       (1,1) double {mustBePositive,mustBeFinite} = 0.1;  % seconds
         
         WindowDuration (1,1) double {mustBeNonnegative,mustBeFinite} = 0.002; % seconds
         WindowFcn      (1,1) string = "cos2";
-        ApplyWindow    (1,1) logical = true;
         
-        Fs           (1,1) double {mustBePositive,mustBeFinite} = 97656.25; % Hz
+        ApplyCalibration (1,1) logical = true;
+        ApplyWindow      (1,1) logical = true;
+        
+        Fs             (1,1) double {mustBePositive,mustBeFinite} = 97656.25; % Hz
         
         Normalization (1,1) string {mustBeMember(Normalization,["none","absmax","rms","max","min"])} = "absmax"
     end
@@ -68,19 +71,15 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
             n = round(obj.WindowDuration.*obj.Fs);
             n = n + rem(n,2);
             
-            if obj.ApplyWindow
-                switch obj.WindowFcn
-                    case ""
-                        g = ones(1,n);
-                    case "cos2"
-                        g = hann(n);
-                    otherwise
-                        g = feval(obj.WindowFcn,n);
-                end
-                g = g(:)'; % conform to row vector
-            else
-                g = ones(1,n);
+            switch obj.WindowFcn
+                case ""
+                    g = ones(1,n);
+                case "cos2"
+                    g = hann(n);
+                otherwise
+                    g = feval(obj.WindowFcn,n);
             end
+            g = g(:)'; % conform to row vector
         end
         
         function h = plot(obj,ax)
@@ -96,13 +95,12 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
             playblocking(ap);
             delete(ap);
         end
-    end
+    end % methods (Access = public)
     
     methods (Access = protected)
         
-        
         function apply_gate(obj)
-            if obj.temporarilyDisableSignalMods, return; end
+            if ~obj.ApplyWindow || obj.temporarilyDisableSignalMods, return; end
             
             g = obj.Window;
             
@@ -133,11 +131,38 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
         end
         
         function apply_calibration(obj)
-            if obj.temporarilyDisableSignalMods, return; end
+            if ~obj.ApplyCalibration || obj.temporarilyDisableSignalMods, return; end
             
-            y = obj.Signal;
+            C = obj.Calibration;
             
+            if ~isa(C,'stimgen.StimCalibration')
+                warning('stimgen:StimType:apply_calibration:NoCalibration', ...
+                    'No calibration data available for stim')
+                return
+            end
             
+            type = obj.CalibrationType;
+            level = obj.SoundLevel;
+            switch type
+                case "tone"
+                    value = obj.Frequency;
+                case "click"
+                    value = obj.ClickDuration;
+            end
+            
+            if type == "filter" && isfield(obj.CalibrationData,'filter')
+                y = filter(C.CalibrationData.filter,obj.Signal);
+                y(1:C.CalibrationData.filterGrpDelay) = [];
+                obj.Signal = y;
+                
+            elseif type ~= "filter" % LUT
+                v = C.compute_adjusted_voltage(type,value,level);
+                if v > 10 % V
+                    warning('stimgen:StimType:apply_calibration:OutOfRange', ...
+                        'Calculated voltage value > 10 V')
+                end
+                obj.Signal = v.*obj.Signal;
+            end
         end
         
         function create_listeners(obj)            
@@ -179,7 +204,7 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
                 obj.(src.Tag) = event.PreviousValue;
             end
         end
-    end
+    end % methods (Access = protected)
     
     methods (Static)
         function c = list
@@ -191,5 +216,5 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
             f(contains(f,'Calib')) = [];
             c = cellfun(@(a) a(1:end-2),f,'uni',0);
         end
-    end
+    end % methods (Static)
 end
