@@ -1,15 +1,17 @@
 classdef ClickTrain < stimgen.StimType
     
+    
     properties (AbortSet,SetObservable)
         Rate        (1,1) double {mustBePositive,mustBeFinite} = 20; % Hz
         Polarity    (1,1) {mustBeMember(Polarity,[-1 0 1])} = 1;
-        ClickDuration (1,1) double {mustBePositive} = .1e-3; % s
+        ClickDuration (1,1) double {mustBePositive} = 20e-6; % s
         OnsetDelay  (1,1) double {mustBeNonnegative,mustBeFinite} = 0; % sec
     end
     
     
     properties (Constant)
         CalibrationType = "click";
+        Normalization   = "absmax"
     end
     
     methods
@@ -75,6 +77,8 @@ classdef ClickTrain < stimgen.StimType
             obj.Signal = y;
             
             obj.apply_normalization;
+            
+            obj.apply_calibration;
         end
         
         

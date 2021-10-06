@@ -16,9 +16,8 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
         ApplyWindow      (1,1) logical = true;
         
         Fs             (1,1) double {mustBePositive,mustBeFinite} = 97656.25; % Hz
-        
-        Normalization (1,1) string {mustBeMember(Normalization,["none","absmax","rms","max","min"])} = "absmax"
     end
+    
     
     properties (SetAccess = protected, SetObservable)
         Signal       (1,:) = [];
@@ -40,6 +39,7 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
     
     properties (Abstract, Constant)
         CalibrationType (1,1) string % "noise","tone","click"
+        Normalization   (1,1) string % "absmax","max","min","rms"
     end
         
     methods (Abstract)
@@ -135,7 +135,7 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
             
             C = obj.Calibration;
             
-            if ~isa(C,'stimgen.StimCalibration')
+            if ~isa(C,'stimgen.StimCalibration') || isempty(C.CalibrationData)
                 warning('stimgen:StimType:apply_calibration:NoCalibration', ...
                     'No calibration data available for stim')
                 return

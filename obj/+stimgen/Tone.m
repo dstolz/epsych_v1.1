@@ -1,14 +1,15 @@
 classdef Tone < stimgen.StimType
     
     properties (SetObservable,AbortSet)
-        Frequency (1,1) double {mustBePositive,mustBeFinite} = 1000; % Hz
+        Frequency  (1,1) double {mustBePositive,mustBeFinite} = 1000; % Hz
         OnsetPhase (1,1) double = 0;
         
-        WindowMethod   (1,1) string {mustBeMember(WindowMethod,["Duration" "Proportional" "#Periods"])} = "Duration"
+        WindowMethod  (1,1) string {mustBeMember(WindowMethod,["Duration" "Proportional" "#Periods"])} = "Duration"
     end
     
     properties (Constant)
         CalibrationType = "tone";
+        Normalization   = "absmax";
     end
     
     methods
@@ -35,6 +36,8 @@ classdef Tone < stimgen.StimType
             obj.apply_gate;
             
             obj.apply_normalization;
+            
+            obj.apply_calibration;
         end
         
         function h = create_gui(obj,src,evnt)

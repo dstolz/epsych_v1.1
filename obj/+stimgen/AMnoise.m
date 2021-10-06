@@ -15,6 +15,7 @@ classdef AMnoise < stimgen.Noise
     
     properties (Constant)
         %CalibrationType = "noise"; % defined in stimgen.Noise superclass
+        %Normalization = "rms"; % defined in stimgen.Noise superclass
     end
     
     methods
@@ -58,6 +59,8 @@ classdef AMnoise < stimgen.Noise
             obj.apply_gate;
             
             obj.apply_normalization;
+            
+            obj.apply_calibration;
         end
     
         function create_gui(obj,src,evnt)

@@ -10,7 +10,8 @@ classdef Noise < stimgen.StimType
    
     
     properties (Constant)
-        CalibrationType = "noise";
+        CalibrationType = "filter";
+        Normalization   = "rms"
     end
     
     methods
@@ -54,6 +55,8 @@ classdef Noise < stimgen.StimType
             obj.apply_gate;
             
             obj.apply_normalization;
+            
+            obj.apply_calibration;
         end
     
         function update_digFilter(obj)
