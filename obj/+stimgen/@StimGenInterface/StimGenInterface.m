@@ -2,6 +2,8 @@ classdef StimGenInterface < handle & gui.Helper
     
     properties
         StimPlayObjs (:,1) stimgen.StimPlay
+        DataPath = fullfile('C:\Users\',getenv('USERNAME'));
+        DataFilename = '';
     end
     
     properties (Hidden)
@@ -15,7 +17,7 @@ classdef StimGenInterface < handle & gui.Helper
         sgObjs
         
         Calibration (1,1) stimgen.StimCalibration
-                
+        
         FileLoaded (1,1) string
         
         Timer
@@ -23,6 +25,7 @@ classdef StimGenInterface < handle & gui.Helper
         lastTrigTic = tic;
         
         TrigBufferID
+        
         
         nextSPOIdx
         currentISI
@@ -111,6 +114,8 @@ classdef StimGenInterface < handle & gui.Helper
             vprintf(3,'trigger_stim_playback: TrigBufferID = %d; nextSPOidx = %d; ITI diff = %.4f sec', ...
                 obj.TrigBufferID,obj.nextSPOIdx,tdiff)
             
+            
+            
             if ~all(s)
                 warning('StimGenInterface:trigger_stim_playback:RPvdsFail','Failed to trigger Stim buffer')
             end
@@ -123,7 +128,8 @@ classdef StimGenInterface < handle & gui.Helper
         function update_buffer(obj)            
             obj.TrigBufferID = mod(obj.currentTrialNumber,2);  
             
-            vprintf(3,'update_buffer START: TrigBufferID = %d; nextSPOidx = %d',obj.TrigBufferID,obj.nextSPOIdx)
+            vprintf(3,'update_buffer START: TrigBufferID = %d; nextSPOidx = %d', ...
+                obj.TrigBufferID,obj.nextSPOIdx)
             
             t = tic;
             
@@ -148,7 +154,16 @@ classdef StimGenInterface < handle & gui.Helper
         
         
         
-        
+        function write_trial_data(obj)
+            ffn = fullfile(obj.DataPath,obj.DataFilename);
+            
+            
+%             TrialNumber = obj.currentTrialNumber
+            
+            save(ffn,var{:},'-append','-nocompression');
+            
+            
+        end
         
         
         
@@ -216,6 +231,13 @@ classdef StimGenInterface < handle & gui.Helper
                     delete(obj.elsnsspi);
                     
                     obj.elsnsspi = addlistener(obj,'nextSPOIdx','PostSet',@obj.stim_list_item_selected);
+                    
+                    
+                    if isempty(obj.DataFilename)
+                        obj.DataFilename = sprintf('SGIData_%s.mat',datestr(now,30));
+                    end
+                    
+                    
                     
                     t = timerfindall('Tag','StimGenInterfaceTimer');
                     if ~isempty(t)
