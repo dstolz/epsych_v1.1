@@ -1,7 +1,5 @@
 function gui(obj)
 
-function gui(obj)
-
 if isempty(obj.handles.parent)
     h = uifigure;
     pos = getpref('StimCalibration','pos',[400 250 300 420]);
