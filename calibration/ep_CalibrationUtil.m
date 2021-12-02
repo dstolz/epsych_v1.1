@@ -751,6 +751,13 @@ hdr.V = getpref('CalibrationUtil','SIGNALAMP',nan); % starting voltage
 
 d = cfg.duration / 1e+3; % microsec -> millisec
 
+% offline highpass filter added 12/2021 DJS
+hpFilt = designfilt('highpassfir','StopbandFrequency',50, ...
+         'PassbandFrequency',100,'PassbandRipple',0.5, ...
+         'StopbandAttenuation',15,'DesignMethod','kaiserwin', ...
+         'SampleRate',hdr.cfg.Fs);
+% fvtool(hpFilt)
+hdr.hpFilt = hpFilt;
 
 data = nan(length(d),3);
 data(:,1) = d;
@@ -762,11 +769,15 @@ try %#ok<TRYNC>
         StimRP.SetTagVal('Amp',hdr.V);
         
         buffer = GetBuffer(AcqRP,Fs,0.2+d(i));
+
+        buffer = filter(hpFilt,buffer);
         
-        dc = buffer(1:t);
+%         dc = buffer(1:t);
         buffer(1:t) = [];
-        buffer = buffer - mean(dc);
+%         buffer = buffer - mean(dc);
         
+
+
         % ANALYZE, PLOT, UPDATE TABLE
         pk = max(abs(buffer));
         res.level = 20 * log10(pk/(ref.rms*sqrt(2))) + ref.level; % calibrated level
@@ -775,7 +786,7 @@ try %#ok<TRYNC>
         PlotSignal(buffer,ref,Fs,h,[]);
         tax = h.time_domain;
         axis(tax,'tight');
-        set(tax,'xlim',[0 5]);
+%         set(tax,'xlim',[0 5]);
                
         data(i,2) = res.level; % sound level
         data(i,3) = res.adjV; % adjusted voltage
