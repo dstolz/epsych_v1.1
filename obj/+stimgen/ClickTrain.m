@@ -1,12 +1,16 @@
 classdef ClickTrain < stimgen.StimType
     
     properties (AbortSet,SetObservable)
-        Rate        (1,1) double {mustBePositive,mustBeFinite} = 20; % Hz
+        Rate        (1,1) double {mustBePositive,mustBeFinite} = 10; % Hz
         Polarity    (1,1) {mustBeMember(Polarity,[-1 0 1])} = 1;
-        ClickDuration (1,1) double {mustBePositive} = .1e-3; % s
+        ClickDuration (1,1) double {mustBePositive} = 20e-6; % s
         OnsetDelay  (1,1) double {mustBeNonnegative,mustBeFinite} = 0; % sec
+        Truncate    (1,1) logical = false;
     end
     
+    properties (Dependent)
+        ClickInterval
+    end
     
     properties (Constant)
         CalibrationType = "click";
@@ -24,6 +28,11 @@ classdef ClickTrain < stimgen.StimType
             
 %             obj.create_listeners;
             
+        end
+        
+        
+        function ci = get.ClickInterval(obj)
+            ci = 1/obj.Rate;
         end
         
         function set.ClickDuration(obj,d)
@@ -66,13 +75,14 @@ classdef ClickTrain < stimgen.StimType
             yon  = zeros(1,round(obj.Fs*obj.OnsetDelay-1/obj.Fs));
             y = [yon y];
             
-            if obj.N > length(y)
+            if ~obj.Truncate && obj.N > length(y)
                 y = [y,zeros(1,obj.N-length(y))];
             elseif obj.N < length(y)
                 y(obj.N+1:end) = [];
             end
             
             obj.Signal = y;
+            
             
             obj.apply_normalization;
         end
