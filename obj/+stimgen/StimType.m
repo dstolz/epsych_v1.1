@@ -59,7 +59,7 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
         end
         
         function t = get.Time(obj)
-            t = (0:length(obj.Signal)-1)./obj.Fs;
+            t = linspace(0,obj.Duration-1./obj.Fs,obj.N);
         end
         
         function n = get.N(obj)
