@@ -136,8 +136,8 @@ classdef (Hidden) StimType < handle & matlab.mixin.Heterogeneous & matlab.mixin.
             C = obj.Calibration;
             
             if ~isa(C,'stimgen.StimCalibration') || isempty(C.CalibrationData)
-                warning('stimgen:StimType:apply_calibration:NoCalibration', ...
-                    'No calibration data available for stim')
+%                 warning('stimgen:StimType:apply_calibration:NoCalibration', ...
+%                     'No calibration data available for stim')
                 return
             end
             
