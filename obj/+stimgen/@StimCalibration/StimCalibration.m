@@ -21,6 +21,8 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         CalibrationData
         
         NormativeValue      (1,1) {mustBePositive,mustBeFinite} = 80; % dB SPL
+        
+        ExcitationSignalVoltage (1,1) double {mustBeGreaterThan(ExcitationSignalVoltage,0), mustBeLessThanOrEqual(ExcitationSignalVoltage,10)} = 1;
     end
     
     properties (SetAccess = private, SetObservable, AbortSet)
@@ -144,6 +146,14 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         end
         
         
+        function set.ExcitationSignalVoltage(obj,r)
+            if ~isempty(obj.handles)
+                obj.handles.ExcitationSignalVoltage.Value = r;
+            end
+            obj.ExcitationSignalVoltage = r;
+        end
+        
+        
         function set.NormativeValue(obj,r)
             if ~isempty(obj.handles)
                 obj.handles.NormativeValue.Value = r;
@@ -242,10 +252,14 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
         
         function s = saveobj(obj)
             s.CalibrationData  = obj.CalibrationData;
+            s.CalibrationMode = obj.CalibrationMode;
+            s.MicSensitivity = obj.MicSensitivity;
             s.NormativeValue = obj.NormativeValue;
             s.ReferenceLevel = obj.ReferenceLevel;
             s.ReferenceFrequency = obj.ReferenceFrequency;
+            s.ExcitationSignalVoltage = obj.ExcitationSignalVoltage;
             s.CalibrationTimestamp = obj.CalibrationTimestamp;
+            
         end
         
         
@@ -363,6 +377,8 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
             obj.NormativeValue      = s.obj.NormativeValue;
             obj.ReferenceLevel      = s.obj.ReferenceLevel;
             obj.ReferenceFrequency  = s.obj.ReferenceFrequency;
+            obj.ExcitationSignalVoltage = s.obj.ExcitationSignalVoltage;
+            obj.MicSensitivity      = s.obj.MicSensitivity;
             obj.CalibrationTimestamp = s.obj.CalibrationTimestamp;
             
             calts = obj.CalibrationTimestamp;
@@ -394,9 +410,10 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                 
                 figure(f);
                 
-                vprintf(0,'Saved Calibration to: "%s"',ffn)
+                vprintf(0,'Saved Calibration: "%s"',ffn)
             end
         end
+        
     end
     
     methods (Static)
@@ -425,6 +442,7 @@ classdef StimCalibration < handle & matlab.mixin.SetGet
                 obj.NormativeValue = s.NormativeValue;
                 obj.ReferenceLevel = s.ReferenceLevel;
                 obj.ReferenceFrequency = s.ReferenceFrequency;
+                obj.ExcitationSignalVoltage = s.ExcitationSignalVoltage;
                 obj.CalibrationTimestamp = s.CalibrationTimestamp;
             else
                 obj = s;

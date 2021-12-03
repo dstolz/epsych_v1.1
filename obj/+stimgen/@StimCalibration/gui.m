@@ -15,7 +15,7 @@ movegui(parent,'onscreen')
 % Sidebar grid
 sg = uigridlayout(parent);
 sg.ColumnWidth = {'1x' '1x'};
-sg.RowHeight   = [repmat({30},1,5) {'1x'}];
+sg.RowHeight   = [repmat({30},1,6) {'1x'}];
 sg.Scrollable = 'on';
 obj.handles.SideGrid = sg;
 
@@ -111,10 +111,29 @@ obj.handles.NormativeValue = h;
 
 R = R + 1;
 
+% Excitation voltage
+h = uilabel(sg);
+h.Layout.Column = 1;
+h.Layout.Row    = R;
+h.Text = "Excitation Voltage:";
+h.HorizontalAlignment = 'right';
+
+h = uieditfield(sg,'numeric');
+h.Tag = 'ExcitationSignalVoltage';
+h.Layout.Column = 2;
+h.Layout.Row    = R;
+h.ValueDisplayFormat = '%.2f V';
+h.Value = obj.ExcitationSignalVoltage;
+h.Limits = [0 10];
+h.LowerLimitInclusive = 'off';
+h.ValueChangedFcn = @obj.set_prop;
+obj.handles.NormativeValue = h;
+
+R = R + 1;
 % run calibration
 h = uibutton(sg);
 h.Layout.Column = [1 2];
-h.Layout.Row = 6;
+h.Layout.Row = R;
 h.Text = {'Run'; 'Calibration'};
 h.FontSize = 18;
 h.FontWeight = 'bold';

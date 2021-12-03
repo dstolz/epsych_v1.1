@@ -17,7 +17,8 @@ for i = 1:length(freqs)
     so.Frequency = freqs(i);
     so.WindowDuration = 4./freqs(i);
     so.update_signal;
-    m(i) = obj.calibrate(so.Signal);
+    y = obj.ExcitationSignalVoltage .* so.Signal;
+    m(i) = obj.calibrate(y);
     
     
     c = 20*log10(m./obj.MicSensitivity) + obj.ReferenceLevel;

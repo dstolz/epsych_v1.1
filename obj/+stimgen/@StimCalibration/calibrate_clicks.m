@@ -17,7 +17,8 @@ for i = 1:length(clickdur)
         i,length(clickdur),clickdur(i)*1e6);
     so.ClickDuration = clickdur(i);
     so.update_signal;
-    m(i) = obj.calibrate(so.Signal);
+    y = obj.ExcitationSignalVoltage .* so.Signal;
+    m(i) = obj.calibrate(y);
     
     obj.plot_signal;
     obj.plot_spectrum;
