@@ -276,6 +276,8 @@ classdef PumpCom < handle
                 'ValueDisplayFormat',['%03.2f ' s], ...
                 'Tooltip','Enter new value and hit "Enter" or click outside the field', ...
                 'ValueChangedFcn',@obj.gui_update);
+            
+            h.Value = obj.PumpRate;
         end
         
         
