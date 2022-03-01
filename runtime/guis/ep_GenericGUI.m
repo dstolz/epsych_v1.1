@@ -182,6 +182,8 @@ for i = 1:length(wp)
     tpData(ind,:) = RUNTIME.TRIALS.trials(:,i)'; %#ok<AGROW>
 end
 
+ind = cellfun(@isstruct,tpData);
+tpData(any(ind,2),:) = [];
 tpData = cellfun(@mat2str,tpData,'uni',0);
 
 % update the table with any changes made by the trial function or something
