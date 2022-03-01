@@ -40,19 +40,7 @@ classdef PumpCom < handle
             
             obj.establish_serial_com;
             
-            
-            obj.Codes.PumpRate.cmd = 'RAT';
-            obj.Codes.PumpRate.nread = 12;
-            obj.Codes.PumpRate.searchchar = [5 9];
-            obj.Codes.PumpUnits.cmd = 'RAT';
-            obj.Codes.PumpUnits.nread = 12;
-            obj.Codes.PumpUnits.searchchar = [10 11];
-            obj.Codes.SyringeDiameter.cmd = 'DIA';
-            obj.Codes.SyringeDiameter.nread = 10;
-            obj.Codes.SyringeDiameter.searchchar = [5 9];
-            obj.Codes.PumpOperationalTrigger.cmd = 'TRG';
-            obj.Codes.PumpOperationalTrigger.nread = 7;
-            obj.Codes.PumpOperationalTrigger.searchchar = [5 6];
+            obj.default_reset;
             
             ev = fieldnames(obj.Codes);
             
@@ -74,7 +62,22 @@ classdef PumpCom < handle
             
         end
         
-        
+        function default_reset(obj)
+            
+            obj.Codes.PumpRate.cmd = 'RAT';
+            obj.Codes.PumpRate.nread = 12;
+            obj.Codes.PumpRate.searchchar = [5 9];
+            obj.Codes.PumpUnits.cmd = 'RAT';
+            obj.Codes.PumpUnits.nread = 12;
+            obj.Codes.PumpUnits.searchchar = [10 11];
+            obj.Codes.SyringeDiameter.cmd = 'DIA';
+            obj.Codes.SyringeDiameter.nread = 10;
+            obj.Codes.SyringeDiameter.searchchar = [5 9];
+            obj.Codes.PumpOperationalTrigger.cmd = 'TRG';
+            obj.Codes.PumpOperationalTrigger.nread = 7;
+            obj.Codes.PumpOperationalTrigger.searchchar = [5 6];
+            
+        end
         
         
         
@@ -135,7 +138,7 @@ classdef PumpCom < handle
             
             obj.Device.flush; % flush any remaining input buffer
             
-            obj.Device.writeline(cmd);
+            obj.Device.writeline(cmd); drawnow
             
         end
         
@@ -172,8 +175,7 @@ classdef PumpCom < handle
             
             obj.send_command('STP');
             obj.send_command('DIA',obj.SyringeDiameter);
-            obj.send_command('RAT',obj.PumpUnits);
-            obj.send_command('RAT',obj.PumpRate);
+            obj.send_command('RAT',sprintf('%.3f%s',obj.PumpRate,obj.PumpUnits));
             obj.send_command('INF');
             obj.send_command('VOL',0);
             obj.send_command('LN','on');
