@@ -182,8 +182,13 @@ for i = 1:length(wp)
     tpData(ind,:) = RUNTIME.TRIALS.trials(:,i)'; %#ok<AGROW>
 end
 
+
+% find indices that contain a structure which defines a buffer (usualy wav file)
 ind = cellfun(@isstruct,tpData);
-tpData(any(ind,2),:) = [];
+
+% update values for buffers
+tpData(ind) = cellfun(@(a) a.file,tpData(ind),'uni',0);
+
 tpData = cellfun(@mat2str,tpData,'uni',0);
 
 % update the table with any changes made by the trial function or something
@@ -191,11 +196,7 @@ tpData = cellfun(@mat2str,tpData,'uni',0);
 at = num2cell(RUNTIME.TRIALS.activeTrials);
 tpData = [at(:)'; tpData];
 
-% find indices that contain a structure which defines a buffer (usualy wav file)
-ind = cellfun(@isstruct,tpData);
 
-% update values for buffers
-tpData(ind) = cellfun(@(a) a.file,tpData(ind),'uni',0);
 
 h.tbl_TrialParameters.Data = tpData;
 
@@ -380,8 +381,12 @@ rn(ismember(rn,'ACTIVE')) = [];
 for i = 1:length(wp)
     ind = ismember(rn,wp{i});
     if ~any(ind), continue; end
-    for j = 1:size(RUNTIME.TRIALS.trials,1)
-        RUNTIME.TRIALS.trials{j,i} = str2num(Data{j,ind});
+    for j = 1:size(origT,1)
+        if isstruct(origT{j,ind})
+            RUNTIME.TRIALS.trials{j,i} = origT{j,ind};
+        else
+            RUNTIME.TRIALS.trials{j,i} = str2num(Data{j,ind});
+        end
     end
 end
 
