@@ -27,7 +27,7 @@ classdef EPsychInfo < handle
         function m = get.meta(obj)
             m.Author      = obj.Author;
             m.AuthorEmail = obj.AuthorEmail;
-            m.Copyright   = 'Copyright to Daniel Stolzberg, 2019';
+            m.Copyright   = 'Copyright to Daniel Stolzberg, 2022';
             m.License     = obj.License;
             m.Version     = obj.Version;
             m.DataVersion = obj.DataVersion;
