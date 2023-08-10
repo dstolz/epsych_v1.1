@@ -70,7 +70,7 @@ end
 
 SetDefaultFuncs(FUNCS);
 
-clear global PRGMSTATE CONFIG RUNTIME AX STATEID FUNCS
+clear global PRGMSTATE CONFIG RUNTIME AX SYN SYN_STATUS STATEID FUNCS
 
 delete(hObj)
 
@@ -80,7 +80,7 @@ delete(hObj)
 
 %%
 function ExptDispatch(hObj,h) 
-global PRGMSTATE CONFIG AX RUNTIME
+global PRGMSTATE CONFIG AX RUNTIME SYN SYN_STATUS
 
 
 COMMAND = get(hObj,'String');
@@ -139,6 +139,82 @@ switch COMMAND
             RUNTIME.TDT.tank   = TDT.tank;
             
             
+        %-------------------------------------------------
+        %-------------------------------------------------
+        %Check to see if we're running Synapse
+        %-------------------------------------------------
+        %-------------------------------------------------
+        [~,result] = system('tasklist/FI "imagename eq Synapse.exe"');
+        SYN_STATUS = strfind(result,'No tasks are running');
+        
+        %-------------------------------------------------
+        %Synapse is running
+        %-------------------------------------------------
+        if isempty(SYN_STATUS)
+            vprintf(0,'Experiment will be run with Synapse')
+            
+            %Connect to the locally running Synapse
+            SYN = SynapseAPI();
+            
+            %Switch Synapse into Standby Mode. Important to do this before
+            %creating an open developer active X control to talk to any
+            %hardware running in legacy mode.
+            SYN.setModeStr('Standby');
+            
+            %Create a hidden figure for active X controls
+            %(for operation in legacy mode)
+            ha = findobj('Type','figure','-and','Name','ODevFig');
+            if isempty(ha)
+                ha = figure('Visible','off','Name','ODevFig');
+            end
+            
+            %Create open developer active X controls and connect to server
+            %(for operation in legacy mode)
+            AX = actxcontrol('TDevAcc.X','parent',ha);
+            
+            %Connect the server and verify it's connected. Note: Sometimes,
+            %the open developer command "ConnectServer" will return true,
+            %but subsequent attempt to set tags fails. The following code
+            %ensures that the server is connected and tags can be read/set
+            %before continuing. This suggestion was made by Mark Hanus of
+            %TDT on 3/18/2020.
+            status = 0;
+            
+            while status == 0
+                AX.ConnectServer('Local');
+                status = AX.CheckServerConnection
+            end
+            
+            
+            
+            %Get Device Names and Sampling rates
+            RUNTIME.TDT = TDT_GetDeviceInfo_Synapse(SYN);
+
+            %Get tag names using Synapse API
+            RUNTIME = ReadSynapseTags(SYN,RUNTIME);
+            
+            
+            %Find the module that's running in legacy mode
+            nMods = numel(RUNTIME.TDT.name);
+            
+            for m = 1:nMods
+                modInfo = SYN.getGizmoInfo(RUNTIME.TDT.name{m});
+                if strcmp(modInfo.cat,'Legacy')
+                    ind = m;
+                    break
+                end
+            end
+            
+            mod = RUNTIME.TDT.name{ind};
+            
+            
+            %Adjust parameter names for synapse compatibility
+            wp = CONFIG.PROTOCOL.COMPILED.writeparams;
+            rp = CONFIG.PROTOCOL.COMPILED.readparams;
+            
+            CONFIG.PROTOCOL.COMPILED.writeparams = correctTagsSyn(wp,mod);
+            CONFIG.PROTOCOL.COMPILED.readparams = correctTagsSyn(rp,mod);
+
             % Copy parameters to RUNTIME.TRIALS
             for i = 1:length(CONFIG)
                 C = CONFIG(i).PROTOCOL.COMPILED;
@@ -150,6 +226,15 @@ switch COMMAND
 
             end
 
+            %-------------------------------------------------    
+            %If Synapse is not running (behavior only)
+            %-------------------------------------------------
+            else
+            
+            %Note: as of Feb 2020, OpenEx is no longer supported. Only
+            %Synapse is supported for ephys data collection.
+
+                    vprintf(0,'Experiment will not be run with Synapse')
 
         else
             vprintf(0,'Experiment is not using OpenEx')
@@ -163,6 +248,8 @@ switch COMMAND
             if isempty(AX), return; end
             
         end
+        %-------------------------------------------------
+        %-------------------------------------------------
         
         
         for i = 1:length(CONFIG)
@@ -191,11 +278,19 @@ switch COMMAND
        RUNTIME.TDT.NumMods = length(RUNTIME.TDT.RPfile);
        RUNTIME.TDT.triggers = cell(1,RUNTIME.TDT.NumMods);
        for i = 1:RUNTIME.TDT.NumMods
-           if ismember(RUNTIME.TDT.Module{i},{'PA5','UNKNOWN'}) % PA5 is marked 'UNKNOWN' when using OpenDeveloper
+         
+            %If Synapse is not running
+            if ~isempty(SYN_STATUS)
+                
+            %If the module is a PA5
+            if ismember(RUNTIME.TDT.Module{i},{'PA5','UNKNOWN'}) % PA5 is marked 'UNKNOWN' when using OpenDeveloper
                RUNTIME.TDT.devinfo(i).tags = {'SetAtten'};
                RUNTIME.TDT.devinfo(i).datatype = {'S'};
                
+            %If the module is not a PA5, and there's a circuit loaded
            elseif ~isempty(RUNTIME.TDT.RPfile{i})
+
+                %Read parameter tags using RPVds Active X Controls
                [RUNTIME.TDT.devinfo(i).tags,RUNTIME.TDT.devinfo(i).datatype] = ReadRPvdsTags(RUNTIME.TDT.RPfile{i});
                t = RUNTIME.TDT.devinfo(i).tags;
                
@@ -213,13 +308,22 @@ switch COMMAND
            end
            
            
-       end
+        %If running synapse, set mode using Synapse API
+        if isempty(SYN_STATUS)
+            
+            switch COMMAND
+                case 'Run',
+                    SYN.setModeStr('Record');
+                case 'Preview'
+                    SYN.setModeStr('Preview');
+            end
         
+        vprintf(0,'System set to ''%s''',COMMAND)
+        pause(1);
        
+        else
               
-
-
-
+        %If running Open Ex (but not Synapse)
         if RUNTIME.UseOpenEx
             switch COMMAND
                 case 'Preview', AX.SetSysMode(2);
@@ -228,11 +332,12 @@ switch COMMAND
             vprintf(0,'System set to ''%s''',COMMAND)            
             pause(1);
         end
+end
 
 
         RUNTIME.HELPER = epsych.Helper;
 
-
+        %Create trimer
         RUNTIME.TIMER = CreateTimer(h.figure1);
                 
         start(RUNTIME.TIMER); % Begin Experiment
