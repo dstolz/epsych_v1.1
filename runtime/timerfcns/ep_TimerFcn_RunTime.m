@@ -1,10 +1,11 @@
 function RUNTIME = ep_TimerFcn_RunTime(RUNTIME, AX)
 % RUNTIME = ep_TimerFcn_RunTime(RUNTIME, RP)
 % RUNTIME = ep_TimerFcn_RunTime(RUNTIME, DA)
+% RUNTIME = ep_TimerFcn_RunTime(RUNTIME, SYN)
 % 
 % Default RunTime timer function
 % 
-% Daniel.Stolzberg@gmail.com 2014
+
 
 % Copyright (C) 2016  Daniel Stolzberg, PhD
 
