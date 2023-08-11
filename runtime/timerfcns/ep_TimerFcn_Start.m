@@ -53,15 +53,15 @@ for i = 1:RUNTIME.NSubjects
     RUNTIME.TRIALS(i).BoxID = C.SUBJECT.BoxID; % make BoxID more easily accessible DJS 1/14/2016
 
 
-% *** NEED MORE INFO ON WHY THIS IS USING SYN WITHOUT FIRST CHECKING FOR SYNAPSE
-%    %Add ephys field to subject structure if running Synapse
-%    if RUNTIME.UseOpenEx && isempty(SYN_STATUS)
-%        RUNTIME.TRIALS(i).Subject.ephys.user = SYN.getCurrentUser();
-%        RUNTIME.TRIALS(i).Subject.ephys.subject = SYN.getCurrentSubject();
-%        RUNTIME.TRIALS(i).Subject.ephys.experiment = SYN.getCurrentExperiment();
-%        RUNTIME.TRIALS(i).Subject.ephys.tank = SYN.getCurrentTank();
-%        RUNTIME.TRIALS(i).Subject.ephys.block = SYN.getCurrentBlock();
-%    end
+
+    %Add ephys field to subject structure if running Synapse
+    if RUNTIME.UseOpenEx && SYN_STATUS
+        RUNTIME.TRIALS(i).Subject.ephys.user = SYN.getCurrentUser();
+        RUNTIME.TRIALS(i).Subject.ephys.subject = SYN.getCurrentSubject();
+        RUNTIME.TRIALS(i).Subject.ephys.experiment = SYN.getCurrentExperiment();
+        RUNTIME.TRIALS(i).Subject.ephys.tank = SYN.getCurrentTank();
+        RUNTIME.TRIALS(i).Subject.ephys.block = SYN.getCurrentBlock();
+    end
     
 
 

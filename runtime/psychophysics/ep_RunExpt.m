@@ -304,7 +304,7 @@ switch COMMAND
         for i = 1:RUNTIME.TDT.NumMods
          
             %If Synapse is not running
-            if ~isempty(SYN_STATUS)
+            if ~SYN_STATUS
                 
                 %If the module is a PA5
                 if ismember(RUNTIME.TDT.Module{i},{'PA5','UNKNOWN'}) % PA5 is marked 'UNKNOWN' when using OpenDeveloper
