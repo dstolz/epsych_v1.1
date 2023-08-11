@@ -34,7 +34,7 @@ classdef EPsychInfo < handle
             m.Checksum    = obj.chksum;
             m.commitTimestamp = obj.commitTimestamp;
             m.SmileyFace  = ':)';
-            m.CurrentTimestamp = datestr(now);
+            m.CurrentTimestamp = datetime("now");
         end
         
         function p = get.iconPath(obj)
@@ -65,7 +65,7 @@ classdef EPsychInfo < handle
                 c  = d.date;
             catch
                 warning('EPsychInfo:get:commitTimestamp','Not using the git version!')
-                c = datestr(0);
+                c = datetime(0);
             end
         end
         
