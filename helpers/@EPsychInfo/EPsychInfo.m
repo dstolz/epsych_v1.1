@@ -9,7 +9,7 @@ classdef EPsychInfo < handle
     end
     
     properties (Constant)
-        Version  = '1.1';
+        Version  = '1.2';
         DataVersion = '1.1';        
         Author = 'Daniel Stolzberg';
         AuthorEmail = 'daniel.stolzberg@gmail.com';
@@ -27,7 +27,7 @@ classdef EPsychInfo < handle
         function m = get.meta(obj)
             m.Author      = obj.Author;
             m.AuthorEmail = obj.AuthorEmail;
-            m.Copyright   = 'Copyright to Daniel Stolzberg, 2022';
+            m.Copyright   = 'Copyright to Daniel Stolzberg, 2023';
             m.License     = obj.License;
             m.Version     = obj.Version;
             m.DataVersion = obj.DataVersion;
