@@ -1,5 +1,5 @@
-function dinfo = TDT_GetDeviceInfo_v2(SYN)
-% dinfo = TDT_GetDeviceInfo_v2(SYN)
+function dinfo = TDT_GetDeviceInfo_Synapse(SYN)
+% dinfo = TDT_GetDeviceInfo_Synapse(SYN)
 % 
 % Get Device Names and Sampling rates from SYNAPSE API
 % 
