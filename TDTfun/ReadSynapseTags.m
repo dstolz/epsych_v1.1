@@ -24,6 +24,11 @@ end
 %Get Gizmo Names
 gizmo_names = SYN.getGizmoNames();
 
+% gizmo_names = matlab.lang.makeValidName(gizmo_names);
+% i = ~cellfun(@isempty,regexp(gizmo_names,'_\d_'));
+% gizmo_names(i) = cellfun(@(a) a(1:end-1),gizmo_names(i),'uni',0);
+
+
 %For each gizmo..
 for j = 1:numel(gizmo_names)
     gizmo = gizmo_names{j};
@@ -32,7 +37,7 @@ for j = 1:numel(gizmo_names)
     module = SYN.getGizmoParent(gizmo);
     
     %Find the appropriate index for the module
-    if ~module
+    if isempty(module) %~module
         for m = 1:nMods
             modInfo = SYN.getGizmoInfo(RUNTIME.TDT.name{m});
             if strcmp(modInfo.cat,'Legacy')
@@ -42,8 +47,9 @@ for j = 1:numel(gizmo_names)
         end
         
     else
-        module = module(1:regexp(module,'\_')-1);
-        ind = find(cell2mat(cellfun(@(x) ~isempty(x),strfind(RUNTIME.TDT.name,module),'UniformOutput',false)));
+        continue % skip this extraneous info for now
+%         module = module(1:regexp(module,'\_')-1);
+%         ind = find(cell2mat(cellfun(@(x) ~isempty(x),strfind(RUNTIME.TDT.name,module),'UniformOutput',false)));
     end
     
     %Read the parameter tags

@@ -39,7 +39,7 @@ for i = 1:numel(gizmo_names)
              
              %Parent device won't be found for RZ6 because it's
              %operating in legacy mode. Define the device here.
-             if ~parent 
+             if isempty(parent)% || ~parent 
                  parent = [module,'_1'];
              end
              

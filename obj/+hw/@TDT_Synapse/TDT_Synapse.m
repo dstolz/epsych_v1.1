@@ -33,6 +33,18 @@ classdef TDT_Synapse < hw.Interface
         % setup hardware interface. CONFIG is platform dependent
         function setup_interface(obj)
             obj.HW = SynapseAPI(obj.Server);
+            
+            %Switch Synapse into Standby Mode. Important to do this before
+            %creating an open developer active X control to talk to any
+            %hardware running in legacy mode.
+            SYN.setModeStr('Standby');
+            
+            %Create a hidden figure for active X controls
+            %(for operation in legacy mode)
+            ha = findobj('Type','figure','-and','Name','ODevFig');
+            if isempty(ha)
+                ha = figure('Visible','off','Name','ODevFig');
+            end
         end
 
 
