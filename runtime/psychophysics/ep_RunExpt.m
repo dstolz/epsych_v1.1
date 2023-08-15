@@ -234,20 +234,6 @@ switch COMMAND
         elseif CONFIG(1).PROTOCOL.OPTIONS.UseOpenEx
             vprintf(0,'Experiment is designed for use with OpenEx')
             
-            
-            
-            try
-                [AX,RUNTIME] = SetupRPexpt(CONFIG);
-            catch me
-                set(h.figure1,'pointer','arrow'); drawnow
-                rethrow(me);
-            end
-            if isempty(AX), return; end
-            
-            
-            
-        else % experiment using OpenEx
-            
             %Note: as of Feb 2020, OpenEx is no longer supported. Only
             %Synapse is supported for ephys data collection.
             try
@@ -272,6 +258,19 @@ switch COMMAND
             end
             RUNTIME.TDT.server = TDT.server;
             RUNTIME.TDT.tank   = TDT.tank;
+            
+            
+        else % experiment using RPco.x
+            
+            try
+                [AX,RUNTIME] = SetupRPexpt(CONFIG);
+            catch me
+                set(h.figure1,'pointer','arrow'); drawnow
+                rethrow(me);
+            end
+            if isempty(AX), return; end
+            
+            
         end
         
         

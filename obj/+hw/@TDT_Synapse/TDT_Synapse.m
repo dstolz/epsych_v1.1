@@ -37,7 +37,7 @@ classdef TDT_Synapse < hw.Interface
             %Switch Synapse into Standby Mode. Important to do this before
             %creating an open developer active X control to talk to any
             %hardware running in legacy mode.
-            SYN.setModeStr('Standby');
+            obj.HW.setModeStr('Standby');
             
             %Create a hidden figure for active X controls
             %(for operation in legacy mode)
@@ -45,11 +45,12 @@ classdef TDT_Synapse < hw.Interface
             if isempty(ha)
                 ha = figure('Visible','off','Name','ODevFig');
             end
+            obj.hTDTfig = ha;
         end
 
 
         function close_interface(obj)
-            obj.HW.setMode(1); % standby
+            obj.HW.setModeStr('Standby');
             try
                 delete(obj.HW)
             end
