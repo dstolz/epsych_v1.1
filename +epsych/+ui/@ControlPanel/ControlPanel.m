@@ -196,8 +196,9 @@ classdef ControlPanel < handle
             elseif ishandle(ffn) % coming from callback
                 ffn = [];
             end
+           
             
-            if isempty(ffn)
+            if isempty(ffn) || ~isfile(ffn)
                 pn = getpref('epsych_Config','configPath',cd);
                 [fn,pn] = uigetfile( ...
                     {'*.epcf', 'EPsych Configuration File'}, ...
