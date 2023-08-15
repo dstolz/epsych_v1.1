@@ -1,14 +1,15 @@
-classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
+classdef (ConstructOnLoad) TDTOpenDev < epsych.hw.Hardware
     % vvvvvvvvvv Define abstract properties from superclass vvvvvvvv
     properties
-        Alias = 'TDTx';
+        Alias = 'TDTdev';
+        Server = 'Local';
     end
     
     properties (Constant) % define constant abstract properties from superclass
-        Name         = 'TDTActiveX';
-        Type         = 'COM.RPco_x';
+        Name         = 'TDTOpenDev';
+        Type         = 'TDev.Acc.X';
         Vendor       = 'TDT';
-        Description  = 'Standalone TDT ActiveX controls';
+        Description  = 'TDT OpenDeveloper ActiveX controls';
         MaxNumInstances = 1;
     end
     
@@ -74,7 +75,7 @@ classdef (ConstructOnLoad) TDTActiveX < epsych.hw.Hardware
         set_digital_line(obj,src,event);
         read_digital_lines(obj);
         
-        function obj = TDTActiveX(hwSetup)
+        function obj = TDTOpenDev(hwSetup)
             if nargin == 0, hwSetup = []; end
             
             % call superclass constructor

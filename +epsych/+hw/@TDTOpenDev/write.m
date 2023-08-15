@@ -1,4 +1,4 @@
-function e = write(obj,src,event)  % epsych.hw.TDTActiveX
+function e = write(obj,src,event)  % epsych.hw.TDTOpenDev
 % e = write(obj,parameter,value) % manually called
 % e = write(obj,src,event) % called by a Parameter property listener
 

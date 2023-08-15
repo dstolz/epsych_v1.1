@@ -1,4 +1,4 @@
-function e = runtime(obj,Runtime) % TDTActiveX
+function e = runtime(obj,Runtime) % TDTOpenDev
 e = false;
 try
     obj.read_digital_lines;

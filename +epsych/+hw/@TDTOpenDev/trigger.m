@@ -1,4 +1,4 @@
-function e = trigger(obj,parameter,invert) % epsych.hw.TDTActiveX
+function e = trigger(obj,parameter,invert) % epsych.hw.TDTOpenDev
 % e = trigger(obj,parameter,[invert])
 
 % TODO: need to figure out idx

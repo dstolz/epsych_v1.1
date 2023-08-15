@@ -1,4 +1,4 @@
-function v = read(obj,parameter) % epsych.hw.TDTActiveX
+function v = read(obj,parameter) % epsych.hw.TDTOpenDev
 % v = read(obj,parameter)
 
     

@@ -1,6 +1,6 @@
-function setup(obj,parent) % TDTActiveX
+function setup(obj,parent) % TDTOpenDev
 if nargin == 1 || isempty(parent)
-    parent = uifigure('Name','TDTActiveX');
+    parent = uifigure('Name','TDTOpenDev');
 end
 obj.InterfaceParent = parent;
 
