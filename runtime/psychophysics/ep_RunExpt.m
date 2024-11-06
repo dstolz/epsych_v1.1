@@ -629,6 +629,8 @@ function h = AddSubject(h,S)  %#ok<DEFNU>
 global STATEID CONFIG FUNCS
 if STATEID >= 4, return; end
 
+if nargin < 2, S = []; end
+
 boxids = 1:16;
 curboxids = [];
 curnames = {[]};
@@ -648,11 +650,7 @@ if ~isfield(FUNCS,'AddSubjectFcn') || isempty(FUNCS.AddSubjectFcn)
 end
 
 ontop = AlwaysOnTop(h,false);
-if nargin == 1
-    S = feval(FUNCS.AddSubjectFcn,[],boxids);
-else
-    S = feval(FUNCS.AddSubjectFcn,S,boxids);
-end
+S = feval(FUNCS.AddSubjectFcn,S,boxids);
 AlwaysOnTop(h,ontop);
 
 
