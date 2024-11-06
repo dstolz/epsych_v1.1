@@ -291,9 +291,11 @@ function PsychTimerStart(~,~,f)
 global PRGMSTATE CONFIG AX RUNTIME FUNCS
 
 PRGMSTATE = 'RUNNING';
-UpdateGUIstate(guidata(f));
 
 h = guidata(f);
+
+UpdateGUIstate(h);
+
 
 RUNTIME = feval(FUNCS.TIMERfcn.Start,CONFIG,RUNTIME,AX);
 RUNTIME.StartTime = clock;
