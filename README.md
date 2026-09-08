@@ -17,11 +17,11 @@ The repository includes both legacy procedural code and a gradual migration towa
 - **Online & offline analysis** — the `psychophysics` package: hit/false-alarm rates and d′, staircases, BestPEST and MLP threshold tracking, and windowed session metrics.
 - **Trial selection** — pluggable `epsych.TrialSelector` classes for custom and closed-loop paradigms; `epsych.BlockSequence` for balanced block-randomized value sequences.
 - **Teensy trial programs** — design operant state machines in `teensy.TrialDesigner`, then simulate and compile them so the contingency runs on the microcontroller (under development).
-- **Data & logging** — crash-safe per-trial journaling (`epsych.TrialJournal`), configurable save functions, and session logging to `.error_logs/`.
+- **Data & logging** — crash-safe per-trial journaling (`epsych.TrialJournal`), configurable save functions, and session logging to `.error_logs/` through the [granary](https://github.com/dstolz/granary) submodule.
 
 ## Installation
 
-Stimulus generation lives in a separate repository ([dstolz/stimgen](https://github.com/dstolz/stimgen)) attached here as a git submodule, so clone recursively:
+Stimulus generation ([dstolz/stimgen](https://github.com/dstolz/stimgen)) and logging ([dstolz/granary](https://github.com/dstolz/granary)) live in separate repositories, attached here as git submodules at `obj/stimgen` and `obj/granary`, so clone recursively:
 
 ```bash
 git clone --recurse-submodules https://github.com/dstolz/epsych2.git
@@ -37,7 +37,7 @@ addpath('C:\path\to\epsych2')
 epsych_startup
 ```
 
-Skipping the submodule step does not fail loudly — protocols containing stimulus objects load with silently degraded placeholder values. `epsych_startup` warns when it detects this. Full instructions are in the [Installation Guide](documentation/overviews/Installation_Guide.md), and the submodule contract is described in [documentation/stimgen.md](documentation/stimgen.md).
+Skipping the submodule step fails two different ways. Without `granary` nothing can log, so `epsych_startup` stops outright. Without `stimgen` nothing errors — protocols containing stimulus objects simply load with silently degraded placeholder values, and `epsych_startup` warns when it detects this. Full instructions are in the [Installation Guide](documentation/overviews/Installation_Guide.md); the submodule contracts are described in [documentation/stimgen.md](documentation/stimgen.md) and [documentation/granary/granary_Logging.md](documentation/granary/granary_Logging.md).
 
 ## Documentation
 
