@@ -164,7 +164,7 @@ end
 % Only open cell in the top row: buttons fill columns 1-4, and the Next
 % Trial / Performance panels span columns 6-7 across rows 1-2.
 obj.SessionClock = obj.register(gui.components.SessionClock(layoutMain, FontSize=10));
-obj.SessionClock.PanelH.Layout.Row    = 1;
+obj.SessionClock.PanelH.Layout.Row    = [1 2];
 obj.SessionClock.PanelH.Layout.Column = 5;
 obj.SessionClock.attachRuntime(R);
 obj.SessionClock.start();
