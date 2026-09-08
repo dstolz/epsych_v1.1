@@ -19,6 +19,17 @@ classdef SessionClock < handle
     % read from across the room gets it back next session. Unlike the Show*
     % properties, a font change applies immediately.
     %
+    % The elapsed readouts STOP with the session. attachRuntime wires a
+    % ModeChange listener, and the first terminal mode (Stop, Idle or Error —
+    % RunExpt broadcasts Stop the moment the operator presses it, ep_TimerFcn_Stop
+    % Idle just after) holds all three durations at that instant, so the clock
+    % reports how long the session ran rather than how long ago it was. A Pause
+    % is not a stop: wall time passes and the readouts keep counting. Record or
+    % Preview releases the hold, which is what lets one clock survive a
+    % stop-and-rerun. The computer time is never held — a frozen wall clock
+    % would simply be wrong — so the widget keeps ticking after a stop only
+    % while that line is shown.
+    %
     % Usage (inside a gui.BehaviorGUI build(fig)):
     %   c = gui.components.SessionClock(parent);
     %   c.attachRuntime(obj.RUNTIME);
@@ -43,6 +54,7 @@ classdef SessionClock < handle
 
     properties (Dependent)
         FontSize % Label font size in points; applies and persists on set
+        IsStopped % True while the elapsed readouts are held at a stopped session's last instant
     end
 
     properties (SetAccess = private)
@@ -56,9 +68,12 @@ classdef SessionClock < handle
     properties (Access = private)
         Timer_
         NewTrialListener_ event.listener
+        ModeListener_     event.listener
         SessionStartTime_ datetime = NaT
         FirstTrialTime_   datetime = NaT
         LastTrialTime_    datetime = NaT
+        StopTime_         datetime = NaT % Instant the session stopped; every elapsed line is measured to it while set
+        Started_ (1,1) logical = false   % Whether the host asked for ticks; a mode change must not start a clock nobody started
         FontSize_ (1,1) double = 12
         FontMenuH_                   % "Font Size" submenu handle
     end
@@ -141,13 +156,17 @@ classdef SessionClock < handle
 
         function attachRuntime(obj, RUNTIME)
             % obj.attachRuntime(RUNTIME)
-            % Wire a NewTrial listener and capture the session start time.
-            % Replaces any previously attached listener.
+            % Wire NewTrial and ModeChange listeners and capture the session
+            % start time. Replaces any previously attached listener, and
+            % releases a hold left over from an earlier session: attaching a
+            % runtime is what says this clock is timing a new one.
             arguments
                 obj
                 RUNTIME % epsych.Runtime
             end
             delete(obj.NewTrialListener_);
+            delete(obj.ModeListener_);
+            obj.StopTime_ = NaT;
             obj.SessionStartTime_ = NaT;
             try
                 if ~isnat(RUNTIME.StartTime)
@@ -159,6 +178,7 @@ classdef SessionClock < handle
                 obj.SessionStartTime_ = datetime('now');
             end
             obj.NewTrialListener_ = addlistener(RUNTIME.EVENTS, 'NewTrial', @(~,~) obj.onNewTrial_());
+            obj.ModeListener_ = addlistener(RUNTIME.EVENTS, 'ModeChange', @(~,ev) obj.onModeChange_(ev));
             obj.updateDisplay_();
             vprintf(2, 'SessionClock attached to runtime')
         end
@@ -172,6 +192,10 @@ classdef SessionClock < handle
 
         function sz = get.FontSize(obj)
             sz = obj.FontSize_;
+        end
+
+        function tf = get.IsStopped(obj)
+            tf = ~isnat(obj.StopTime_);
         end
 
         function set.FontSize(obj, points)
@@ -196,20 +220,53 @@ classdef SessionClock < handle
         function start(obj)
             % obj.start()
             % Start the periodic display-refresh timer.
-            if strcmp(obj.Timer_.Running, 'off')
-                obj.Timer_.Period = obj.UpdatePeriod;
-                start(obj.Timer_);
+            wasTicking = obj.isTicking_();
+            obj.Started_ = true;
+            obj.applyTickRequirement_();
+            if ~wasTicking && obj.isTicking_()
                 vprintf(2, 'SessionClock started')
             end
         end
 
         function stop(obj)
             % obj.stop()
-            % Stop the periodic display-refresh timer.
-            if strcmp(obj.Timer_.Running, 'on')
-                stop(obj.Timer_);
+            % Stop the periodic display-refresh timer. This is the host's own
+            % decision and outranks the run mode: a clock stopped here does not
+            % start ticking again because a session did.
+            wasTicking = obj.isTicking_();
+            obj.Started_ = false;
+            obj.applyTickRequirement_();
+            if wasTicking
                 vprintf(2, 'SessionClock stopped')
             end
+        end
+
+        function sessionStopped(obj, when)
+            % obj.sessionStopped(when)
+            % Hold every elapsed readout at the instant the session ended.
+            % Normally the ModeChange listener calls this; a paradigm that ends
+            % a run some other way can call it by hand.
+            %   when - the stop instant. Default now.
+            arguments
+                obj
+                when (1,1) datetime = datetime('now')
+            end
+            if obj.IsStopped, return; end % the first stop is the one that ended the session
+            obj.StopTime_ = when;
+            obj.updateDisplay_();
+            vprintf(2, 'SessionClock holding elapsed times at the end of the session')
+        end
+
+        function sessionResumed(obj)
+            % obj.sessionResumed()
+            % Release a hold and measure to the wall clock again. Called by the
+            % ModeChange listener when a run starts; the elapsed times continue
+            % from their existing origins, so a clock that should time the NEW
+            % session wants attachRuntime instead.
+            if ~obj.IsStopped, return; end
+            obj.StopTime_ = NaT;
+            obj.updateDisplay_();
+            vprintf(2, 'SessionClock resumed')
         end
 
         function delete(obj)
@@ -221,6 +278,7 @@ classdef SessionClock < handle
                 vprintf(0, 1, ME)
             end
             delete(obj.NewTrialListener_);
+            delete(obj.ModeListener_);
             try
                 if ~isempty(obj.ContextMenuH) && isvalid(obj.ContextMenuH)
                     delete(obj.ContextMenuH);
@@ -319,9 +377,32 @@ classdef SessionClock < handle
             obj.savePreferences_();
         end
 
+        function onModeChange_(obj, ev)
+            % Terminal modes hold the elapsed readouts; a run releases them.
+            % Both of a stop's two broadcasts land here -- RunExpt's Stop when
+            % the operator presses it, ep_TimerFcn_Stop's Idle once the timer
+            % has wound up -- and the first one is the stop instant. Pause is
+            % deliberately neither: wall time passes during one.
+            try
+                mode = ev.NewMode;
+                if mode.isIdle()
+                    obj.sessionStopped();
+                elseif mode == hw.DeviceState.Record || mode == hw.DeviceState.Preview
+                    obj.sessionResumed();
+                end
+            catch ME
+                % A paradigm may broadcast something other than an
+                % hw.DeviceState; that is not this widget's business to fail on.
+                vprintf(3, 'gui.components.SessionClock: ignoring mode change (%s)', ME.message)
+            end
+        end
+
         function onNewTrial_(obj)
             % Stamp the most-recent-trial clock, and the first-trial clock
-            % the first time this fires.
+            % the first time this fires. A trial arriving after the session
+            % stopped is ignored: the display stands at the stop instant, and
+            % stamping it there would only read as a trial that took no time.
+            if obj.IsStopped, return; end
             now_ = datetime('now');
             if isnat(obj.FirstTrialTime_)
                 obj.FirstTrialTime_ = now_;
@@ -363,6 +444,30 @@ classdef SessionClock < handle
             end
             obj.GridH.RowHeight = rh;
             obj.refreshMenuChecks_();
+            obj.applyTickRequirement_();
+        end
+
+        function tf = isTicking_(obj)
+            % tf = isTicking_(obj)
+            % Whether the refresh timer is currently running.
+            tf = ~isempty(obj.Timer_) && isvalid(obj.Timer_) && strcmp(obj.Timer_.Running, 'on');
+        end
+
+        function applyTickRequirement_(obj)
+            % Run the refresh timer only while something on the widget can
+            % change. Once the elapsed lines are held, the computer time is
+            % the only line still moving, so a stopped session with that line
+            % hidden needs no timer at all -- and toggling the line back on
+            % starts one again, since every path through updateDisplay_ ends
+            % here. Stopping from inside the timer's own callback is allowed.
+            if isempty(obj.Timer_) || ~isvalid(obj.Timer_), return; end
+            want = obj.Started_ && (~obj.IsStopped || obj.ShowClockTime);
+            if want && ~obj.isTicking_()
+                obj.Timer_.Period = obj.UpdatePeriod;
+                start(obj.Timer_);
+            elseif ~want && obj.isTicking_()
+                stop(obj.Timer_);
+            end
         end
 
         function refreshMenus_(obj)
@@ -455,8 +560,20 @@ classdef SessionClock < handle
                 str = [prefix '--'];
                 return
             end
-            secs = max(0, seconds(datetime('now') - t0));
+            secs = max(0, seconds(obj.elapsedReference_() - t0));
             str = [prefix gui.components.SessionClock.formatDuration_(secs, obj.Format)];
+        end
+
+        function t = elapsedReference_(obj)
+            % t = elapsedReference_(obj)
+            % The instant elapsed times are measured to: the moment the session
+            % stopped, once it has, so the durations report how long the
+            % session ran rather than counting on into the night.
+            if obj.IsStopped
+                t = obj.StopTime_;
+            else
+                t = datetime('now');
+            end
         end
 
         function loadPreferences_(obj)
