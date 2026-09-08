@@ -208,6 +208,39 @@ assert(ismember("HitRate", P.Metrics), 'toggling again should restore it');
 assert(isequal(P.Metrics, orderedMetrics(P.Metrics)), 'metrics stay in catalogue order');
 fprintf('PASS: context menu drives the window and the metric selection\n');
 
+% 9a. Metric order ---------------------------------------------------------
+assert(~isempty(findobj(P.ContextMenu,'Text','Reorder Metrics...')), ...
+    'the menu should offer the reorder dialog');
+
+P.setMetrics(["Trials","HitRate","FARate","DPrime"]);
+P.setMetricOrder(["DPrime","HitRate"]);
+assert(isequal(P.Metrics, ["DPrime","HitRate","Trials","FARate"]), ...
+    'named metrics should lead, the rest keeping their relative order');
+captions = captionOrder(P);
+assert(captions(1) == "d'", 'the rows should be rebuilt in the new order');
+
+P.setMetricOrder([4 3 2 1]);
+assert(isequal(P.Metrics, ["FARate","Trials","HitRate","DPrime"]), ...
+    'a permutation should reorder the selection');
+
+before = P.Metrics;
+P.setMetricOrder(["NotAMetric","Aborts"]);   % neither is displayed
+assert(isequal(P.Metrics, before), 'names the panel is not showing should be ignored');
+P.setMetricOrder([2 1]);                     % not a permutation of four
+assert(isequal(P.Metrics, before), 'a bad permutation should change nothing');
+
+% Once arranged by hand, a metric switched on lands at the end rather than
+% re-sorting the arrangement away.
+P.ContextMenu.ContextMenuOpeningFcn([],[]);
+findobj(findobj(P.ContextMenu,'Text','Show Metric'),'Text','Aborts').MenuSelectedFcn([],[]);
+assert(isequal(P.Metrics, [before "Aborts"]), ...
+    'a hand-made order should survive switching another metric on');
+
+P.ContextMenu.ContextMenuOpeningFcn([],[]);
+findobj(findobj(P.ContextMenu,'Text','Show Metric'),'Text','Aborts').MenuSelectedFcn([],[]);
+assert(isequal(P.Metrics, before), 'switching it off again should leave the order alone');
+fprintf('PASS: metric order, by name and by permutation\n');
+
 % 9b. Font size ------------------------------------------------------------
 assert(P.FontSize == 12, 'the default caption size is 12pt');
 assert(P.HeaderH.FontSize == 11, 'the header renders 1pt smaller than the captions');
@@ -246,12 +279,31 @@ fprintf('PASS: font size, programmatically and from the menu\n');
 
 % 10. Persistence ----------------------------------------------------------
 P.setMetrics(["Trials","DPrime"]);
+P.setMetricOrder(["DPrime","Trials"]);
 P.setTrialWindow([5 15]);
 P.setFontSize(15);
 delete(P);
 
 P2 = gui.components.SessionPerformance(rt, panel, Metrics="HitRate");
-assert(isequal(P2.Metrics, ["Trials","DPrime"]), 'a saved selection should outrank the constructor default');
+assert(isequal(P2.Metrics, ["DPrime","Trials"]), ...
+    'a saved selection and its order should outrank the constructor default');
+
+% The order is remembered as the operator's, so a metric switched on in the
+% next session still lands at the end rather than re-sorting the panel.
+P2.ContextMenu.ContextMenuOpeningFcn([],[]);
+findobj(findobj(P2.ContextMenu,'Text','Show Metric'),'Text','Hit Rate').MenuSelectedFcn([],[]);
+assert(isequal(P2.Metrics, ["DPrime","Trials","HitRate"]), ...
+    'a remembered order should still be the operator''s in a later session');
+P2.setMetrics(["DPrime","Trials"]);
+
+% Preferences are per GUI: another host starts from the constructor default.
+otherPanel = uipanel(fig,'Units','normalized','Position',[0 0 0.5 0.5]);
+other = gui.components.SessionPerformance(rt, otherPanel, Metrics=["HitRate","Trials"], ...
+    PreferenceTag='smoke_other_gui');
+assert(isequal(other.Metrics, ["HitRate","Trials"]), ...
+    'a different PreferenceTag should not inherit this GUI''s order');
+delete(other);
+delete(otherPanel);
 assert(P2.TrialWindow.Mode == "Range" && isequal(P2.TrialWindow.Range,[5 15]), ...
     'the saved trial window should be restored');
 assert(P2.FontSize == 15 && P2.HeaderH.FontSize == 14, ...
@@ -316,6 +368,17 @@ function sz = fontSizes(P)
 % Font sizes in use across the panel's labels.
 h = findobj(P.GridH,'Type','uilabel');
 sz = [h.FontSize];
+end
+
+
+function c = captionOrder(P)
+% Metric captions as the panel draws them, top row first.
+h = findobj(P.GridH,'Type','uilabel');
+% The header and the filler span every column, so column 1 alone is the
+% metric captions.
+h = h(arrayfun(@(x) isequal(x.Layout.Column,1), h));
+[~,i] = sort(arrayfun(@(x) x.Layout.Row, h));
+c = string({h(i).Text});
 end
 
 
@@ -400,7 +463,7 @@ function s = snapshotPrefs(prefTag)
 % the explicit tag used for the shared-analysis panels, and the pop-out's
 % derived key.
 s = struct('tag', {{}}, 'value', {{}});
-for name = {matlab.lang.makeValidName(prefTag), 'smoke_shared', popOutTag(prefTag)}
+for name = {matlab.lang.makeValidName(prefTag), 'smoke_shared', 'smoke_other_gui', popOutTag(prefTag)}
     s.tag{end+1} = name{1};
     if ispref('epsych2_gui_SessionPerformance', name{1})
         s.value{end+1} = getpref('epsych2_gui_SessionPerformance', name{1});

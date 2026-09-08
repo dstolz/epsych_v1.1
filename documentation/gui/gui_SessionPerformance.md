@@ -22,6 +22,9 @@ bitmask arithmetic in `onNewData`).
   window can be changed programmatically or by right-clicking the panel.
 - **Metric selection**: any subset of the catalogue, in any combination,
   chosen programmatically or from the right-click **Show Metric** menu.
+- **Metric order**: the rows are rearrangeable — **Reorder Metrics...** on
+  the same menu, or `setMetricOrder` from code — so the metric being watched
+  can be moved to the top.
 - **Color-coded values**: green hits, red misses, blue correct rejects,
   orange false alarms, olive aborts, teal sensitivity measures — the same
   semantic hues `gui.components.History` uses for response rows.
@@ -38,9 +41,9 @@ bitmask arithmetic in `onNewData`).
   or from the right-click **Font Size** menu: the `FontPresets` sizes,
   **Larger**/**Smaller** in 2 pt steps, and **Custom...**. Sizes outside
   6–72 pt are clamped rather than refused.
-- **Persistence**: window, metric selection, and font size are saved with
-  `setpref`/`getpref` (group `epsych2_gui_SessionPerformance`), keyed to the
-  hosting figure `Tag`/`Name` or an explicit `PreferenceTag`.
+- **Persistence**: window, metric selection, metric order, and font size are
+  saved with `setpref`/`getpref` (group `epsych2_gui_SessionPerformance`),
+  keyed to the hosting figure `Tag`/`Name` or an explicit `PreferenceTag`.
 - **Live updates**: refreshes from the analysis object's `NewData`
   rebroadcast, which fires *after* it has recomputed, so the panel never
   depends on listener ordering.
@@ -90,10 +93,34 @@ P.Metrics = ["Hits","Misses","PercentCorrect"];
 ```
 
 Unknown names are dropped with a message rather than throwing, so a saved
-selection from an older catalogue cannot stop a GUI from opening. Toggling
-from the **Show Metric** menu keeps the display in catalogue order. See
+selection from an older catalogue cannot stop a GUI from opening. See
 [psychophysics.SessionMetrics](../psychophysics/psychophysics_SessionMetrics.md)
 for the full metric list and the denominators each rate uses.
+
+### Choosing the order they appear in
+
+The metric being watched belongs at the top, and which one that is changes
+with the experiment, so the row order is the operator's:
+**Reorder Metrics...** on the right-click menu opens a small modal list —
+top of the list is the top of the panel — with **Move Up** / **Move Down**.
+It rearranges only what is already displayed; **Show Metric** is still what
+decides *which* metrics those are. From code:
+
+```matlab
+P.setMetricOrder(["DPrime","HitRate"]);   % these two lead; the rest follow
+P.setMetricOrder([4 3 2 1]);              % or a permutation of the selection
+```
+
+Names the panel is not showing are ignored, and a displayed metric the order
+never named keeps its relative place at the end — which is what lets a
+remembered order survive a change of selection.
+
+Until an order is chosen by hand the display is kept in catalogue order, so
+a metric switched on from **Show Metric** appears where the panel has always
+shown it. Afterwards a newly shown metric is appended instead: re-sorting
+would silently discard the arrangement the operator just made. **Reset to
+Defaults** returns to catalogue order. The order persists per GUI like every
+other choice here, and a pop-out opens showing the host's arrangement.
 
 ### Constructor
 
@@ -130,6 +157,8 @@ A saved selection takes precedence over the constructor's `Metrics`,
 | `ContextMenu` | The right-click menu; host GUIs may append with `uimenu(obj.ContextMenu, ...)` |
 | `setTrialWindow(w)` | Choose the trials summarized; persists like a menu selection |
 | `setMetrics(names)` | Choose the metrics displayed; persists like a menu selection |
+| `setMetricOrder(order)` | Rearrange the displayed metrics (names or a permutation), top row first; persists like a menu selection |
+| `reorderMetrics()` | The **Reorder Metrics...** dialog behind `setMetricOrder` |
 | `setFontSize(points)` | Set the caption size (clamped to 6–72 pt); persists like a menu selection |
 | `refresh()` | Redraw from the current results |
 | `summaryText()` | Plain-text summary of what is displayed (also on **Copy Summary**) |

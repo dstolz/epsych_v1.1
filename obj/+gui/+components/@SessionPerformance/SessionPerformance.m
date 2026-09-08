@@ -34,6 +34,14 @@ classdef SessionPerformance < gui.PopOut
     % the hosting figure (or an explicit PreferenceTag), matching
     % gui.components.NextTrial and gui.components.ParameterScatter. So does the font size.
     %
+    % The ORDER of the rows is the operator's too: Reorder Metrics... on the
+    % same menu (setMetricOrder from code) moves the metric being watched to
+    % the top, and the arrangement is remembered per GUI like everything
+    % else here. Until an order is chosen by hand the rows stay in catalogue
+    % order, so a metric switched on from Show Metric lands where the panel
+    % has always shown it; afterwards a newly shown metric is appended
+    % instead, since re-sorting would throw the arrangement away.
+    %
     % Properties:
     %   Analysis      - psychophysics.SessionMetrics doing the computation
     %   TrialWindow   - Trials included; accepts any TrialWindow.parse form
@@ -45,6 +53,8 @@ classdef SessionPerformance < gui.PopOut
     % Methods:
     %   setTrialWindow - Choose the trials the metrics are computed from
     %   setMetrics     - Choose which metrics are displayed
+    %   setMetricOrder - Rearrange the displayed metrics, top row first
+    %   reorderMetrics - Operator dialog behind setMetricOrder
     %   setFontSize    - Choose the caption font size
     %   refresh        - Redraw values from the current results
     %   summaryText    - Plain-text summary of what is displayed
@@ -101,6 +111,9 @@ classdef SessionPerformance < gui.PopOut
 
     properties (Access = private)
         Metrics_ (1,:) string = string.empty(1,0)
+        % True once the operator (or setMetricOrder) has arranged the rows by
+        % hand; toggleMetric_ then stops re-sorting into catalogue order.
+        MetricOrderCustom_ (1,1) logical = false
         Rows_ = struct('Name',{},'LabelH',{},'ValueH',{},'DetailH',{})
         FillerH_ = []
         FontSize_ (1,1) double = 12
@@ -276,6 +289,54 @@ classdef SessionPerformance < gui.PopOut
             obj.savePreferences_();
         end
 
+        function setMetricOrder(obj, order)
+            % setMetricOrder(obj, order)
+            % Rearrange the metrics already displayed, top row first.
+            %
+            % `order` is either a permutation of 1:N over the current
+            % selection, or the metric names in the order wanted. Matching by
+            % name is what makes a REMEMBERED order survive a change of
+            % selection: a name the panel is not showing is ignored, and a
+            % displayed metric the order never heard of keeps its relative
+            % place at the end rather than disappearing.
+            %
+            % This does not change WHICH metrics are shown -- setMetrics does
+            % that. It marks the arrangement as the operator's, so a metric
+            % switched on later is appended rather than re-sorted in.
+            arguments
+                obj
+                order
+            end
+
+            names = obj.Metrics_;
+            n = numel(names);
+            if n == 0, return; end
+
+            if isnumeric(order) || islogical(order)
+                perm = double(order(:))';
+                if ~isequal(sort(perm), 1:n)
+                    vprintf(0,1,'gui.components.SessionPerformance: setMetricOrder needs a permutation of 1:%d', n)
+                    return
+                end
+            else
+                wanted = reshape(string(order),1,[]);
+                wanted = wanted(ismember(wanted, names));
+                wanted = unique(wanted,'stable');
+                [~, perm] = ismember(wanted, names);
+                perm = [perm(:)', setdiff(1:n, perm, 'stable')];
+            end
+
+            obj.MetricOrderCustom_ = true;
+            if isequal(perm, 1:n)
+                obj.savePreferences_();   % the arrangement is now the operator's, even unchanged
+                return
+            end
+
+            obj.Metrics_ = names(perm);
+            obj.rebuildRows_();
+            obj.savePreferences_();
+        end
+
         % -- Font size ---------------------------------------------------
 
         function sz = get.FontSize(obj)
@@ -333,6 +394,10 @@ classdef SessionPerformance < gui.PopOut
         end
     end
 
+    methods
+        reorderMetrics(obj)   % operator dialog behind setMetricOrder
+    end
+
     methods (Access = protected)
 
         function c = popOutHostContainer_(obj)
@@ -369,6 +434,11 @@ classdef SessionPerformance < gui.PopOut
             % The analysis built just above has no other owner, so the
             % pop-out has to be the one that deletes it.
             h.OwnsAnalysis_ = ownsNew || h.OwnsAnalysis_;
+
+            % The pop-out opens showing what the host shows, so a host order
+            % arranged by hand arrives as a hand-made order there too --
+            % unless the pop-out's own saved preferences already said so.
+            h.MetricOrderCustom_ = obj.MetricOrderCustom_ || h.MetricOrderCustom_;
         end
     end
 
@@ -584,6 +654,8 @@ classdef SessionPerformance < gui.PopOut
                 obj.ContextMenu  = cm;
                 obj.WindowMenuH_ = uimenu(cm,'Text','Trials Included');
                 obj.MetricMenuH_ = uimenu(cm,'Text','Show Metric');
+                uimenu(cm,'Text','Reorder Metrics...', ...
+                    'MenuSelectedFcn',@(~,~) obj.reorderMetrics());
                 obj.FontMenuH_   = uimenu(cm,'Text','Font Size');
                 uimenu(cm,'Text','Copy Summary','Separator','on', ...
                     'MenuSelectedFcn',@(~,~) obj.copySummary_());
@@ -721,16 +793,26 @@ classdef SessionPerformance < gui.PopOut
         end
 
         function toggleMetric_(obj, name)
-            % Toggle one metric, keeping the display in catalogue order so
-            % the panel reads the same however the operator picked them.
+            % Toggle one metric. Until the rows have been arranged by hand
+            % the display is kept in catalogue order, so the panel reads the
+            % same however the operator picked them; once it has, the new
+            % metric goes on the end instead -- re-sorting would silently
+            % discard the arrangement the operator just made.
             sel = obj.Metrics_;
             if ismember(name, sel)
                 sel(sel == name) = [];
             else
                 sel(end+1) = name;
             end
-            all_ = psychophysics.SessionMetrics.metricNames();
-            obj.setMetrics(all_(ismember(all_, sel)));
+
+            if ~obj.MetricOrderCustom_
+                all_ = psychophysics.SessionMetrics.metricNames();
+                sel = all_(ismember(all_, sel));
+            end
+
+            % setMetrics leaves the custom flag alone, so a removal and a
+            % re-add do not cost the operator their order.
+            obj.setMetrics(sel);
         end
 
         function promptCount_(obj, mode)
@@ -797,6 +879,7 @@ classdef SessionPerformance < gui.PopOut
 
         function resetToDefaults_(obj)
             obj.setTrialWindow(psychophysics.TrialWindow.allTrials());
+            obj.MetricOrderCustom_ = false;   % back to catalogue order
             obj.setMetrics(psychophysics.SessionMetrics.defaultMetrics());
         end
 
@@ -823,7 +906,14 @@ classdef SessionPerformance < gui.PopOut
                 s = getpref(obj.PREF_GROUP, pname);
 
                 if isfield(s,'Metrics') && ~isempty(s.Metrics)
+                    % The saved list carries the order as well as the
+                    % selection, so nothing further is needed to restore it.
                     obj.Metrics_ = obj.validateMetrics_(string(s.Metrics));
+                end
+                % Absent in preferences written before Reorder Metrics...
+                % existed, where the saved list can only be catalogue order.
+                if isfield(s,'MetricOrderCustom') && isscalar(s.MetricOrderCustom)
+                    obj.MetricOrderCustom_ = logical(s.MetricOrderCustom);
                 end
                 if isfield(s,'TrialWindow')
                     obj.Analysis.TrialWindow = psychophysics.TrialWindow.fromStruct(s.TrialWindow);
@@ -842,6 +932,7 @@ classdef SessionPerformance < gui.PopOut
         function savePreferences_(obj)
             try
                 s = struct('Metrics', {cellstr(obj.Metrics_)}, ...
+                    'MetricOrderCustom', obj.MetricOrderCustom_, ...
                     'TrialWindow', obj.TrialWindow.toStruct(), ...
                     'FontSize', obj.FontSize_);
                 setpref(obj.PREF_GROUP, obj.preferenceName_(), s);
