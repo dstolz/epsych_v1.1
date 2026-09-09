@@ -162,10 +162,21 @@ try
         vprintf(2,'Closing %s Training GUI',pName)
 
         % Restore the parameter's prior randomization behavior.
-        Parameter.isRandom = Parameter.UserData.ADAPTIVE.isRandom;
+        wasRandom = suspendedState(Parameter, 'isRandom');
+        if isempty(wasRandom)
+            vprintf(0,1,['%s training mode: no suspended-randomization snapshot to ' ...
+                'restore, so isRandom is left as it stands. A phase loaded since ' ...
+                'training was switched on replaces UserData wholesale.'], pName)
+        else
+            Parameter.isRandom = wasRandom;
+        end
+
         rda = repeatDelayParameter(RUNTIME);
         if ~isempty(rda)
-            rda.Value = rda.UserData.ADAPTIVE.Value;
+            rdaValue = suspendedState(rda, 'Value');
+            if ~isempty(rdaValue)
+                rda.Value = rdaValue;
+            end
         end
         Parameter.UserData.CORRECTVAL = []; % NEEDED DUE TO CONFLICT WITH TRIALSELECTION
 
@@ -201,6 +212,42 @@ catch e
     end
 end
 
+end
+
+
+function v = suspendedState(P, field)
+% v = suspendedState(P, field)
+% Read what training mode suspended, tolerating a UserData that has been
+% replaced since it was written.
+%
+% Two reasons the snapshot can be missing, and neither is a corrupt file.
+% A phase load applies the saved struct through hw.Parameter.fromStruct,
+% which assigns UserData WHOLESALE -- so loading any phase mid-training
+% carries the live snapshot away, and one saved before the staircase ->
+% adaptive rename brings the old key back in its place. The legacy key is
+% therefore read as an equal alternative rather than as a migration: it
+% holds exactly the same thing, written by an older version of this file.
+%
+% Empty means there is nothing to restore. The caller leaves the live state
+% alone and says so, because throwing on the way OUT of training mode would
+% abort the teardown and strand the parameter with randomization suspended --
+% the one state the operator was trying to leave.
+%
+% This is the documented exception to "do not isfield before access": the
+% field's absence is a real, expected state of a file written by an earlier
+% release, not a defensive check against a bug.
+
+v = [];
+U = P.UserData;
+if ~isstruct(U)
+    return
+end
+
+if isfield(U, 'ADAPTIVE') && isfield(U.ADAPTIVE, field)
+    v = U.ADAPTIVE.(field);
+elseif isfield(U, 'STAIRCASE') && isfield(U.STAIRCASE, field)
+    v = U.STAIRCASE.(field);
+end
 end
 
 

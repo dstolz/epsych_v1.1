@@ -96,6 +96,19 @@ For parameters whose parent is not `hw.Software`, the listener also writes the u
 
 This keeps the trial record aligned with the value that was applied after the response.
 
+A step the rule declines (the parameter has no value yet, or a proportional ladder has reached zero) returns the unstepped value and is **not** written to the table. Dealing a non-numeric value into a column would blank the schedule for the rest of the session.
+
+## The suspended state, and phase loads
+
+Switching training on records what it suspends in `Parameter.UserData.ADAPTIVE` — the parameter's `isRandom`, and `RepeatDelayOnAbort`'s value — and switching it off puts them back.
+
+That snapshot can be carried away mid-session, because `hw.Parameter.fromStruct` assigns `UserData` **wholesale**: loading any phase while training is on replaces it with whatever the phase file recorded. Two cases, both handled, so **no phase file needs re-saving**:
+
+- A phase saved before the staircase → adaptive rename carries the old `UserData.STAIRCASE` key. It is read as an equal alternative — same content, written by an older release — so it restores normally.
+- A phase carrying no snapshot at all leaves nothing to restore. Training still switches off cleanly and says so at level 0, rather than throwing: an exception on the way *out* of training mode would abort the teardown and strand the parameter with randomisation suspended, which is the state the operator was trying to leave.
+
+Note that a phase load also restores `isRandom` itself, so a phase loaded during training can un-suspend randomisation on its own. Loading a phase mid-training is worth avoiding for that reason, independently of the snapshot.
+
 ## Related documentation
 
 - See `documentation/gui/AdaptiveTraining.md` for the training-window UI and stepping rules.

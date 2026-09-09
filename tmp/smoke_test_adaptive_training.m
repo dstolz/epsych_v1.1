@@ -242,6 +242,36 @@ assert(pDelay.isRandom, 'randomisation is restored');
 fprintf('PASS: eval_adaptive_training_mode forwards the rule and tears down\n');
 
 
+% 9b. A phase load replaces UserData mid-training --------------------------
+% hw.Parameter.fromStruct assigns UserData WHOLESALE, so loading any phase
+% while training is on carries the suspended-randomisation snapshot away.
+% Switching training off must still complete: it used to throw, which aborted
+% the teardown and left the parameter with randomisation suspended -- the one
+% state the operator was trying to leave.
+pDelay.isRandom = true;
+gui.eval_adaptive_training_mode(host, [], struct('Value',1), pDelay, StepUp=100);
+assert(~pDelay.isRandom, 'training suspends randomisation');
+
+% The pre-rename key is the same snapshot written by an older release: an
+% .eprot saved before the rename restores exactly as one saved after it.
+pDelay.UserData = struct('STAIRCASE', struct('isRandom', true));
+[~,ok] = gui.eval_adaptive_training_mode(host, [], struct('Value',0), pDelay);
+assert(ok, 'training switches off over a pre-rename snapshot');
+assert(pDelay.isRandom, 'the legacy key restores randomisation');
+
+% A phase carrying no snapshot at all: nothing to restore, but the teardown
+% still has to finish and unregister.
+pDelay.isRandom = true;
+gui.eval_adaptive_training_mode(host, [], struct('Value',1), pDelay, StepUp=100);
+pDelay.UserData = struct('SomethingElse', 1);
+[~,ok] = gui.eval_adaptive_training_mode(host, [], struct('Value',0), pDelay);
+assert(ok, 'training switches off with no snapshot at all');
+assert(~host.AdaptiveTrainingGUIs.isKey('StimDelay'), 'the window is still unregistered');
+assert(~host.AdaptiveTrainingListeners.isKey('StimDelay'), 'the listener is still removed');
+
+fprintf('PASS: training mode switches off after a phase load replaced UserData\n');
+
+
 % 10. A parameter with no value yet ----------------------------------------
 % add_parameter fills Values, not Value: a parameter the trial dispatcher has
 % not written is empty, and training mode can be switched on from a checkbox

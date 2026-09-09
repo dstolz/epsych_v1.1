@@ -895,7 +895,15 @@ unconstructable. `epsych.SelfTest` check A3 is the tripwire.
   Advanced disclosure — two of the four columns an operator read past every
   time they changed a step size — remembered per rig; the RULE settings
   deliberately do NOT persist, since a remembered regime would change how a
-  subject is trained without anyone choosing it that session. Standing proof
+  subject is trained without anyone choosing it that session. Nothing here
+  changes the `.eprot` format, so **no phase file needs re-saving**:
+  `gui.eval_adaptive_training_mode` records what it suspends in
+  `Parameter.UserData.ADAPTIVE`, and since `hw.Parameter.fromStruct` assigns
+  `UserData` WHOLESALE a phase loaded mid-training carries that snapshot
+  away — so the pre-rename `STAIRCASE` key is read as an equal alternative
+  (same content, older release), and a snapshot gone entirely logs and leaves
+  `isRandom` alone rather than throwing, which would abort the teardown and
+  strand the parameter with randomization suspended. Standing proof
   `tmp/smoke_test_adaptive_training.m`
   (documentation/gui/AdaptiveTraining.md)
 - **gui.ParameterDebugger**: the other window on RunExpt's Help menu (Ctrl+E) — every
