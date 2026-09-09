@@ -135,7 +135,7 @@ Rules that matter:
   `gui.components.Parameter_Control` limits the edit field to the same range, so a 250 ms
   step in a 1000-4000 ms list silently becomes 1000); a repeat-on-abort is a
   held index rather than a stashed value; and anything ELSE that drives the
-  same parameter — `gui.StaircaseTraining` in training mode — has to make the
+  same parameter — `gui.AdaptiveTraining` in training mode — has to make the
   sequence stand down, since suspending `isRandom` does not stop a selector
   (see documentation/epsych/epsych_BlockSequence.md,
   documentation/paradigms/cl_AppetitiveStimDetect.md)
@@ -864,7 +864,48 @@ unconstructable. `epsych.SelfTest` check A3 is the tripwire.
   (`gui.components.Parameter_Monitor` → `parametermonitor`) and `gui.components.ComponentToolbar`
   falls back to the generic `component` glyph, so a new `gui.PopOut` adopter
   works before anyone draws for it
-- Session control: StaircaseTraining, StatusBar, Triggers
+- Session control: StatusBar, Triggers
+- **gui.AdaptiveTraining**: the step rule driving one `hw.Parameter` during
+  progressive training, and the plot of where it has gone. The rule is a pure
+  static (`stepValue`), so the four VALUE SPACES a step can be taken in are
+  testable with no figure: linear, `logarithmic` (proportional — a fixed
+  fraction per step), `power` (Stevens-law compression or expansion), and
+  `piecewise` (magnitudes from a breakpoint table — coarse far from
+  threshold, fine near it). The thing that makes them interchangeable is the
+  CALIBRATION: `StepUp`/`StepDown` always mean parameter units AT the
+  reference, and each space matches a linear step's slope there, so changing
+  space cannot silently rescale a ladder that already works — it only changes
+  how the ladder spreads out away from the reference. The reference must be a
+  FIXED value (it seeds itself from `MinValue` and is shown in the field the
+  moment a warped space is chosen): calibrating on the current value would
+  make every step the same fraction of wherever the track happens to be,
+  which is a linear step with extra arithmetic. Four more a reader would
+  otherwise re-derive: a proportional step from a non-positive value is
+  REFUSED rather than fudged, logged once instead of once a trial, since
+  training runs unattended; the preview line (`Next ▲ 1600 ms (+350) ▼ 1150 ms
+  (−100)`) is what makes a warped space legible at all and so follows the
+  CURRENT value, refreshed after every step and never by reading the device;
+  the plot's y axis is scaled to the TRACE with a bound pulled in only when
+  the ladder gets near it, because a range of 800–1600 inside bounds of
+  400–4000 drew the fine structure — which reversal the animal is on — in a
+  quarter of the axes; and the window opens over a parameter with an EMPTY
+  `Value` (`add_parameter` fills `Values`, not `Value`, and a checkbox or a
+  phase load can switch training on before the first dispatch), stepping only
+  once there is something to step from. The `≥`/`≤` edit limits moved into an
+  Advanced disclosure — two of the four columns an operator read past every
+  time they changed a step size — remembered per rig; the RULE settings
+  deliberately do NOT persist, since a remembered regime would change how a
+  subject is trained without anyone choosing it that session. Nothing here
+  changes the `.eprot` format, so **no phase file needs re-saving**:
+  `gui.eval_adaptive_training_mode` records what it suspends in
+  `Parameter.UserData.ADAPTIVE`, and since `hw.Parameter.fromStruct` assigns
+  `UserData` WHOLESALE a phase loaded mid-training carries that snapshot
+  away — so the pre-rename `STAIRCASE` key is read as an equal alternative
+  (same content, older release), and a snapshot gone entirely logs and leaves
+  `isRandom` alone rather than throwing, which would abort the teardown and
+  strand the parameter with randomization suspended. Standing proof
+  `tmp/smoke_test_adaptive_training.m`
+  (documentation/gui/AdaptiveTraining.md)
 - **gui.ParameterDebugger**: the other window on RunExpt's Help menu (Ctrl+E) — every
   hw.Parameter a protocol defines, in one table, readable and writable by hand. It
   **never polls**: a read happens only on a double-click, Read Selected, or Read All

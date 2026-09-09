@@ -243,7 +243,7 @@ Pattern — assign an evaluator to the GUI control wrapper. The callback is invo
 * `h.EvaluatorFcn = @gui.eval_dependent_parameter_randomization;`
 * `h.EvaluatorArgs = {pMin, pMax, pTarget};`
 
-(`gui.eval_dependent_parameter_randomization` and `gui.eval_staircase_training_mode` are ready-made evaluators used by the reference GUI; write your own with the same signature for task-specific rules.)
+(`gui.eval_dependent_parameter_randomization` and `gui.eval_adaptive_training_mode` are ready-made evaluators used by the reference GUI; write your own with the same signature for task-specific rules.)
 
 This is useful when:
 

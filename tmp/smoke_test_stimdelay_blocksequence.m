@@ -195,7 +195,7 @@ fprintf('PASS: a step finer than the list Min survives and drives 13 values\n');
 
 
 % 7. Training mode takes the parameter over ---------------------------------
-% gui.StaircaseTraining steps StimDelay itself and writes it into the trials
+% gui.AdaptiveTraining steps StimDelay itself and writes it into the trials
 % table. Both driving it would overwrite each other every trial, so the
 % sequence stands down -- without clearing the operator's checkbox, so
 % switching training off resumes where the sequence stood.

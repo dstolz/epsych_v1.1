@@ -108,7 +108,7 @@ Analysis and GUI classes
    ├─ RegenerateTrial
    ├─ ScreenCapture
    ├─ SlidingWindowPerformancePlot
-   ├─ StaircaseTraining
+   ├─ AdaptiveTraining
    └─ StatusBar
 ```
 

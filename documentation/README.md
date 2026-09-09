@@ -27,7 +27,7 @@ Daily workflow:
 - [RunExpt GUI Overview](overviews/RunExpt_GUI_Overview.md) — configuring subjects and running sessions
 - [Subjects & Projects](gui/gui_SubjectManager.md) — organizing subjects by project and adding several to a session at once
 - [Phase Selector](gui/PhaseSelector.md) — switching parameter sets between training stages
-- [Staircase Training GUI](gui/StaircaseTraining.md) — step rules and bounds for progressive training
+- [Adaptive Training GUI](gui/AdaptiveTraining.md) — step rules, bounds, and the value space (linear, proportional, power-law, piecewise) an adaptive track steps in
 - [Parameter Debugger](gui/gui_ParameterDebugger.md) — reading and writing hardware parameters by hand when a paradigm misbehaves
 
 Stimuli and calibration — these live in the `stimgen` submodule, which maintains
@@ -98,7 +98,7 @@ GUI components (`gui`):
 - [gui.components.SyringePump](gui/gui_SyringePump.md) — operator panel for an `hw.NE1000` reward pump
 - [gui.VlcRecorderSetup](gui/VlcRecorderSetup.md) — webcam preview UI for configuring VlcRecorder device/fps/resolution/crop
 - [gui.VideoConverterSetup](util/VideoConverter.md) — batch video conversion UI (see util.VideoConverter)
-- [eval_staircase_training_mode](gui/eval_staircase_training_mode.md) — training-mode toggle callback
+- [eval_adaptive_training_mode](gui/eval_adaptive_training_mode.md) — training-mode toggle callback
 
 Analysis (`psychophysics`):
 

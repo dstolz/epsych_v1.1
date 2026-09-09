@@ -152,24 +152,24 @@ assert(~hTrain.Value, 'training mode should start off');
 % session) must be a no-op, not an attempt to restore a snapshot that was
 % never taken.
 pTrain.Value = false;
-assert(isempty(g.StaircaseTrainingGUIs) || ~g.StaircaseTrainingGUIs.isKey('StimDelay'), ...
+assert(isempty(g.AdaptiveTrainingGUIs) || ~g.AdaptiveTrainingGUIs.isKey('StimDelay'), ...
     'switching training off while already off must not open anything');
 
 g.P.StimDelay.isRandom = true;   % the state training must suspend and restore
 pTrain.Value = true;
 assert(hTrain.Value, 'setting the parameter should tick the checkbox');
-assert(g.StaircaseTrainingGUIs.isKey('StimDelay'), 'training mode should open its window');
+assert(g.AdaptiveTrainingGUIs.isKey('StimDelay'), 'training mode should open its window');
 assert(~g.P.StimDelay.isRandom, 'training mode suspends stimulus-delay randomization');
 
 % Re-asserting an already-on toggle must not re-snapshot: doing so would
 % capture the suspended isRandom=false and lose the value to restore.
 pTrain.Value = true;
-assert(g.P.StimDelay.UserData.STAIRCASE.isRandom, ...
+assert(g.P.StimDelay.UserData.ADAPTIVE.isRandom, ...
     'a repeated enable must not overwrite the staircase snapshot');
 
 pTrain.Value = false;
 assert(~hTrain.Value, 'clearing the parameter should clear the checkbox');
-assert(~g.StaircaseTrainingGUIs.isKey('StimDelay'), 'training mode should close its window');
+assert(~g.AdaptiveTrainingGUIs.isKey('StimDelay'), 'training mode should close its window');
 assert(g.P.StimDelay.isRandom, 'switching training off restores randomization');
 g.P.StimDelay.isRandom = false;
 fprintf('PASS: training-mode checkbox is a phase-persistent parameter\n');

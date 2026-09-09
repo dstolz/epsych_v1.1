@@ -18,7 +18,7 @@ write MATLAB against the framework.
 | `Running-a-Session` | RunExpt: subjects from the roster, trial preview, run/pause/stop, Self-Test entry point |
 | `Stimuli-and-Calibration` | StimPlayer, speaker calibration, dB SPL → volts (links out to stimgen) |
 | `Parameter-Files-and-Phases` | Phase `.eprot` files, PhaseSelector, what a phase load does and does not restore |
-| `Training-and-Online-Analysis` | Staircase training, history, performance plots, session metrics |
+| `Training-and-Online-Analysis` | Adaptive training, history, performance plots, session metrics |
 | `Building-a-Behavior-GUI` | Subclassing `gui.BehaviorGUI`: lifecycle, `build(fig)`, event hooks, teardown |
 | `Behavior-GUI-Components` | The parts list — one `###` section per `obj/+gui/` component, each with its own screenshot |
 | `Behavior-GUI-Builder` | `gui.BehaviorBuilder`: the drag-and-drop route to a behavior GUI, the `.eblt` spec, and what it generates |

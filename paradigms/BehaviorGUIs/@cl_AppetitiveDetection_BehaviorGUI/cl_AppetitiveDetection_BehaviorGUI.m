@@ -53,8 +53,8 @@ classdef cl_AppetitiveDetection_BehaviorGUI < gui.BehaviorGUI
     end
 
     properties (Hidden)
-        StaircaseTrainingGUIs       % containers.Map of gui.StaircaseTraining instances keyed by parameter name
-        StaircaseTrainingListeners  % containers.Map of NewData listener handles keyed by parameter name
+        AdaptiveTrainingGUIs       % containers.Map of gui.AdaptiveTraining instances keyed by parameter name
+        AdaptiveTrainingListeners  % containers.Map of NewData listener handles keyed by parameter name
     end
 
     methods
@@ -70,10 +70,10 @@ classdef cl_AppetitiveDetection_BehaviorGUI < gui.BehaviorGUI
         end
 
         function delete(obj)
-            % Staircase-training windows and their listeners are created
-            % on demand by gui.eval_staircase_training_mode, so they are
+            % Adaptive-training windows and their listeners are created
+            % on demand by gui.eval_adaptive_training_mode, so they are
             % outside the base class component registry.
-            for m = {obj.StaircaseTrainingGUIs, obj.StaircaseTrainingListeners}
+            for m = {obj.AdaptiveTrainingGUIs, obj.AdaptiveTrainingListeners}
                 if ~isa(m{1},'containers.Map'), continue; end
                 k = m{1}.keys;
                 for i = 1:numel(k)
