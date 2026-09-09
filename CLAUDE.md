@@ -24,9 +24,9 @@ git clone --recurse-submodules https://github.com/dstolz/epsych2.git
 # For an existing clone:
 git submodule update --init --recursive
 
-# granary (the logging package) is a HARD dependency -- nothing in the toolbox
-# can log without it. It is the obj/granary submodule, so the line above is all
-# that is needed. Sharing one copy across checkouts? Point at it once instead:
+# granary (the logging package, obj/granary) is a HARD dependency -- nothing in
+# the toolbox can log without it, so a clone that skipped the submodules will
+# not start. Keeping it somewhere else? Point at that copy once instead:
 #   setpref('EPsych','GranaryPath','<folder holding +granary>')
 ```
 
@@ -1073,20 +1073,21 @@ re-uploading the state table.
 - RPco.x connection (TDTRP) and RPvds tag reading (ReadRPvdsTags)
 - Synapse SDK (SynapseAPI/)
 
-#### obj/granary/ – Logging (GIT SUBMODULE)
+#### obj/granary – Logging (GIT SUBMODULE)
 The machinery behind vprintf; almost nothing should call it directly.
-Separate repository: [dstolz/granary](https://github.com/dstolz/granary) —
-package is at `obj/granary/+granary/`. Edits here belong to that repo, not
-epsych2; commit there and update the submodule pointer. It is a hard
+Separate repository: [dstolz/granary](https://github.com/dstolz/granary), pinned
+here at `obj/granary`. Edits there belong to that repo; bumping the pointer here
+is a separate, deliberate commit, exactly as for `obj/stimgen`. It is a hard
 dependency: vprintf is a thin facade over `granary.printf`, so nothing in the
-toolbox can log without it. `epsych_startup`'s `setup_granary` finds it —
-already on the path, else `getpref('EPsych','GranaryPath')`, else the
-`obj/granary` submodule, else a sibling of the checkout, else a sibling one
-level up. The two sibling fallbacks stay for clones made before the submodule
-and for a **git worktree**, which lives a directory deeper than the checkout it
-was made from. It asserts with `git submodule update --init` instructions when
-it cannot, rather than letting "Undefined variable granary"
-surface from whichever call site logged first. Three settings are applied there
+toolbox can log without it. A checked-out submodule is already on the path by
+the time `epsych_startup`'s `setup_granary` runs, since `genpath` took
+`obj/granary` with the rest of the tree; the search that follows is the fallback
+for a clone made without `--recurse-submodules` and for a **git worktree**,
+which `git worktree add` leaves unpopulated — `getpref('EPsych','GranaryPath')`,
+else `obj/granary`, else a sibling of the checkout, else a sibling one level up.
+Failing all of those it asserts, naming `git submodule update --init
+--recursive`, rather than letting "Undefined variable granary" surface from
+whichever call site logged first. Three settings are applied there
 and nowhere else: `LogRoot` = the checkout (so `.error_logs` stays where EPsych
 has always written), `FacadeFiles` = `{'vprintf.m','LogBridge.m'}` (see
 `granary.callerFrame` below), and **`PrefGroup` = `'eplog'`, deliberately not
@@ -1114,8 +1115,8 @@ Nothing in the package throws: EPsych logs from inside catch blocks.
 stimgen reaches this package through `stimbridge.LogBridge`, not by calling `vprintf`.
 See documentation/granary/granary_Logging.md for the seam, and the granary
 repository's own README for the package. Its standing proofs are split to match:
-`tests/smoke_test_logging.m` there covers the package, `tmp/smoke_test_granary_integration.m`
-here covers the wiring.
+`obj/granary/tests/smoke_test_logging.m` covers the package,
+`tmp/smoke_test_granary_integration.m` here covers the wiring.
 
 #### helpers/ – Shared Utilities
 - **vprintf.m**: Verbosity-gated printing and logging; a façade over `granary.printf`
@@ -1171,7 +1172,7 @@ ERROR is reachable from any state.
 - Format policy: **with** values the message is a printf format string; **with no**
   values it is literal text. Pass runtime-built strings (ME.message, file paths,
   tool output) as the whole message so '%' and backslashes survive
-- vprintf is a façade over `granary.printf` (separate repo), which logs to .error_logs/
+- vprintf is a façade over `granary.printf` (the `obj/granary` submodule), which logs to .error_logs/
 - The console and the log have separate levels: GVerbosity gates the command window,
   GLogVerbosity gates the file and defaults to Inf, so EVERY message is logged
 - Never rebuild the log path by hand. `granary.Logger.instance().LogFile` names the
@@ -1285,8 +1286,8 @@ Reference: examples/customgui/, runtime/guis/@ep_GenericGUI/, paradigms/cl_SaveD
 - Use feature branches for significant changes
 - No force pushes to main/master without discussion
 - `obj/stimgen` and `obj/granary` are submodules pinned to `main`. Changes there
-  are committed in their own repo; bumping the pointer here is a separate,
-  deliberate commit.
+  are committed in the stimgen and granary repos; bumping a pointer here is a
+  separate, deliberate commit.
 
 ## Documentation Resources
 

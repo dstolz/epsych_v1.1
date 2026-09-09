@@ -55,42 +55,34 @@ Typical use case:
 ## Install EPsych
 
 1. Clone the repository **with submodules** to a stable local folder.
-2. Clone **`granary`**, the logging package, beside it.
-3. Open MATLAB.
-4. Add the repository root to the MATLAB path.
-5. Run the EPsych startup helper.
+2. Open MATLAB.
+3. Add the repository root to the MATLAB path.
+4. Run the EPsych startup helper.
 
-EPsych depends on two other repositories, and they are attached differently.
-[`stimgen`](https://github.com/dstolz/stimgen), the stimulus-generation package,
-is a git submodule at `obj/stimgen/`, so the clone must include it:
+EPsych depends on two other repositories, and both are attached as git
+submodules: [`stimgen`](https://github.com/dstolz/stimgen), the
+stimulus-generation package, at `obj/stimgen/`, and
+[`granary`](https://github.com/dstolz/granary), the logging package, at
+`obj/granary/`. The clone must include them:
 
 ```bash
 git clone --recurse-submodules https://github.com/dstolz/epsych2.git
 ```
 
 If you already cloned without `--recurse-submodules`, or you copied the folder
-rather than cloning it, fetch the submodule before continuing:
+rather than cloning it, fetch the submodules before continuing:
 
 ```bash
 cd epsych2
 git submodule update --init --recursive
 ```
 
-That fetches both submodules: [`stimgen`](https://github.com/dstolz/stimgen),
-the stimulus package, at `obj/stimgen/`, and
-[`granary`](https://github.com/dstolz/granary), the logging package, at
-`obj/granary/`.
-
-To share one copy of `granary` across several checkouts, say so once and EPsych
-will use it instead:
+To run against a copy of `granary` kept somewhere else — one shared by several
+checkouts, say — point at that folder once and EPsych will remember:
 
 ```matlab
 setpref('EPsych','GranaryPath','D:\shared\granary')   % the folder holding +granary
 ```
-
-Unlike a missing stimgen, a missing `granary` fails **loudly**: `vprintf` is a
-thin facade over `granary.printf`, so nothing in the toolbox can log without it
-and `epsych_startup` stops with instructions rather than starting.
 
 Then, in MATLAB:
 
@@ -99,13 +91,14 @@ addpath('C:\path\to\epsych2')
 epsych_startup
 ```
 
-`epsych_startup` locates `granary` and verifies the submodule is present,
-printing an actionable message for each. Do not skip the stimgen warning:
-without it, protocols containing stimulus parameters load with silently
-degraded values instead of failing outright. See [stimgen.md](../stimgen.md)
-and [granary_Logging.md](../granary/granary_Logging.md).
+`epsych_startup` verifies both submodules and prints an actionable message for
+each. The two failures are not alike, and neither warning should be skipped. See
+[stimgen.md](../stimgen.md) and
+[granary_Logging.md](../granary/granary_Logging.md).
 
-> ⚠️ **The submodule failure is silent, not loud.** Without `stimgen`, nothing errors when a protocol loads — the stimulus values are simply wrong. Heed `epsych_startup`'s warning and run `git submodule update --init --recursive`.
+> ⚠️ **The stimgen failure is silent, not loud.** Without `stimgen`, nothing errors when a protocol loads — the stimulus values are simply wrong. Heed `epsych_startup`'s warning and run `git submodule update --init --recursive`.
+
+> 🔑 **The granary failure is loud.** `vprintf` is a thin facade over `granary.printf`, so nothing in the toolbox can log without it and `epsych_startup` stops rather than starting. That is deliberately the opposite of the stimgen failure above.
 
 What `epsych_startup` does:
 
@@ -131,7 +124,9 @@ Two things do not follow automatically:
   memory. Run `clear classes`, or restart MATLAB, before starting a session.
 - `git worktree add` does not populate submodules. Run
   `git submodule update --init --recursive` inside the new worktree, or
-  `epsych_startup` will report `obj/stimgen` as unavailable.
+  `epsych_startup` will report `obj/stimgen` as unavailable. `granary` is the
+  one that keeps working anyway: `setup_granary` falls back to a sibling one
+  directory up, which is where the checkout the worktree was made from sits.
 
 The worktree may live anywhere, including under a dotted directory — only the
 part of a folder *below* the repository root is tested for the leading period.

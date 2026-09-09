@@ -16,25 +16,31 @@ destination.
 
 ## It is a separate repository, attached as a submodule
 
-`granary` is developed and released on its own at
-[dstolz/granary](https://github.com/dstolz/granary), and is attached to this
-repository as a git submodule at `obj/granary/` — the same arrangement as
-[stimgen](../stimgen.md). It is a hard dependency: `vprintf` is a thin forward
-to `granary.printf`, so nothing here can log without it. Clone with
-`--recurse-submodules`, or run `git submodule update --init --recursive` in an
-existing clone.
+`granary` is its own repository — [dstolz/granary](https://github.com/dstolz/granary)
+— pinned here as a git submodule at `obj/granary`. Edits to the package belong
+to that repository; bumping the pointer here is a separate, deliberate commit,
+exactly as for `obj/stimgen`. So clone recursively:
 
-`epsych_startup`'s `setup_granary` locates it — already on the path, then a
-`setpref('EPsych','GranaryPath','<folder holding +granary>')` override, then
-the submodule at `obj/granary`, then a sibling of the checkout, then a sibling
-one level up. The two sibling fallbacks are what keep a clone made before the
-submodule working, and are where a **git worktree** finds it, since a worktree
-lives a directory deeper than the checkout it was made from. When none of them
-has it, startup stops with instructions rather than letting `Undefined variable
-granary` surface later from whichever call site happened to log first.
+```bash
+git clone --recurse-submodules https://github.com/dstolz/epsych2.git
+# or, in an existing clone:
+git submodule update --init --recursive
+```
 
-Edits to the package belong to that repository: commit them there, then bump
-the pointer here as a separate, deliberate commit.
+It is a hard dependency: `vprintf` is a thin forward to `granary.printf`, so
+nothing here can log without it.
+
+A checked-out submodule is already on the MATLAB path by the time
+`epsych_startup`'s `setup_granary` runs — `genpath` took `obj/granary` with the
+rest of the tree. The search it does otherwise is the fallback for a clone made
+without `--recurse-submodules`, and for a worktree, which `git worktree add`
+leaves unpopulated: `setpref('EPsych','GranaryPath','<folder holding +granary>')`
+first, so a copy shared between checkouts can be named once; then `obj/granary`
+itself; then a sibling of the checkout; then a sibling one level up, which is
+where a **git worktree** finds the tree it was made from. Failing all of those,
+startup stops and names `git submodule update --init --recursive` rather than
+letting `Undefined variable granary` surface later from whichever call site
+happened to log first.
 
 Startup also applies the three settings that a library cannot discover about
 its host:
@@ -283,7 +289,7 @@ caller never sees the error.
 | [`granary.sink.TextFile`](https://github.com/dstolz/granary/blob/main/+granary/+sink/TextFile.m) | human-readable daily log |
 | [`granary.sink.JsonLines`](https://github.com/dstolz/granary/blob/main/+granary/+sink/JsonLines.m) | structured daily log (opt-in) |
 
-Tests: [`the granary repo tests/smoke_test_logging.m`](../../the granary repo tests/smoke_test_logging.m) covers the
+Tests: [`obj/granary/tests/smoke_test_logging.m`](../../obj/granary/tests/smoke_test_logging.m) covers the
 package in isolation;
 [`tmp/smoke_test_granary_integration.m`](../../tmp/smoke_test_granary_integration.m)
 covers the `vprintf` seam and the consumers that name the log file;
