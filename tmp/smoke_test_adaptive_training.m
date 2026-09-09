@@ -1,25 +1,25 @@
-function smoke_test_staircase_training()
-% smoke_test_staircase_training()
-% Exercise gui.StaircaseTraining: the four value spaces its steps can be
+function smoke_test_adaptive_training()
+% smoke_test_adaptive_training()
+% Exercise gui.AdaptiveTraining: the four value spaces its steps can be
 % taken in, the calibration that makes them interchangeable at the reference,
 % the reject-on-violation edits, and the window itself.
 %
-% The step rule is a pure static (gui.StaircaseTraining.stepValue), so most of
+% The step rule is a pure static (gui.AdaptiveTraining.stepValue), so most of
 % this runs with no figure at all; the last group builds the window over an
 % hw.Software parameter to prove the widgets still wire up.
 %
-%   matlab -batch "run('tmp/smoke_test_staircase_training.m')"
+%   matlab -batch "run('tmp/smoke_test_adaptive_training.m')"
 
 here = fileparts(mfilename('fullpath'));
 run(fullfile(here,'..','epsych_startup.m'));
-addpath(here);   % StaircaseTrainingTestHost lives beside this test
+addpath(here);   % AdaptiveTrainingTestHost lives beside this test
 
 % The window remembers whether Advanced was left open, and group 7 opens it.
 % Restore whatever this rig had, or running the test would change the
 % operator's window.
-restorePrefs = guardPreferences("StaircaseTraining", {"ShowAdvanced","Position"});   % group 11 opens real windows
+restorePrefs = guardPreferences("AdaptiveTraining", {"ShowAdvanced","Position"});   % group 11 opens real windows
 
-step = @gui.StaircaseTraining.stepValue;
+step = @gui.AdaptiveTraining.stepValue;
 
 
 % 1. Linear stepping is unchanged -----------------------------------------
@@ -117,9 +117,9 @@ assert(step(1500,"down",StepDown=50,ScaleType="piecewise",Breakpoints=B) == 1300
     'down reads the segment down column');
 
 % Rows in any order, and non-finite From values dropped.
-shuffled = gui.StaircaseTraining.sortBreakpoints([2000 500 500; 1000 200 200]);
+shuffled = gui.AdaptiveTraining.sortBreakpoints([2000 500 500; 1000 200 200]);
 assert(isequal(shuffled, B), 'breakpoints sort ascending by From value');
-assert(size(gui.StaircaseTraining.sortBreakpoints([Inf 1 1; 5 2 2]),1) == 1, ...
+assert(size(gui.AdaptiveTraining.sortBreakpoints([Inf 1 1; 5 2 2]),1) == 1, ...
     'a non-finite breakpoint is dropped');
 
 % An empty table degrades to the base magnitudes rather than refusing.
@@ -137,7 +137,7 @@ P.Value = 1000;
 fig = uifigure('Visible','off');
 cleanupFig = onCleanup(@() delete(fig));
 
-G = gui.StaircaseTraining(P, Parent=fig, ...
+G = gui.AdaptiveTraining(P, Parent=fig, ...
     MinValue=400, MaxValue=4000, StepUp=350, StepDown=100, ...
     StepUpLimits=[0 500], StepDownLimits=[0 500], ...
     MinValueLimits=[400 4000], MaxValueLimits=[400 4000]);
@@ -192,7 +192,7 @@ fprintf('PASS: the Advanced rules drive the same stepping the statics do\n');
 
 
 % 8. Reject-on-violation is unchanged --------------------------------------
-G = gui.StaircaseTraining(P, Parent=fig, MinValue=400, MaxValue=4000, ...
+G = gui.AdaptiveTraining(P, Parent=fig, MinValue=400, MaxValue=4000, ...
     StepUp=350, StepDown=100, StepUpLimits=[0 500]);
 
 G.ScaleType = "power";
@@ -221,25 +221,25 @@ rt.Interfaces = sw2;
 pDelay = rt.find_parameter('StimDelay');
 pDelay.isRandom = true;
 
-host = StaircaseTrainingTestHost(rt);
-[~,ok] = gui.eval_staircase_training_mode(host, [], struct('Value',1), pDelay, ...
+host = AdaptiveTrainingTestHost(rt);
+[~,ok] = gui.eval_adaptive_training_mode(host, [], struct('Value',1), pDelay, ...
     StepUp=100, StepDown=50, ScaleType="piecewise", ...
     Breakpoints=[2000 400 200], StepUpResponse="Miss", StepDownResponse="Hit");
 assert(ok, 'training mode switches on');
-assert(host.StaircaseTrainingGUIs.isKey('StimDelay'), 'the window is registered under the parameter');
+assert(host.AdaptiveTrainingGUIs.isKey('StimDelay'), 'the window is registered under the parameter');
 
-W = host.StaircaseTrainingGUIs('StimDelay');
+W = host.AdaptiveTrainingGUIs('StimDelay');
 assert(W.ScaleType == "piecewise", 'the value space reaches the window');
 assert(isequal(W.Breakpoints, [2000 400 200]), 'so do the breakpoints');
 assert(W.StepUpResponse == "Miss", 'and the response mapping the header shows');
 assert(~pDelay.isRandom, 'randomisation is suspended while training runs');
 
-[~,ok] = gui.eval_staircase_training_mode(host, [], struct('Value',0), pDelay);
+[~,ok] = gui.eval_adaptive_training_mode(host, [], struct('Value',0), pDelay);
 assert(ok, 'training mode switches off');
-assert(~host.StaircaseTrainingGUIs.isKey('StimDelay'), 'the window is unregistered');
+assert(~host.AdaptiveTrainingGUIs.isKey('StimDelay'), 'the window is unregistered');
 assert(pDelay.isRandom, 'randomisation is restored');
 
-fprintf('PASS: eval_staircase_training_mode forwards the rule and tears down\n');
+fprintf('PASS: eval_adaptive_training_mode forwards the rule and tears down\n');
 
 
 % 10. A parameter with no value yet ----------------------------------------
@@ -251,7 +251,7 @@ sw3 = hw.Software;
 pFresh = sw3.add_parameter('Depth', 50, Unit='%', Min=0, Max=100);
 assert(isempty(pFresh.Value), 'fixture check: an unwritten parameter has no Value');
 
-G = gui.StaircaseTraining(pFresh, Parent=fig, MinValue=0, MaxValue=100, ...
+G = gui.AdaptiveTraining(pFresh, Parent=fig, MinValue=0, MaxValue=100, ...
     StepUp=5, StepDown=2, ScaleType="power", ScaleExponent=0.5);
 
 assert(isempty(G.ValueHistory), 'no value means no history point');
@@ -271,16 +271,16 @@ fprintf('PASS: the window opens over a parameter the dispatcher has not written\
 % and saves the grown size, so it compounds.
 DEFAULT_H = 400; ADVANCED_H = 232;   % see DEFAULT_SIZE / ADVANCED_HEIGHT
 
-if ispref('StaircaseTraining','Position'), rmpref('StaircaseTraining','Position'); end
-setpref('StaircaseTraining','ShowAdvanced',true);
+if ispref('AdaptiveTraining','Position'), rmpref('AdaptiveTraining','Position'); end
+setpref('AdaptiveTraining','ShowAdvanced',true);
 
-W = gui.StaircaseTraining(P, WindowStyle="normal");
+W = gui.AdaptiveTraining(P, WindowStyle="normal");
 h1 = W.Parent.Position(4);
 assert(h1 == 560 + ADVANCED_H, ...
     'first open with Advanced remembered should be %d px, got %d', 560+ADVANCED_H, h1);
 delete(W);
 
-W = gui.StaircaseTraining(P, WindowStyle="normal");   % against the position just saved
+W = gui.AdaptiveTraining(P, WindowStyle="normal");   % against the position just saved
 assert(W.Parent.Position(4) == h1, 'reopening grew the window');
 W.ShowAdvanced = false;
 assert(W.Parent.Position(4) == 560, 'collapsing did not give the height back');
@@ -293,7 +293,7 @@ delete(W);
 fprintf('PASS: the Advanced section is counted once\n');
 
 
-fprintf('\nALL STAIRCASE TRAINING CHECKS PASSED\n');
+fprintf('\nALL ADAPTIVE TRAINING CHECKS PASSED\n');
 end
 
 

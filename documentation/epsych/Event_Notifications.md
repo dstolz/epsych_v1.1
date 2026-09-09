@@ -80,7 +80,7 @@ end
 
 - Runtime-to-analysis subscription: [obj/+psychophysics/Psych.m](../../obj/+psychophysics/Psych.m)
 - Detection analysis subscription: [obj/+psychophysics/@Detection/Detection.m](../../obj/+psychophysics/@Detection/Detection.m)
-- Training callback: [obj/+gui/eval_staircase_training_mode.m](../../obj/+gui/eval_staircase_training_mode.m)
+- Training callback: [obj/+gui/eval_adaptive_training_mode.m](../../obj/+gui/eval_adaptive_training_mode.m)
 
 ### Analysis-layer `NewData`
 

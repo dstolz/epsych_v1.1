@@ -583,7 +583,7 @@ function v = step_value(p)
 % Current training step magnitude, falling back to the design-time level.
 %
 % add_parameter seeds Values, not Value, so a parameter the trial dispatcher
-% has not written yet has an empty Value -- and gui.eval_staircase_training_mode
+% has not written yet has an empty Value -- and gui.eval_adaptive_training_mode
 % requires a scalar. That gap is reachable now that training mode can be
 % switched by a phase load or a protocol default rather than only by an
 % operator clicking mid-session.
@@ -710,7 +710,7 @@ function set_stimdelay_training_state(obj,event,pStimDelay,pStepUp,pStepDown,hCo
 %
 % Training mode steps StimDelay itself, from its own window and its own
 % NewData listener, and writes the result into the trials table. Nothing
-% else may drive the parameter while it runs: gui.eval_staircase_training_mode
+% else may drive the parameter while it runs: gui.eval_adaptive_training_mode
 % suspends isRandom, and cl_AppetitiveStimDetect stands its block sequence
 % down. The controls are greyed rather than hidden so the operator can still
 % see the configuration that resumes when training is switched off.
@@ -728,7 +728,7 @@ function set_stimdelay_training_state(obj,event,pStimDelay,pStepUp,pStepDown,hCo
 %       randomization checkbox, which is also what restores the others when
 %       training ends; [] entries are skipped.
 
-gui.eval_staircase_training_mode(obj,[],event,pStimDelay, ...
+gui.eval_adaptive_training_mode(obj,[],event,pStimDelay, ...
     StepUp   = step_value(pStepUp), ...
     StepDown = step_value(pStepDown));
 

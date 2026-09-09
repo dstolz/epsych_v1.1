@@ -31,7 +31,7 @@ if isempty(obj.Parent)
     if obj.ShowAdvanced
         obj.AdvancedHeightApplied = obj.ADVANCED_HEIGHT;
     end
-    fig = uifigure('Name', 'Staircase Training', ...
+    fig = uifigure('Name', 'Adaptive Training', ...
         'Position', gui.fitPositionToMonitor(fpos));
     fig.WindowStyle = char(obj.WindowStyle);
     fig.CloseRequestFcn = @(~,~)delete(obj);
@@ -39,7 +39,7 @@ if isempty(obj.Parent)
     obj.OwnsParentFigure = true;
 else
     if ~isvalid(obj.Parent)
-        vprintf(0,1,'StaircaseTraining: Parent is not a valid container; the window cannot be built.');
+        vprintf(0,1,'AdaptiveTraining: Parent is not a valid container; the window cannot be built.');
     end
 end
 

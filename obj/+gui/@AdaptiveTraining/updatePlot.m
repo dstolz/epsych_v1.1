@@ -2,7 +2,7 @@ function updatePlot(obj)
 %UPDATEPLOT Redraw the value-history plot from ValueHistory.
 %
 % Every graphics object is created once in createUI and updated in place
-% here: a staircase runs for hundreds of trials, and one line or marker per
+% here: a training session runs for hundreds of trials, and one line or marker per
 % step would leave the axes carrying hundreds of objects, all re-rendered on
 % every drawnow.
 %
@@ -186,7 +186,7 @@ end
 % between 800 and 1600 inside bounds of 400 and 4000 would otherwise be drawn
 % in a quarter of the axes with the rest of it empty, and the fine structure
 % -- which reversal the animal is on -- is the entire point of the plot. A
-% bound is pulled into view only when the staircase gets close enough to it
+% bound is pulled into view only when the track gets close enough to it
 % to matter, which is also the only time it is worth the vertical space.
 reach = 0.35*max(hi - lo, abs(hi)*0.1);
 if isfinite(obj.MinValue) && obj.MinValue > lo - pad - reach

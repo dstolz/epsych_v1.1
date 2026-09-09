@@ -1,5 +1,5 @@
-classdef StaircaseTraining < handle
-%STAIRCASETRAINING Configure staircase training step rules (immediate commit).
+classdef AdaptiveTraining < handle
+%ADAPTIVETRAINING Configure adaptive training step rules (immediate commit).
 %
 %   This GUI edits the step rule that drives a single hw.Parameter during
 %   progressive training: the step magnitudes, the bounds they are clamped
@@ -10,7 +10,7 @@ classdef StaircaseTraining < handle
 %   reverted, and the reason is shown in the status line.
 %
 %   VALUE SPACES (ScaleType)
-%     A staircase does not have to walk in equal native-unit steps. The step
+%     An adaptive track does not have to walk in equal native-unit steps. The step
 %     magnitudes StepUp/StepDown always mean "this many parameter units at
 %     the reference value"; ScaleType decides how the step grows or shrinks
 %     as the value moves away from that reference:
@@ -56,8 +56,8 @@ classdef StaircaseTraining < handle
 %       ensure it is safe to update (synchronization is external).
 %
 %   CONSTRUCTOR
-%     G = gui.StaircaseTraining(Parameter)
-%     G = gui.StaircaseTraining(Parameter, Name=Value,...)
+%     G = gui.AdaptiveTraining(Parameter)
+%     G = gui.AdaptiveTraining(Parameter, Name=Value,...)
 %
 %   NAME-VALUE OPTIONS
 %     Parent           handle   (default = [])
@@ -76,8 +76,8 @@ classdef StaircaseTraining < handle
 %     ShowAdvanced      (1,1) logical  open the Advanced section on creation
 %     WindowStyle       (1,1) string   "alwaysontop" | "modal" | "normal" (only if Parent=[])
 %
-%   Documentation: documentation/gui/StaircaseTraining.md
-%   See also gui.eval_staircase_training_mode, uifigure, uitable, uigridlayout
+%   Documentation: documentation/gui/AdaptiveTraining.md
+%   See also gui.eval_adaptive_training_mode, uifigure, uitable, uigridlayout
 
     properties (SetObservable)
         % Committed (active) values
@@ -114,7 +114,7 @@ classdef StaircaseTraining < handle
     end
 
     properties (Constant, Access = protected)
-        PREFERENCE_TAG = 'StaircaseTraining'
+        PREFERENCE_TAG = 'AdaptiveTraining'
         DEFAULT_SIZE = [400 560] % [width height] of an owned figure, Advanced collapsed
         ADVANCED_HEIGHT = 232 % rows the Advanced section takes when open
         COLOR_UP    = [0.85 0.33 0.10]
@@ -175,7 +175,7 @@ classdef StaircaseTraining < handle
 
 
     methods
-        function obj = StaircaseTraining(Parameter, options)
+        function obj = AdaptiveTraining(Parameter, options)
             % Constructor; embed into Parent if provided, otherwise create figure.
             arguments
                 Parameter % hw.Parameter
@@ -285,7 +285,7 @@ classdef StaircaseTraining < handle
             % Value: training mode can be switched on from a checkbox or a
             % phase load before the first trial. There is nothing to step
             % away from, so say so and leave it alone.
-            if ~gui.StaircaseTraining.isSteppable(v)
+            if ~gui.AdaptiveTraining.isSteppable(v)
                 obj.setStatus("Waiting for the first value of " + ...
                     string(obj.Parameter.Name) + ".", isError=false);
                 return
@@ -298,7 +298,7 @@ classdef StaircaseTraining < handle
             % ladder that has reached zero) reports once, not once a trial.
             if ~info.Ok
                 if info.Message ~= obj.LastStepMessage
-                    vprintf(0,1,'%s staircase step skipped: %s', obj.Parameter.Name, info.Message);
+                    vprintf(0,1,'%s adaptive step skipped: %s', obj.Parameter.Name, info.Message);
                     obj.LastStepMessage = info.Message;
                 end
                 obj.setStatus(info.Message, isError=true);
@@ -345,7 +345,7 @@ classdef StaircaseTraining < handle
         end
 
         function set.Breakpoints(obj, value)
-            obj.Breakpoints = gui.StaircaseTraining.sortBreakpoints(value);
+            obj.Breakpoints = gui.AdaptiveTraining.sortBreakpoints(value);
             obj.refreshUI();
         end
 
@@ -413,7 +413,7 @@ classdef StaircaseTraining < handle
         function tf = hasCurrentValue(obj)
             % True when the parameter holds a value a rule can be applied to.
             % Reads the parameter; prefer isSteppable where the value is in hand.
-            tf = gui.StaircaseTraining.isSteppable(obj.Parameter.Value);
+            tf = gui.AdaptiveTraining.isSteppable(obj.Parameter.Value);
         end
 
         function r = referenceValue(obj, currentValue)
@@ -425,7 +425,7 @@ classdef StaircaseTraining < handle
             % A reference the operator never chose has to be a FIXED value or
             % a proportional ladder is not proportional to anything: taking
             % the current value would make every step the same fraction of
-            % wherever the staircase happens to be, which is just a linear
+            % wherever the track happens to be, which is just a linear
             % step with extra arithmetic. Min is the sensible anchor -- it is
             % the easy end the training starts from -- and the field is
             % seeded with the resolved number so it is never a mystery.
@@ -443,7 +443,7 @@ classdef StaircaseTraining < handle
                 currentValue = obj.Parameter.Value;
             end
             candidates = [obj.MinValue, obj.MaxValue, 1];
-            if gui.StaircaseTraining.isSteppable(currentValue)
+            if gui.AdaptiveTraining.isSteppable(currentValue)
                 candidates = [obj.MinValue, obj.MaxValue, currentValue, 1];
             end
             if obj.ScaleType == "logarithmic"
@@ -490,7 +490,7 @@ classdef StaircaseTraining < handle
             obj.MaxValue = min(max(obj.MaxValue, obj.MaxValueLimits(1)), obj.MaxValueLimits(2));
 
             if obj.MinValue > obj.MaxValue
-                vprintf(0,1,'StaircaseTraining:InvalidMinMax', ...
+                vprintf(0,1,'AdaptiveTraining:InvalidMinMax', ...
                     'MinValue must be <= MaxValue.');
             end
         end
@@ -505,23 +505,23 @@ classdef StaircaseTraining < handle
 
             L = obj.(propName);
             if ~(isnumeric(L) && isvector(L) && numel(L) == 2 && all(~isnan(L)))
-                vprintf(0,1,'StaircaseTraining:InvalidLimits', ...
+                vprintf(0,1,'AdaptiveTraining:InvalidLimits', ...
                     '%s must be a 1x2 numeric vector.', propName);
             end
             L = double(L(:)).';
 
             if L(1) > L(2)
-                vprintf(0,1,'StaircaseTraining:InvalidLimits', ...
+                vprintf(0,1,'AdaptiveTraining:InvalidLimits', ...
                     '%s lower bound must be <= upper bound.', propName);
             end
 
             if options.isStep
                 if L(1) < 0
-                    vprintf(0,1,'StaircaseTraining:InvalidLimits', ...
+                    vprintf(0,1,'AdaptiveTraining:InvalidLimits', ...
                         '%s lower bound must be >= 0.', propName);
                 end
                 if L(2) <= 0
-                    vprintf(0,1,'StaircaseTraining:InvalidLimits', ...
+                    vprintf(0,1,'AdaptiveTraining:InvalidLimits', ...
                         '%s upper bound must be > 0.', propName);
                 end
             end

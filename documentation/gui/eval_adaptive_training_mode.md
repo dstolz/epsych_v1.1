@@ -1,8 +1,8 @@
-# eval_staircase_training_mode
+# eval_adaptive_training_mode
 
-`gui.eval_staircase_training_mode` enables or disables per-parameter staircase training from a GUI toggle callback.
+`gui.eval_adaptive_training_mode` enables or disables per-parameter adaptive training from a GUI toggle callback.
 
-It is typically used by parameter-control widgets that need to temporarily suspend randomisation and let trial outcomes drive a single `hw.Parameter` through a `gui.StaircaseTraining` window.
+It is typically used by parameter-control widgets that need to temporarily suspend randomisation and let trial outcomes drive a single `hw.Parameter` through a `gui.AdaptiveTraining` window.
 
 ## Wiring it to a state button or to a parameter
 
@@ -12,22 +12,22 @@ Prefer the checkbox. A state button's state lives only in the widget, so nothing
 
 Pass `[]` as `src` when the toggle itself is the control: a non-empty `src` is *disabled* while training runs, which for the toggle would leave the operator no way to switch training back off.
 
-Bound to a parameter, the callback also runs for **external** writes — `gui.components.Parameter_Control` invokes `PostUpdateFcn` on the parameter's `PostSet`, which is what lets a phase load open or close the training window. It is therefore idempotent in both directions: a repeated enable does not re-snapshot over the suspended values, and a disable with no preceding enable returns without trying to restore a snapshot that was never taken. The map entry in `StaircaseTrainingGUIs` is the record of which state is in effect.
+Bound to a parameter, the callback also runs for **external** writes — `gui.components.Parameter_Control` invokes `PostUpdateFcn` on the parameter's `PostSet`, which is what lets a phase load open or close the training window. It is therefore idempotent in both directions: a repeated enable does not re-snapshot over the suspended values, and a disable with no preceding enable returns without trying to restore a snapshot that was never taken. The map entry in `AdaptiveTrainingGUIs` is the record of which state is in effect.
 
 ## Call signatures
 
 ```matlab
-[value, success] = gui.eval_staircase_training_mode(obj, src, event, Parameter)
-[value, success] = gui.eval_staircase_training_mode(obj, src, event, Parameter, Name=Value)
+[value, success] = gui.eval_adaptive_training_mode(obj, src, event, Parameter)
+[value, success] = gui.eval_adaptive_training_mode(obj, src, event, Parameter, Name=Value)
 ```
 
 ## Behavior
 
 When `event.Value` is true, the callback:
 
-- Stores the current `Parameter.isRandom` state in `Parameter.UserData.STAIRCASE.isRandom`, and suspends `RepeatDelayOnAbort` the same way — **only** when training was not already on.
+- Stores the current `Parameter.isRandom` state in `Parameter.UserData.ADAPTIVE.isRandom`, and suspends `RepeatDelayOnAbort` the same way — **only** when training was not already on.
 - Forces `Parameter.isRandom = false`.
-- Opens or focuses a `gui.StaircaseTraining` window for the parameter.
+- Opens or focuses a `gui.AdaptiveTraining` window for the parameter.
 - Registers a `NewData` listener on `obj.RUNTIME.EVENTS`.
 
 When `event.Value` is false, the callback:
@@ -62,7 +62,7 @@ argument validator rather than silently never matching.
 
 ## Name-value options
 
-These options are accepted by `gui.eval_staircase_training_mode`:
+These options are accepted by `gui.eval_adaptive_training_mode`:
 
 - `MinValue`, `MaxValue`
 - `StepUp`, `StepDown`
@@ -70,9 +70,9 @@ These options are accepted by `gui.eval_staircase_training_mode`:
 - `MinValueLimits`, `MaxValueLimits`
 - `StepUpResponse`, `StepDownResponse`
 - `ScaleType`, `ScaleExponent`, `ScaleReference`, `Breakpoints` — the value space the
-  steps are taken in (see [StaircaseTraining](StaircaseTraining.md))
+  steps are taken in (see [AdaptiveTraining](AdaptiveTraining.md))
 
-Every option is forwarded to the `gui.StaircaseTraining` constructor.
+Every option is forwarded to the `gui.AdaptiveTraining` constructor.
 `StepUpResponse` and `StepDownResponse` are *also* retained here: the `NewData`
 listener is what acts on them, while the window uses them only to say which outcome
 steps which way.
@@ -82,8 +82,8 @@ steps which way.
 `obj` must expose the following members:
 
 - `RUNTIME`
-- `StaircaseTrainingGUIs`
-- `StaircaseTrainingListeners`
+- `AdaptiveTrainingGUIs`
+- `AdaptiveTrainingListeners`
 
 The callback stores GUI handles and listeners in those maps using `Parameter.Name` as the key.
 
@@ -98,5 +98,5 @@ This keeps the trial record aligned with the value that was applied after the re
 
 ## Related documentation
 
-- See `documentation/gui/StaircaseTraining.md` for the training-window UI and stepping rules.
-- See `obj/+gui/@StaircaseTraining/StaircaseTraining.m` for the class implementation.
+- See `documentation/gui/AdaptiveTraining.md` for the training-window UI and stepping rules.
+- See `obj/+gui/@AdaptiveTraining/AdaptiveTraining.m` for the class implementation.

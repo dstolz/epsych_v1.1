@@ -135,7 +135,7 @@ Rules that matter:
   `gui.components.Parameter_Control` limits the edit field to the same range, so a 250 ms
   step in a 1000-4000 ms list silently becomes 1000); a repeat-on-abort is a
   held index rather than a stashed value; and anything ELSE that drives the
-  same parameter — `gui.StaircaseTraining` in training mode — has to make the
+  same parameter — `gui.AdaptiveTraining` in training mode — has to make the
   sequence stand down, since suspending `isRandom` does not stop a selector
   (see documentation/epsych/epsych_BlockSequence.md,
   documentation/paradigms/cl_AppetitiveStimDetect.md)
@@ -865,7 +865,7 @@ unconstructable. `epsych.SelfTest` check A3 is the tripwire.
   falls back to the generic `component` glyph, so a new `gui.PopOut` adopter
   works before anyone draws for it
 - Session control: StatusBar, Triggers
-- **gui.StaircaseTraining**: the step rule driving one `hw.Parameter` during
+- **gui.AdaptiveTraining**: the step rule driving one `hw.Parameter` during
   progressive training, and the plot of where it has gone. The rule is a pure
   static (`stepValue`), so the four VALUE SPACES a step can be taken in are
   testable with no figure: linear, `logarithmic` (proportional — a fixed
@@ -878,7 +878,7 @@ unconstructable. `epsych.SelfTest` check A3 is the tripwire.
   how the ladder spreads out away from the reference. The reference must be a
   FIXED value (it seeds itself from `MinValue` and is shown in the field the
   moment a warped space is chosen): calibrating on the current value would
-  make every step the same fraction of wherever the staircase happens to be,
+  make every step the same fraction of wherever the track happens to be,
   which is a linear step with extra arithmetic. Four more a reader would
   otherwise re-derive: a proportional step from a non-positive value is
   REFUSED rather than fudged, logged once instead of once a trial, since
@@ -896,8 +896,8 @@ unconstructable. `epsych.SelfTest` check A3 is the tripwire.
   time they changed a step size — remembered per rig; the RULE settings
   deliberately do NOT persist, since a remembered regime would change how a
   subject is trained without anyone choosing it that session. Standing proof
-  `tmp/smoke_test_staircase_training.m`
-  (documentation/gui/StaircaseTraining.md)
+  `tmp/smoke_test_adaptive_training.m`
+  (documentation/gui/AdaptiveTraining.md)
 - **gui.ParameterDebugger**: the other window on RunExpt's Help menu (Ctrl+E) — every
   hw.Parameter a protocol defines, in one table, readable and writable by hand. It
   **never polls**: a read happens only on a double-click, Read Selected, or Read All

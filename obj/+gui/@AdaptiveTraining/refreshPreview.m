@@ -5,7 +5,7 @@ function refreshPreview(obj)
 % types a magnitude and a curvature and reads back the values the rig would
 % actually go to, instead of doing exponentials in their head. It follows the
 % CURRENT value, so it is refreshed after every step as well as after every
-% edit -- a preview computed from where the staircase started would be a
+% edit -- a preview computed from where the track started would be a
 % quietly wrong number sitting under the controls.
 %
 % The parameter is read ONCE here and the value passed down. On a hardware
@@ -23,7 +23,7 @@ v = obj.Parameter.Value;
 % from -- training mode can be switched on from a checkbox or carried in by a
 % phase load. That is a normal state, so the preview says what it is waiting
 % for rather than the window failing to open.
-if ~gui.StaircaseTraining.isSteppable(v)
+if ~gui.AdaptiveTraining.isSteppable(v)
     obj.PreviewLabel.FontColor = obj.COLOR_MUTED;
     obj.PreviewLabel.Text = sprintf('Next   waiting for the first %s value', ...
         obj.Parameter.Name);
@@ -33,8 +33,8 @@ end
 u = obj.unitSuffix();
 
 nv = namedargs2cell(obj.stepOptions(v));
-[up, upInfo] = gui.StaircaseTraining.stepValue(v, "up", nv{:});
-[dn, dnInfo] = gui.StaircaseTraining.stepValue(v, "down", nv{:});
+[up, upInfo] = gui.AdaptiveTraining.stepValue(v, "up", nv{:});
+[dn, dnInfo] = gui.AdaptiveTraining.stepValue(v, "down", nv{:});
 
 if ~upInfo.Ok || ~dnInfo.Ok
     if ~upInfo.Ok

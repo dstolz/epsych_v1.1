@@ -120,7 +120,7 @@ So `1000` / `4000` with a step of `250` is `1000:250:4000` — thirteen delays, 
 
 **Repeat on abort is a held index.** Because the caller owns the index, repeating a delay after an abort means simply not advancing it: the next trial reads the same position and gets the identical value, jitter included. Nothing is stashed and no randomization is suspended. The third consecutive abort releases the hold, as it always did.
 
-**Training mode wins.** While `StimDelayTrainingEnabled` is on, `gui.StaircaseTraining` steps `StimDelay` itself and writes it into the trials table; the sequence stands down for the duration without clearing the operator's checkbox, so switching training off resumes where the sequence stood.
+**Training mode wins.** While `StimDelayTrainingEnabled` is on, `gui.AdaptiveTraining` steps `StimDelay` itself and writes it into the trials table; the sequence stands down for the duration without clearing the operator's checkbox, so switching training off resumes where the sequence stood.
 
 **Editing the list mid-session** is safe: `epsych.BlockSequence` freezes the values already delivered and regenerates only from the next whole block, so retuning the list does not rewrite the subject's history. The abandoned partial block is logged at operator level.
 

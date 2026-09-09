@@ -868,7 +868,7 @@ classdef cl_AppetitiveStimDetect < epsych.TrialSelector
             % tf = stimDelayBlockActive_(obj)
             % Whether the block sequence owns StimDelay right now.
             %
-            % False while stimulus-delay training mode is on: gui.StaircaseTraining
+            % False while stimulus-delay training mode is on: gui.AdaptiveTraining
             % steps StimDelay itself and writes it into the trials table, so
             % the two would overwrite each other every trial. The operator's
             % checkbox is deliberately left alone, so switching training back

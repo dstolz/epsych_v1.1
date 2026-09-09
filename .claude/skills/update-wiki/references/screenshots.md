@@ -62,7 +62,7 @@ Whole-window shots (`<wiki>/images/`), and the pages that embed them:
 | `ParameterWidgets.png` | `ParameterWidgets` | Parameter-Files-and-Phases |
 | `ParameterScatter.png` | `ParameterScatter` | Training-and-Online-Analysis |
 | `OnlineAnalysis.png` | `OnlineAnalysis` | Training-and-Online-Analysis |
-| `StaircaseTraining.png` | `StaircaseTraining` | Training-and-Online-Analysis |
+| `AdaptiveTraining.png` | `AdaptiveTraining` | Training-and-Online-Analysis |
 | `ExampleBehaviorGUI.png` | `ExampleBehaviorGUI` | Building-a-Behavior-GUI |
 | `DetectionBehaviorGUI.png` | `DetectionBehaviorGUI` | Building-a-Behavior-GUI, GUI-Framework-Internals |
 | `BehaviorBuilder.png` | `BehaviorBuilder` | Behavior-GUI-Builder |
@@ -88,7 +88,7 @@ page, one image per `###` entry: `Parameter_Control`, `Parameter_Update`,
 `SessionClock`, `ElapsedTrialTimer`, `ModeIndicator`, `StatusBar`, `History`,
 `SessionPerformance`, `ParameterScatter`, `PsychPlot`, `Performance`,
 `SlidingWindowPerformancePlot`, `Staircase_Plot`, `PhaseSelector`,
-`StaircaseTraining`, `SyringePump`, `ParameterDebugger`, `FilenameValidator`,
+`AdaptiveTraining`, `SyringePump`, `ParameterDebugger`, `FilenameValidator`,
 `BehaviorGUI_Helpers`.
 
 **Not generated:** `NanoMotorControlGUI.png` and `VlcRecorderSetup.png` were

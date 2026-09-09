@@ -1,14 +1,14 @@
-function shot_staircase_training()
-% shot_staircase_training()
-% Capture the redesigned gui.StaircaseTraining window, collapsed and with the
+function shot_adaptive_training()
+% shot_adaptive_training()
+% Capture the redesigned gui.AdaptiveTraining window, collapsed and with the
 % Advanced section open, over a simulated training run.
 %
-%   matlab -batch "run('tmp/shot_staircase_training.m')"
+%   matlab -batch "run('tmp/shot_adaptive_training.m')"
 
 here = fileparts(mfilename('fullpath'));
 run(fullfile(here,'..','epsych_startup.m'));
 
-outDir = fullfile(here,'staircase_ui_shots');
+outDir = fullfile(here,'adaptive_ui_shots');
 if ~isfolder(outDir), mkdir(outDir); end
 
 % Deleting the window writes its ShowAdvanced preference, and the shots
@@ -16,7 +16,7 @@ if ~isfolder(outDir), mkdir(outDir); end
 % screenshot generators do, so regenerating the docs cannot change how the
 % operator's window opens tomorrow.
 saved = [];
-if ispref('StaircaseTraining'), saved = getpref('StaircaseTraining'); end
+if ispref('AdaptiveTraining'), saved = getpref('AdaptiveTraining'); end
 restore = onCleanup(@() restorePrefs(saved));
 
 shot('collapsed', "linear", false, outDir);
@@ -26,19 +26,19 @@ shot('advanced_piecewise', "piecewise", true, outDir);
 
 % The two the documentation embeds.
 docDir = fullfile(here,'..','documentation','gui','images');
-copyfile(fullfile(outDir,'collapsed.png'), fullfile(docDir,'StaircaseTraining.png'));
-copyfile(fullfile(outDir,'advanced_piecewise.png'), fullfile(docDir,'StaircaseTraining_Advanced.png'));
+copyfile(fullfile(outDir,'collapsed.png'), fullfile(docDir,'AdaptiveTraining.png'));
+copyfile(fullfile(outDir,'advanced_piecewise.png'), fullfile(docDir,'AdaptiveTraining_Advanced.png'));
 
 fprintf('shots written to %s\n', outDir);
 end
 
 
 function restorePrefs(saved)
-if ispref('StaircaseTraining'), rmpref('StaircaseTraining'); end
+if ispref('AdaptiveTraining'), rmpref('AdaptiveTraining'); end
 if isempty(saved), return; end
 f = fieldnames(saved);
 for i = 1:numel(f)
-    setpref('StaircaseTraining', f{i}, saved.(f{i}));
+    setpref('AdaptiveTraining', f{i}, saved.(f{i}));
 end
 end
 
@@ -48,10 +48,10 @@ sw = hw.Software;
 P = sw.add_parameter('StimDelay', 1000, Unit='ms', Min=400, Max=4000, Format='%.0f');
 P.Value = 1000;
 
-fig = uifigure('Visible','off','Position',[200 200 400 620],'Name','Staircase Training');
+fig = uifigure('Visible','off','Position',[200 200 400 620],'Name','Adaptive Training');
 c = onCleanup(@() delete(fig));
 
-G = gui.StaircaseTraining(P, Parent=fig, ...
+G = gui.AdaptiveTraining(P, Parent=fig, ...
     MinValue=400, MaxValue=4000, StepUp=350, StepDown=100, ...
     StepUpLimits=[0 500], StepDownLimits=[0 500], ...
     MinValueLimits=[400 4000], MaxValueLimits=[400 4000], ...

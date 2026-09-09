@@ -1,13 +1,13 @@
-function [value,success] = eval_staircase_training_mode(obj,src,event,Parameter,options)
-% [value,success] = eval_staircase_training_mode(obj,src,event,Parameter)
-% [value,success] = eval_staircase_training_mode(obj,src,event,Parameter,Name=Value)
-% Enable or disable staircase-training mode for a single hw.Parameter.
+function [value,success] = eval_adaptive_training_mode(obj,src,event,Parameter,options)
+% [value,success] = eval_adaptive_training_mode(obj,src,event,Parameter)
+% [value,success] = eval_adaptive_training_mode(obj,src,event,Parameter,Name=Value)
+% Enable or disable adaptive-training mode for a single hw.Parameter.
 %
 % This callback is intended for a state-button ValueChangedFcn, or for the
 % PostUpdateFcn of a gui.components.Parameter_Control checkbox bound to a Boolean
 % parameter (which is what lets a saved phase carry the training state --
 % see hw.Parameter.PersistWithPhase). When enabled, it suspends
-% Parameter.isRandom, opens or focuses a gui.StaircaseTraining window, and
+% Parameter.isRandom, opens or focuses a gui.AdaptiveTraining window, and
 % attaches a NewData listener that steps the parameter after selected trial
 % outcomes. When disabled, it restores the previous randomisation state and
 % removes the training GUI/listener.
@@ -19,25 +19,25 @@ function [value,success] = eval_staircase_training_mode(obj,src,event,Parameter,
 % preceding enable must not try to restore a snapshot that was never taken.
 %
 % Inputs
-%   obj - GUI controller exposing RUNTIME, StaircaseTrainingGUIs, and
-%       StaircaseTrainingListeners.
+%   obj - GUI controller exposing RUNTIME, AdaptiveTrainingGUIs, and
+%       AdaptiveTrainingListeners.
 %   src - gui.components.Parameter_Control to disable while training is active, or
 %       [] to skip UI state changes.
 %   event - Callback event whose Value field is the on/off toggle state.
-%   Parameter - hw.Parameter adjusted by the staircase listener.
+%   Parameter - hw.Parameter adjusted by the adaptive-training listener.
 %
 % Name-Value options
 %   MinValue, MaxValue - Value clamp bounds passed to
-%       gui.StaircaseTraining. Defaults use Parameter.Min/Max.
+%       gui.AdaptiveTraining. Defaults use Parameter.Min/Max.
 %   StepUp, StepDown - Positive step magnitudes passed to
-%       gui.StaircaseTraining. Defaults are 350 and 100.
+%       gui.AdaptiveTraining. Defaults are 350 and 100.
 %   StepUpLimits, StepDownLimits - Two-element edit limits passed to
-%       gui.StaircaseTraining. Defaults are [0 500].
+%       gui.AdaptiveTraining. Defaults are [0 500].
 %   MinValueLimits, MaxValueLimits - Two-element edit limits for the
-%       staircase min/max controls.
+%       adaptive-training min/max controls.
 %   ScaleType - Value space the steps are taken in: "linear" (default),
 %       "logarithmic" (proportional), "power", or "piecewise". See
-%       gui.StaircaseTraining; the operator can also change it in the
+%       gui.AdaptiveTraining; the operator can also change it in the
 %       window's Advanced section.
 %   ScaleExponent, ScaleReference - Power-law exponent, and the value the
 %       step magnitudes are calibrated at (NaN resolves it from the bounds).
@@ -52,8 +52,8 @@ function [value,success] = eval_staircase_training_mode(obj,src,event,Parameter,
 %   value - New toggle state copied from event.Value.
 %   success - True when setup or teardown completes without error.
 %
-% See also gui.StaircaseTraining, documentation/gui/StaircaseTraining.md,
-% documentation/gui/eval_staircase_training_mode.md
+% See also gui.AdaptiveTraining, documentation/gui/AdaptiveTraining.md,
+% documentation/gui/eval_adaptive_training_mode.md
 
 arguments
     obj
@@ -81,24 +81,24 @@ RUNTIME = obj.RUNTIME;
 pName = Parameter.Name;
 
 % initialise maps on first call
-if isempty(obj.StaircaseTrainingGUIs) || ~isa(obj.StaircaseTrainingGUIs,'containers.Map')
-    obj.StaircaseTrainingGUIs = containers.Map('KeyType','char','ValueType','any');
+if isempty(obj.AdaptiveTrainingGUIs) || ~isa(obj.AdaptiveTrainingGUIs,'containers.Map')
+    obj.AdaptiveTrainingGUIs = containers.Map('KeyType','char','ValueType','any');
 end
-if isempty(obj.StaircaseTrainingListeners) || ~isa(obj.StaircaseTrainingListeners,'containers.Map')
-    obj.StaircaseTrainingListeners = containers.Map('KeyType','char','ValueType','any');
+if isempty(obj.AdaptiveTrainingListeners) || ~isa(obj.AdaptiveTrainingListeners,'containers.Map')
+    obj.AdaptiveTrainingListeners = containers.Map('KeyType','char','ValueType','any');
 end
 
 try
     value = event.Value;
 
     % The map entry IS the record that training was switched on and a
-    % STAIRCASE snapshot therefore exists; the window may since have been
+    % ADAPTIVE snapshot therefore exists; the window may since have been
     % closed on its own. Both matter now that the toggle can be bound to an
     % hw.Parameter: a phase load writes the parameter and
     % gui.components.Parameter_Control runs this for the external change, so either state
     % can arrive without the matching transition.
-    hasEntry  = obj.StaircaseTrainingGUIs.isKey(pName);
-    hasWindow = hasEntry && isvalid(obj.StaircaseTrainingGUIs(pName));
+    hasEntry  = obj.AdaptiveTrainingGUIs.isKey(pName);
+    hasWindow = hasEntry && isvalid(obj.AdaptiveTrainingGUIs(pName));
 
     if value == 1
         % enable training mode
@@ -107,10 +107,10 @@ try
         % already on would otherwise overwrite the snapshot with the
         % suspended values, losing what has to be restored on the way out.
         if ~hasEntry
-            Parameter.UserData.STAIRCASE.isRandom = Parameter.isRandom;
+            Parameter.UserData.ADAPTIVE.isRandom = Parameter.isRandom;
             rda = repeatDelayParameter(RUNTIME);
             if ~isempty(rda)
-                rda.UserData.STAIRCASE.Value = rda.Value;
+                rda.UserData.ADAPTIVE.Value = rda.Value;
                 rda.Value = false;
             end
             Parameter.isRandom = false;
@@ -119,14 +119,14 @@ try
         % launch or focus the training mode GUI
         if hasWindow
             vprintf(2,'Locating %s Training GUI',pName)
-            h = obj.StaircaseTrainingGUIs(pName);
+            h = obj.AdaptiveTrainingGUIs(pName);
             if isvalid(h.Parent) && isa(h.Parent,'matlab.ui.Figure')
                 figure(h.Parent);
             end
         else
             vprintf(2,'Launching %s Training GUI',pName)
             nvArgs = namedargs2cell(options);
-            h = gui.StaircaseTraining(Parameter, nvArgs{:});
+            h = gui.AdaptiveTraining(Parameter, nvArgs{:});
 
             % Reopening after the operator closed the window by hand lands
             % here with the map entry still in place. addlistener ties the
@@ -134,15 +134,15 @@ try
             % overwriting the map entry would leave the old listener attached
             % to RUNTIME.EVENTS: two listeners, and the parameter stepped
             % twice per trial for the rest of the session.
-            if obj.StaircaseTrainingListeners.isKey(pName)
-                delete(obj.StaircaseTrainingListeners(pName));
+            if obj.AdaptiveTrainingListeners.isKey(pName)
+                delete(obj.AdaptiveTrainingListeners(pName));
             end
 
-            obj.StaircaseTrainingListeners(pName) = addlistener( ...
+            obj.AdaptiveTrainingListeners(pName) = addlistener( ...
                 RUNTIME.EVENTS, 'NewData', ...
-                @(src,ev) update_staircase_training(src, ev, h, RUNTIME, ...
+                @(src,ev) update_adaptive_training(src, ev, h, RUNTIME, ...
                 options.StepUpResponse, options.StepDownResponse));
-            obj.StaircaseTrainingGUIs(pName) = h;
+            obj.AdaptiveTrainingGUIs(pName) = h;
         end
 
         if ~isempty(src)
@@ -152,7 +152,7 @@ try
 
     else
         % Nothing to tear down, and -- crucially -- nothing to restore from:
-        % the STAIRCASE snapshot below only exists once an enable has run.
+        % the ADAPTIVE snapshot below only exists once an enable has run.
         if ~hasEntry
             vprintf(3,'%s Training Mode already off; nothing to restore',pName)
             success = true;
@@ -162,25 +162,25 @@ try
         vprintf(2,'Closing %s Training GUI',pName)
 
         % Restore the parameter's prior randomization behavior.
-        Parameter.isRandom = Parameter.UserData.STAIRCASE.isRandom;
+        Parameter.isRandom = Parameter.UserData.ADAPTIVE.isRandom;
         rda = repeatDelayParameter(RUNTIME);
         if ~isempty(rda)
-            rda.Value = rda.UserData.STAIRCASE.Value;
+            rda.Value = rda.UserData.ADAPTIVE.Value;
         end
         Parameter.UserData.CORRECTVAL = []; % NEEDED DUE TO CONFLICT WITH TRIALSELECTION
 
-        if obj.StaircaseTrainingGUIs.isKey(pName)
-            delete(obj.StaircaseTrainingGUIs(pName));
-            remove(obj.StaircaseTrainingGUIs, pName);
+        if obj.AdaptiveTrainingGUIs.isKey(pName)
+            delete(obj.AdaptiveTrainingGUIs(pName));
+            remove(obj.AdaptiveTrainingGUIs, pName);
         end
 
         if ~isempty(src)
             src.h_uiobj.Enable = 'on';
         end
 
-        if obj.StaircaseTrainingListeners.isKey(pName)
-            delete(obj.StaircaseTrainingListeners(pName));
-            remove(obj.StaircaseTrainingListeners, pName);
+        if obj.AdaptiveTrainingListeners.isKey(pName)
+            delete(obj.AdaptiveTrainingListeners(pName));
+            remove(obj.AdaptiveTrainingListeners, pName);
         end
 
         success = true;
@@ -191,13 +191,13 @@ catch e
     if ~isempty(src)
         src.h_uiobj.Enable = 'on';
     end
-    if obj.StaircaseTrainingListeners.isKey(pName)
-        delete(obj.StaircaseTrainingListeners(pName));
-        remove(obj.StaircaseTrainingListeners, pName);
+    if obj.AdaptiveTrainingListeners.isKey(pName)
+        delete(obj.AdaptiveTrainingListeners(pName));
+        remove(obj.AdaptiveTrainingListeners, pName);
     end
-    if obj.StaircaseTrainingGUIs.isKey(pName)
-        delete(obj.StaircaseTrainingGUIs(pName));
-        remove(obj.StaircaseTrainingGUIs, pName);
+    if obj.AdaptiveTrainingGUIs.isKey(pName)
+        delete(obj.AdaptiveTrainingGUIs(pName));
+        remove(obj.AdaptiveTrainingGUIs, pName);
     end
 end
 
@@ -220,8 +220,8 @@ end
 end
 
 
-function update_staircase_training(~,~,h,RUNTIME,stepUpResponse,stepDownResponse)
-% update_staircase_training(~,~,h,RUNTIME,stepUpResponse,stepDownResponse)
+function update_adaptive_training(~,~,h,RUNTIME,stepUpResponse,stepDownResponse)
+% update_adaptive_training(~,~,h,RUNTIME,stepUpResponse,stepDownResponse)
 % Step the training parameter after matching trial outcomes.
 %
 % This NewData listener decodes the most recent response code and compares
@@ -231,7 +231,7 @@ function update_staircase_training(~,~,h,RUNTIME,stepUpResponse,stepDownResponse
 % the updated value is also mirrored into RUNTIME.TRIALS.trials.
 %
 % Inputs
-%   h - gui.StaircaseTraining instance managing the target parameter.
+%   h - gui.AdaptiveTraining instance managing the target parameter.
 %   RUNTIME - Runtime state containing TRIALS.DATA, TRIALS.trials, and
 %       TRIALS.writeParamIdx.
 %   stepUpResponse - Trial outcome name that maps to an "up" step.

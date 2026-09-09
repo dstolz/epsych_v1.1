@@ -1,7 +1,7 @@
 function [value, info] = stepValue(currentValue, direction, options)
-% [value, info] = gui.StaircaseTraining.stepValue(currentValue, direction)
-% [value, info] = gui.StaircaseTraining.stepValue(currentValue, direction, options)
-% Take one staircase step in the configured value space.
+% [value, info] = gui.AdaptiveTraining.stepValue(currentValue, direction)
+% [value, info] = gui.AdaptiveTraining.stepValue(currentValue, direction, options)
+% Take one adaptive step in the configured value space.
 %
 % The GUI's own stepping goes through here, and so can a headless caller: it
 % is a pure function of the rule and the current value, which is what makes
@@ -51,7 +51,7 @@ function [value, info] = stepValue(currentValue, direction, options)
 %       .Clamped   true when a bound absorbed part of the step
 %       .Delta     value - currentValue
 %
-% See also gui.StaircaseTraining
+% See also gui.AdaptiveTraining
 
 arguments
     currentValue (1,1) double
@@ -159,7 +159,7 @@ if options.ScaleType ~= "piecewise" || isempty(options.Breakpoints)
     return
 end
 
-B = gui.StaircaseTraining.sortBreakpoints(options.Breakpoints);
+B = gui.AdaptiveTraining.sortBreakpoints(options.Breakpoints);
 idx = find(currentValue >= B(:,1), 1, 'last');
 if isempty(idx)
     return % below the first breakpoint: the base magnitudes apply

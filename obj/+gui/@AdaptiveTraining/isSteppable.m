@@ -1,5 +1,5 @@
 function tf = isSteppable(value)
-% tf = gui.StaircaseTraining.isSteppable(value)
+% tf = gui.AdaptiveTraining.isSteppable(value)
 % True when a parameter value is one a step rule can be applied to.
 %
 % hw.Parameter carries its design-time levels in Values and leaves Value
@@ -12,7 +12,7 @@ function tf = isSteppable(value)
 % Static so that a caller holding the value can test it without a second read:
 % on a hardware backend hw.Parameter.Value is a device round trip.
 %
-% See also gui.StaircaseTraining, gui.StaircaseTraining.stepValue
+% See also gui.AdaptiveTraining, gui.AdaptiveTraining.stepValue
 
 tf = isnumeric(value) && isscalar(value) && ~isnan(value);
 end

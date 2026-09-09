@@ -1,5 +1,5 @@
 function B = sortBreakpoints(B)
-% B = gui.StaircaseTraining.sortBreakpoints(B)
+% B = gui.AdaptiveTraining.sortBreakpoints(B)
 % Put a piecewise breakpoint table into the order the lookup assumes.
 %
 % The segment lookup is "the last row whose From value is <= the current
@@ -13,7 +13,7 @@ function B = sortBreakpoints(B)
 %
 %   B - Nx3 [FromValue StepUp StepDown].
 %
-% See also gui.StaircaseTraining, gui.StaircaseTraining.stepValue
+% See also gui.AdaptiveTraining, gui.AdaptiveTraining.stepValue
 
 if isempty(B)
     B = zeros(0,3);
