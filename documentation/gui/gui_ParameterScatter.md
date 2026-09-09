@@ -47,6 +47,43 @@ third parameter mapped to marker color.
   first — one marker takes one `CData`, so face and edge cannot carry
   different colors on a single object — and it is inert to the mouse, leaving
   datatips to the fill underneath.
+- **Trend lines**: right-click → **Trend Line** overlays a quick fit on the
+  points, chosen from
+  - *Linear*, *Quadratic*, *Cubic* — least-squares polynomial fits, drawn as a
+    smooth curve over the plotted x range;
+  - *Moving Average* — a centred running mean over the last **Trend Window**
+    trials (5/10/20/50/100 from the right-click menu; the window shrinks at
+    the ends of the session and is clamped to the trial count);
+  - *Mean per X Value* / *Median per X Value* — one point per distinct x,
+    which is the useful one when x is a stimulus level with several trials at
+    each step, or a categorical parameter.
+
+  Every option is a single pass over the session or a small least-squares
+  solve, so the overlay is recomputed on every completed trial rather than
+  cached — on 5000 trials each costs 0.1–2 ms on top of the redraw.
+
+  **Trend Line Color ...** picks the line color, and **Show Trend Statistics**
+  reports the fit in the axes title: slope, intercept, R² and n for a line;
+  the fit name, R² and n for a higher-order one; the window or the number of
+  grouped x values otherwise.
+
+  Two rules follow from a categorical axis holding codes rather than
+  quantities — the mean of `Hit` and `Miss` is not a number to read off an
+  axis. Nothing is drawn against a **categorical y** at all, and over a
+  **categorical x** only the per-value mean and median are offered; a
+  polynomial fitted to category codes would be a fit to their arbitrary
+  order. In both cases the line is hidden and the title cleared rather than
+  raising an error, since the selection that supports a trend usually comes
+  back a moment later.
+
+  A polynomial is fitted in `polyfit`'s centred-and-scaled coordinates, so a
+  level in dB against a frequency in Hz does not warn about conditioning on
+  every redraw; the reported slope is brought back to the axes' units. The
+  curve is sampled evenly in the space the axis displays, so it stays smooth
+  under **Log X**. The fit itself is always in data space.
+
+  Points the markers already dropped — non-finite values, and points with no
+  color-by value — are outside the fit too.
 - **Pop-out**: right-click → **Open in Separate Window** (the `gui.PopOut`
   mixin, or the `popOut` method) opens a second, independent scatter over the
   same data — its own selections and aesthetics, so a large exploratory view
@@ -79,6 +116,9 @@ S = gui.components.ParameterScatter(DATA, uifigure);
 S.XParameter = 'FreqHz';
 S.YParameter = 'LevelDB';
 S.ColorParameter = 'Response';   % decoded outcome name; or 'RespCode', or '(none)'
+S.TrendType = 'movmean';         % running mean; call update to redraw
+S.TrendWindow = 20;
+S.update;
 ```
 
 ### Constructor
@@ -104,6 +144,10 @@ obj = gui.components.ParameterScatter(source, container, options)
 | `Marker`, `MarkerSize`, `MarkerColor`, `MarkerAlpha` | Marker aesthetics |
 | `ColormapName` | Colormap used in color-by mode |
 | `LogX`, `LogY`, `ShowGrid` | Axes aesthetics |
+| `TrendType` | Trend overlay: `'none'` (default), `'linear'`, `'quadratic'`, `'cubic'`, `'movmean'`, `'mean'`, `'median'` |
+| `TrendWindow` | Moving-average span, in trials |
+| `TrendColor`, `ShowTrendStats` | Trend line color; whether the fit is reported in the axes title |
+| `TrendH` | The trend line object, for a paradigm that wants to restyle it |
 
 Programmatic changes to the selection properties redraw immediately; after
 changing aesthetics programmatically, call `update` to redraw. All of these
@@ -121,7 +165,10 @@ mid-selection.
 
 Behavior is covered by `tmp/smoke_test_parameter_scatter.m`, and
 `tmp/smoke_test_incremental_render.m` proves that a scatter fed trial by trial
-plots exactly what one handed the same trials at once plots.
+plots exactly what one handed the same trials at once plots. The trend
+overlays have their own standing proof in `tmp/smoke_test_scatter_trends.m`,
+which recovers a known line, quadratic and running mean from the drawn data
+and reports what each trend adds to a 5000-trial redraw.
 
 ## Cleanup
 

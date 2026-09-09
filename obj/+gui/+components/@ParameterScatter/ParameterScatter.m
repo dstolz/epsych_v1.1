@@ -31,6 +31,15 @@ classdef ParameterScatter < gui.PopOut
     % Display behavior:
     %   - Right-click the axes for basic aesthetics: marker style, size,
     %     opacity, color, colormap (for color-by mode), log scales, grid.
+    %   - Right-click > Trend Line overlays a quick fit on the plotted points:
+    %     a linear, quadratic or cubic least-squares fit, a moving average, or
+    %     the mean or median of y at each distinct x value. Every option is a
+    %     single pass over the session or a small least-squares solve, so the
+    %     overlay is recomputed on every completed trial rather than cached.
+    %     With Show Trend Statistics on, the fit is reported in the axes title
+    %     (slope, intercept and R^2 for a line; R^2 otherwise). A trend needs a
+    %     numeric y parameter; over a categorical x only the per-value mean and
+    %     median are drawn, the rest being fits to an arbitrary category order.
     %   - Right-click > Open in Separate Window (or the popOut method) opens
     %     a second, independent scatter over the same data in a window of
     %     its own; see gui.PopOut.
@@ -50,6 +59,11 @@ classdef ParameterScatter < gui.PopOut
     %   Marker, MarkerSize, MarkerColor, MarkerAlpha - Marker aesthetics
     %   ColormapName           - Colormap used when colorizing by a parameter
     %   LogX, LogY, ShowGrid   - Axes aesthetics
+    %   TrendType              - Trend overlay: 'none', 'linear', 'quadratic',
+    %                            'cubic', 'movmean', 'mean' or 'median'
+    %   TrendWindow            - Moving-average span, in trials
+    %   TrendColor             - Trend line color
+    %   ShowTrendStats         - Report the fit in the axes title
     %   BoxID                  - Restrict NewData updates to these boxes; empty accepts all
     %
     % Methods:
@@ -84,6 +98,15 @@ classdef ParameterScatter < gui.PopOut
         LogY     (1,1) logical = false
         ShowGrid (1,1) logical = true
 
+        % Trend overlay. Kept cheap on purpose: the plot is redrawn after
+        % every completed trial, so a trend that cost more than a pass over
+        % the session would be paid for on every trial of every session.
+        TrendType (1,:) char {mustBeMember(TrendType, ...
+            {'none','linear','quadratic','cubic','movmean','mean','median'})} = 'none'
+        TrendWindow (1,1) double {mustBePositive,mustBeInteger} = 20 % moving-average span, trials
+        TrendColor (1,3) double {mustBeNonnegative,mustBeLessThanOrEqual(TrendColor,1)} = [0.85 0.2 0.1]
+        ShowTrendStats (1,1) logical = true % report the fit in the axes title
+
         BoxID (1,:) double = [] % restrict NewData updates to these boxes; empty accepts all
     end
 
@@ -91,6 +114,7 @@ classdef ParameterScatter < gui.PopOut
         AxesH                        % Axes hosting the scatter
         ScatterH = []                % Scatter graphics object
         ColorbarH = []               % Colorbar shown in color-by mode
+        TrendH = []                  % Trend overlay line drawn over the scatter
         ContainerH                   % Hosting container supplied at construction
         DropdownX                    % X parameter selector
         DropdownY                    % Y parameter selector
@@ -109,6 +133,7 @@ classdef ParameterScatter < gui.PopOut
         LabelC_ = []                 % Color control label (legacy-figure hosting only)
         ContextMenuH_ = []           % Right-click aesthetics menu
         EdgeScatterH_ = []           % Outline overlay drawn on top of ScatterH
+        TrendTitleSet_ (1,1) logical = false % true while the axes title is ours to clear
         PendingSelections_ = []      % Requested selections awaiting their parameters
         PreferenceTag_ char = ''     % Optional explicit preference key
         isWeb_ (1,1) logical = true  % True when hosted in uifigure-family graphics
@@ -144,6 +169,11 @@ classdef ParameterScatter < gui.PopOut
         VALID_COLORMAPS = {'parula','turbo','jet','hot','cool','copper','bone'}
         MARKER_SIZES = [12 24 36 48 72 96 144]
         MARKER_ALPHAS = [0.25 0.5 0.75 1]
+        TREND_TYPES = {'none','linear','quadratic','cubic','movmean','mean','median'}
+        TREND_LABELS = {'None','Linear','Quadratic','Cubic','Moving Average', ...
+            'Mean per X Value','Median per X Value'}
+        TREND_WINDOWS = [5 10 20 50 100]
+        TREND_GRID_POINTS = 200 % samples used to draw a fitted curve
     end
 
     methods (Static)
@@ -342,7 +372,8 @@ classdef ParameterScatter < gui.PopOut
             if hasSaved, return; end % it has aesthetics of its own already
 
             aes = {'Marker','MarkerSize','MarkerColor','MarkerAlpha', ...
-                'ColormapName','LogX','LogY','ShowGrid'};
+                'ColormapName','LogX','LogY','ShowGrid', ...
+                'TrendType','TrendWindow','TrendColor','ShowTrendStats'};
             for k = 1:numel(aes)
                 h.(aes{k}) = obj.(aes{k});
             end
@@ -851,6 +882,11 @@ classdef ParameterScatter < gui.PopOut
 
             xlabel(ax,obj.XParameter,'Interpreter','none');
             ylabel(ax,obj.YParameter,'Interpreter','none');
+
+            % Drawn from the plotted x/y, so it inherits every exclusion the
+            % markers already made: non-finite values, and points dropped for
+            % a missing color-by value.
+            obj.updateTrend_(ax,x,y,isCatX,isCatY);
         end
 
         function rgb = colormapColors_(~,ax,c)
@@ -877,6 +913,192 @@ classdef ParameterScatter < gui.PopOut
             % blend follows it to give near-black fills a visible edge.
             e = rgb .^ 0.6;
             e = e + 0.1 .* (1 - e);
+        end
+
+        % ------------------------------------------------------------------
+        % Trend overlay
+
+        function updateTrend_(obj,ax,x,y,isCatX,isCatY)
+            % Draw, or hide, the trend line over the points just plotted.
+            % Recomputed on every redraw rather than cached: each trend is one
+            % pass over the session or a two-to-four column least-squares
+            % solve, which costs less than deciding whether a cached one is
+            % still valid.
+            h = obj.TrendH;
+            if isempty(h) || ~isvalid(h)
+                wasHeld = ishold(ax);
+                hold(ax,'on');
+                h = plot(ax,nan,nan,'-','LineWidth',2);
+                if ~wasHeld, hold(ax,'off'); end
+                h.Annotation.LegendInformation.IconDisplayStyle = 'off';
+                set(h,'PickableParts','none','HitTest','off'); % datatips belong to the markers
+                obj.TrendH = h;
+            end
+
+            [tx,ty,stats] = obj.trendSeries_(x,y,isCatX,isCatY);
+            vis = {'off','on'};
+            set(h,'XData',tx,'YData',ty,'Color',obj.TrendColor, ...
+                'Visible',vis{1+~isempty(tx)});
+
+            % A per-value aggregate is a handful of summary points, and
+            % marking them says which x values were grouped; a fitted curve
+            % or a running mean is a continuum, where markers only clutter.
+            if ismember(obj.TrendType,{'mean','median'})
+                set(h,'Marker','o','MarkerFaceColor',obj.TrendColor,'MarkerSize',5);
+            else
+                set(h,'Marker','none');
+            end
+
+            % The title is the only spare space on the axes, and it is cleared
+            % again only when we were the ones who filled it.
+            if obj.ShowTrendStats && ~isempty(stats)
+                title(ax,stats,'Interpreter','none','FontWeight','normal');
+                obj.TrendTitleSet_ = true;
+            elseif obj.TrendTitleSet_
+                title(ax,'');
+                obj.TrendTitleSet_ = false;
+            end
+        end
+
+        function [tx,ty,stats] = trendSeries_(obj,x,y,isCatX,isCatY)
+            % [tx,ty,stats] = trendSeries_(obj,x,y,isCatX,isCatY)
+            % Coordinates of the trend overlay and its one-line summary. Empty
+            % coordinates mean "nothing to draw", which is how a combination
+            % the trend cannot describe hides the line instead of erroring --
+            % the selection it was chosen for typically comes back a moment
+            % later, and a dialog per redraw would be unusable.
+            tx = []; ty = []; stats = '';
+            if strcmp(obj.TrendType,'none'), return; end
+
+            % A categorical axis carries codes, not quantities: the mean of
+            % Hit and Miss is not a number to read off an axis. Grouping BY a
+            % categorical x is still meaningful, so only that survives.
+            if isCatY, return; end
+            if isCatX && ~ismember(obj.TrendType,{'mean','median'}), return; end
+
+            x = double(x(:))';
+            y = double(y(:))';
+            ok = isfinite(x) & isfinite(y);
+            x = x(ok);
+            y = y(ok);
+            n = numel(x);
+            if n < 2, return; end
+
+            switch obj.TrendType
+                case {'mean','median'}
+                    [tx,ty] = obj.groupStat_(x,y,obj.TrendType);
+                    if numel(tx) < 2, tx = []; ty = []; return; end
+                    if strcmp(obj.TrendType,'mean'), what = 'Mean'; else, what = 'Median'; end
+                    stats = sprintf('%s per X value: %d values, n = %d',what,numel(tx),n);
+
+                case 'movmean'
+                    [tx,ord] = sort(x);
+                    w = min(obj.TrendWindow,n);
+                    ty = obj.movingAverage_(y(ord),w);
+                    stats = sprintf('Moving average: window %d, n = %d',w,n);
+
+                otherwise
+                    deg = obj.polyDegree_(obj.TrendType);
+                    % Fewer distinct x than coefficients is an exactly
+                    % determined or rank-deficient system, which polyfit warns
+                    % about -- once per completed trial, if allowed to.
+                    if numel(unique(x)) < deg+1, return; end
+                    [p,S,mu] = polyfit(x,y,deg); % centred and scaled: see polyStats_
+                    tx = obj.trendGrid_(min(x),max(x));
+                    ty = polyval(p,tx,S,mu);
+                    stats = obj.polyStats_(p,mu,x,y,deg);
+            end
+        end
+
+        function s = polyStats_(obj,p,mu,x,y,deg)
+            % One-line summary of a polynomial fit. polyfit was given its
+            % three-output form, which fits in centred and scaled x: without
+            % it, a level in dB against a frequency in Hz warns about
+            % conditioning on every redraw. The price is that p is in those
+            % coordinates, so a slope has to be brought back to the axes'
+            % units before anyone reads it.
+            yhat = polyval(p,x,[],mu);
+            sst = sum((y-mean(y)).^2);
+            if sst > 0
+                r2 = 1 - sum((y-yhat).^2)/sst;
+            else
+                r2 = nan; % every y identical: no variance to explain
+            end
+            if deg == 1
+                slope = p(1)/mu(2);
+                intercept = p(2) - p(1)*mu(1)/mu(2);
+                s = sprintf('Linear fit: y = %.4g x %+.4g, R^2 = %.3f, n = %d', ...
+                    slope,intercept,r2,numel(x));
+            else
+                idx = find(strcmp(obj.TREND_TYPES,obj.TrendType),1);
+                s = sprintf('%s fit: R^2 = %.3f, n = %d',obj.TREND_LABELS{idx},r2,numel(x));
+            end
+        end
+
+        function m = movingAverage_(~,v,w)
+            % Centred running mean over w samples, with the window shrinking
+            % at the ends. Written out rather than calling movmean so the
+            % component keeps working on releases before R2016a, and because
+            % the cumulative sum is one pass whatever the window size.
+            n = numel(v);
+            w = max(1,min(round(w),n));
+            half = floor(w/2);
+            idx = 1:n;
+            lo = max(1,idx-half);
+            hi = min(n,idx+(w-1-half));
+            cs = [0 cumsum(v)];
+            m = (cs(hi+1) - cs(lo)) ./ (hi-lo+1);
+        end
+
+        function [gx,gy] = groupStat_(~,x,y,stat)
+            % Mean or median of y at each distinct x, ordered by x.
+            %
+            % Two shapes matter and they are opposite ones. Against a
+            % stimulus level there are a handful of groups holding most of
+            % the session; against the trial number every x is distinct, and
+            % accumarray with a function handle would then call into MATLAB
+            % once per trial to aggregate a single point -- so that case
+            % short-circuits to the points themselves. The mean is a sum over
+            % a count for the same reason.
+            [gx,ia,ic] = unique(x);
+            if numel(gx) == numel(x)
+                gy = y(ia);
+            elseif strcmp(stat,'mean')
+                gy = accumarray(ic(:),y(:)) ./ accumarray(ic(:),1);
+            else
+                gy = accumarray(ic(:),y(:),[],@median);
+            end
+            gx = reshape(gx,1,[]);
+            gy = reshape(gy,1,[]);
+        end
+
+        function g = trendGrid_(obj,lo,hi)
+            % Evaluation grid for a fitted curve, spaced evenly in the space
+            % the axis displays -- a fit drawn on a log axis is a curve, and
+            % sampling it linearly leaves the decades nearest the origin
+            % drawn from a handful of points.
+            if lo >= hi, g = lo; return; end
+            if obj.LogX && lo > 0
+                g = logspace(log10(lo),log10(hi),obj.TREND_GRID_POINTS);
+            else
+                g = linspace(lo,hi,obj.TREND_GRID_POINTS);
+            end
+        end
+
+        function d = polyDegree_(~,t)
+            % Polynomial order behind a trend type name; 0 for the rest.
+            switch t
+                case 'linear',    d = 1;
+                case 'quadratic', d = 2;
+                case 'cubic',     d = 3;
+                otherwise,        d = 0;
+            end
+        end
+
+        function pickTrendColor_(obj)
+            c = uisetcolor(obj.TrendColor,'Trend Line Color');
+            if isscalar(c), return; end % user cancelled
+            obj.setAesthetic_('TrendColor',c);
         end
 
         % ------------------------------------------------------------------
@@ -955,6 +1177,24 @@ classdef ParameterScatter < gui.PopOut
                     uimenu(m,'Text',c{1},'Tag',['aes|ColormapName|' c{1}], ...
                         'MenuSelectedFcn',@(~,~) obj.setAesthetic_('ColormapName',c{1}));
                 end
+
+                m = uimenu(cm,'Text','Trend Line','Separator','on');
+                types = obj.TREND_TYPES;
+                labels = obj.TREND_LABELS;
+                for k = 1:numel(types)
+                    t = types{k};
+                    uimenu(m,'Text',labels{k},'Tag',['aes|TrendType|' t], ...
+                        'MenuSelectedFcn',@(~,~) obj.setAesthetic_('TrendType',t));
+                end
+                m = uimenu(cm,'Text','Trend Window');
+                for w = obj.TREND_WINDOWS
+                    uimenu(m,'Text',sprintf('%d trials',w),'Tag',['aes|TrendWindow|' num2str(w)], ...
+                        'MenuSelectedFcn',@(~,~) obj.setAesthetic_('TrendWindow',w));
+                end
+                uimenu(cm,'Text','Trend Line Color ...', ...
+                    'MenuSelectedFcn',@(~,~) obj.pickTrendColor_);
+                uimenu(cm,'Text','Show Trend Statistics','Tag','tgl|ShowTrendStats', ...
+                    'MenuSelectedFcn',@(~,~) obj.toggleAesthetic_('ShowTrendStats'));
                 uimenu(cm,'Text','Log X','Separator','on','Tag','tgl|LogX', ...
                     'MenuSelectedFcn',@(~,~) obj.toggleAesthetic_('LogX'));
                 uimenu(cm,'Text','Log Y','Tag','tgl|LogY', ...
@@ -1020,7 +1260,8 @@ classdef ParameterScatter < gui.PopOut
                 if ~ispref(obj.PREF_GROUP,pname), return; end
                 s = getpref(obj.PREF_GROUP,pname);
                 aes = {'Marker','MarkerSize','MarkerColor','MarkerAlpha', ...
-                    'ColormapName','LogX','LogY','ShowGrid'};
+                    'ColormapName','LogX','LogY','ShowGrid', ...
+                    'TrendType','TrendWindow','TrendColor','ShowTrendStats'};
                 for k = 1:numel(aes)
                     if isfield(s,aes{k})
                         obj.(aes{k}) = s.(aes{k});
@@ -1093,6 +1334,10 @@ classdef ParameterScatter < gui.PopOut
                 s.LogX = obj.LogX;
                 s.LogY = obj.LogY;
                 s.ShowGrid = obj.ShowGrid;
+                s.TrendType = obj.TrendType;
+                s.TrendWindow = obj.TrendWindow;
+                s.TrendColor = obj.TrendColor;
+                s.ShowTrendStats = obj.ShowTrendStats;
                 setpref(obj.PREF_GROUP,obj.preferenceName_,s);
             catch ME
                 vprintf(2,'gui.components.ParameterScatter: failed to save preferences: %s',ME.message)
