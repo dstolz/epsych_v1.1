@@ -1,9 +1,38 @@
 classdef StaircaseTraining < handle
-%STAIRCASETRAINING Configure staircase training parameters (immediate commit).
+%STAIRCASETRAINING Configure staircase training step rules (immediate commit).
 %
-%   This GUI edits StepUp, StepDown, MinValue, MaxValue and their limits.
-%   Edits apply immediately: any valid change in the table is written
-%   directly to the corresponding public property.
+%   This GUI edits the step rule that drives a single hw.Parameter during
+%   progressive training: the step magnitudes, the bounds they are clamped
+%   to, and -- under Advanced -- the VALUE SPACE the steps are taken in.
+%
+%   Edits apply immediately: any valid change is written directly to the
+%   corresponding public property. Invalid edits are rejected, the widget is
+%   reverted, and the reason is shown in the status line.
+%
+%   VALUE SPACES (ScaleType)
+%     A staircase does not have to walk in equal native-unit steps. The step
+%     magnitudes StepUp/StepDown always mean "this many parameter units at
+%     the reference value"; ScaleType decides how the step grows or shrinks
+%     as the value moves away from that reference:
+%
+%       "linear"      v -> v +/- Step. The reference is irrelevant.
+%       "logarithmic" Proportional stepping: v -> v * exp(+/-Step/Ref), so a
+%                     step is a fixed FRACTION of the reference and the
+%                     ladder is geometric. Requires positive values.
+%       "power"       v -> ((v^p) +/- Step*p*Ref^(p-1))^(1/p), with
+%                     p = ScaleExponent. Steps compress (p<1) or expand
+%                     (p>1) as the value rises -- the Stevens-law spacing a
+%                     perceptual scale usually wants.
+%       "piecewise"   Step magnitudes come from the Breakpoints table: the
+%                     last row whose From value is <= the current value.
+%                     Below the first breakpoint the StepUp/StepDown fields
+%                     apply. Coarse steps far from threshold, fine near it.
+%
+%     Every space is calibrated so that AT the reference the step equals the
+%     magnitude typed in. Switching space therefore never silently rescales
+%     the ladder the operator already knows; it only changes how it spaces
+%     out away from the reference. The preview line under the fields always
+%     names the next up and down value in native units.
 %
 %   CONSTRAINT POLICY (REJECT)
 %     - MinValue must be <= MaxValue. Edits that would violate this are
@@ -11,13 +40,10 @@ classdef StaircaseTraining < handle
 %     - Each value must lie within its corresponding limits. Edits outside
 %       limits are rejected and reverted.
 %
-%   STATUS
-%     - Validation failures are shown in a status label at the bottom.
-%
 %   STEP SEMANTICS
 %     - StepUp and StepDown are positive magnitudes.
-%     - updateParameter("up")   adds StepUp to Parameter.Value.
-%     - updateParameter("down") subtracts StepDown from Parameter.Value.
+%     - updateParameter("up")   moves Parameter.Value up by StepUp.
+%     - updateParameter("down") moves Parameter.Value down by StepDown.
 %     - The updated value is clamped to [MinValue, MaxValue].
 %
 %   EMBEDDING
@@ -33,7 +59,7 @@ classdef StaircaseTraining < handle
 %     G = gui.StaircaseTraining(Parameter)
 %     G = gui.StaircaseTraining(Parameter, Name=Value,...)
 %
-%   NAME–VALUE OPTIONS
+%   NAME-VALUE OPTIONS
 %     Parent           handle   (default = [])
 %     StepUp            (1,1) double
 %     StepDown          (1,1) double
@@ -43,10 +69,15 @@ classdef StaircaseTraining < handle
 %     StepDownLimits    (1,2) double
 %     MinValueLimits    (1,2) double
 %     MaxValueLimits    (1,2) double
+%     ScaleType         (1,1) string   "linear" | "logarithmic" | "power" | "piecewise"
+%     ScaleExponent     (1,1) double   power-law exponent (ScaleType="power")
+%     ScaleReference    (1,1) double   value the step magnitude is calibrated at (NaN = auto)
+%     Breakpoints       (:,3) double   [FromValue StepUp StepDown] rows (ScaleType="piecewise")
+%     ShowAdvanced      (1,1) logical  open the Advanced section on creation
 %     WindowStyle       (1,1) string   "alwaysontop" | "modal" | "normal" (only if Parent=[])
 %
 %   Documentation: documentation/gui/StaircaseTraining.md
-%   See also uifigure, uitable, uigridlayout
+%   See also gui.eval_staircase_training_mode, uifigure, uitable, uigridlayout
 
     properties (SetObservable)
         % Committed (active) values
@@ -61,8 +92,16 @@ classdef StaircaseTraining < handle
         MinValueLimits (1,2) double = [-inf inf]
         MaxValueLimits (1,2) double = [-inf inf]
 
-        StepUpResponse (1,1) string {mustBeMember(StepUpResponse,["Hit","Miss","CorrectReject","CorrectReject","FalseAlarm","Abort"])} = "Hit"
-        StepDownResponse (1,1) string {mustBeMember(StepDownResponse,["Hit","Miss","CorrectReject","CorrectReject","FalseAlarm","Abort"])} = "Abort"
+        % Value space the steps are taken in
+        ScaleType (1,1) string {mustBeMember(ScaleType,["linear","logarithmic","power","piecewise"])} = "linear"
+        ScaleExponent (1,1) double {mustBeFinite, mustBePositive} = 0.5
+        ScaleReference (1,1) double = NaN % NaN = resolve automatically
+        Breakpoints (:,3) double = zeros(0,3) % [FromValue StepUp StepDown]
+
+        StepUpResponse (1,1) string {mustBeMember(StepUpResponse,["Hit","Miss","CorrectReject","FalseAlarm","Abort"])} = "Hit"
+        StepDownResponse (1,1) string {mustBeMember(StepDownResponse,["Hit","Miss","CorrectReject","FalseAlarm","Abort"])} = "Abort"
+
+        ShowAdvanced (1,1) logical = false
 
         WindowStyle (1,1) string {mustBeMember(WindowStyle, ["normal","alwaysontop","modal"])} = "alwaysontop"
     end
@@ -71,6 +110,20 @@ classdef StaircaseTraining < handle
         Parameter (1,1) % hw.Parameter object this GUI is configuring
         Parent % parent container handle (user-supplied or owned figure)
         ValueHistory (1,:) double = [] % history of committed parameter values
+        StepDirections (1,:) double = [] % +1 up, -1 down, 0 for the starting value
+    end
+
+    properties (Constant, Access = protected)
+        PREFERENCE_TAG = 'StaircaseTraining'
+        DEFAULT_SIZE = [400 560] % [width height] of an owned figure, Advanced collapsed
+        ADVANCED_HEIGHT = 232 % rows the Advanced section takes when open
+        COLOR_UP    = [0.85 0.33 0.10]
+        COLOR_DOWN  = [0.00 0.45 0.74]
+        COLOR_START = [0.45 0.45 0.45]
+        COLOR_TRACE = [0.30 0.30 0.30]
+        COLOR_BOUND = [0.60 0.60 0.60]
+        COLOR_ERROR = [0.70 0.00 0.00]
+        COLOR_MUTED = [0.35 0.35 0.35]
     end
 
     properties (Access = protected)
@@ -78,16 +131,48 @@ classdef StaircaseTraining < handle
 
         ParamNameLabel  matlab.ui.control.Label
         ParamValueLabel matlab.ui.control.Label
-        ParamTable      matlab.ui.control.Table
+        ResponseLabel   matlab.ui.control.Label
+        AdvancedButton  matlab.ui.control.StateButton
 
-        ValueHistoryAxes %matlab.ui.control.UIAxes
-        ValueHistoryLine %matlab.graphics.chart.primitive.Line
+        SettingsPanel matlab.ui.container.Panel
+        ValueFields   struct = struct() % one uieditfield per settable field
+        UnitLabels    struct = struct()
+
+        AdvancedPanel   matlab.ui.container.Panel
+        AdvancedGrid    matlab.ui.container.GridLayout
+        ScaleDropDown   matlab.ui.control.DropDown
+        ExponentField   matlab.ui.control.NumericEditField
+        ExponentLabel   matlab.ui.control.Label
+        ReferenceField  matlab.ui.control.NumericEditField
+        ReferenceLabel  matlab.ui.control.Label
+        ScaleHelpLabel  matlab.ui.control.Label
+        AdvancedTabs    matlab.ui.container.TabGroup
+        LimitsTab       matlab.ui.container.Tab
+        BreakpointTab   matlab.ui.container.Tab
+        LimitsTable     matlab.ui.control.Table
+        BreakpointTable matlab.ui.control.Table
+        BreakpointGrid  matlab.ui.container.GridLayout
+
+        PreviewLabel matlab.ui.control.Label
+
+        ValueHistoryAxes matlab.ui.control.UIAxes
+        ValueHistoryLine % stair trace through the committed values
+        ValueHistoryDots % per-step markers, coloured by direction
+        CurrentMarker    % emphasised marker on the newest value
+        CurrentText      matlab.graphics.primitive.Text
+        MinLine          % ConstantLine at MinValue
+        MaxLine          % ConstantLine at MaxValue
 
         StatusLabel matlab.ui.control.Label
 
         OwnsParentFigure (1,1) logical = false
         ParentDestroyedListener event.listener = event.listener.empty
+
+        UIReady (1,1) logical = false % property set methods refresh only once the UI exists
+        LastStepMessage (1,1) string = "" % latch, so a rule that cannot step logs once
+        AdvancedHeightApplied (1,1) double = 0 % rows currently given to the Advanced section
     end
+
 
     methods
         function obj = StaircaseTraining(Parameter, options)
@@ -105,9 +190,17 @@ classdef StaircaseTraining < handle
                 options.StepDownLimits (1,2) double = [0 100]
                 options.MinValueLimits (1,2) double = [-inf inf]
                 options.MaxValueLimits (1,2) double = [-inf inf]
+                options.ScaleType (1,1) string {mustBeMember(options.ScaleType,["linear","logarithmic","power","piecewise"])} = "linear"
+                options.ScaleExponent (1,1) double {mustBeFinite, mustBePositive} = 0.5
+                options.ScaleReference (1,1) double = NaN
+                options.Breakpoints (:,3) double = zeros(0,3)
+                % No default: "not stated" has to stay distinguishable from
+                % "stated as false", since unstated defers to the operator's
+                % remembered preference.
+                options.ShowAdvanced (1,1) logical
                 options.WindowStyle (1,1) string {mustBeMember(options.WindowStyle, ["normal","alwaysontop","modal"])} = "alwaysontop"
-                options.StepUpResponse (1,1) string {mustBeMember(options.StepUpResponse,["Hit","Miss","CorrectReject","CorrectReject","FalseAlarm","Abort"])} = "Hit"
-                options.StepDownResponse (1,1) string {mustBeMember(options.StepDownResponse,["Hit","Miss","CorrectReject","CorrectReject","FalseAlarm","Abort"])} = "Abort"
+                options.StepUpResponse (1,1) string {mustBeMember(options.StepUpResponse,["Hit","Miss","CorrectReject","FalseAlarm","Abort"])} = "Hit"
+                options.StepDownResponse (1,1) string {mustBeMember(options.StepDownResponse,["Hit","Miss","CorrectReject","FalseAlarm","Abort"])} = "Abort"
             end
 
             obj.Parameter = Parameter;
@@ -121,14 +214,35 @@ classdef StaircaseTraining < handle
             obj.StepDownLimits = options.StepDownLimits;
             obj.MinValueLimits = options.MinValueLimits;
             obj.MaxValueLimits = options.MaxValueLimits;
+            obj.ScaleExponent = options.ScaleExponent;
+            obj.ScaleReference = options.ScaleReference;
+            obj.Breakpoints = options.Breakpoints;
+            obj.ScaleType = options.ScaleType;
+            obj.StepUpResponse = options.StepUpResponse;
+            obj.StepDownResponse = options.StepDownResponse;
             obj.WindowStyle = options.WindowStyle;
+
+            % The operator's own preference decides whether Advanced starts
+            % open; an explicit ShowAdvanced= from the caller outranks it.
+            if isfield(options,'ShowAdvanced')
+                obj.ShowAdvanced = options.ShowAdvanced;
+            else
+                obj.ShowAdvanced = getpref(obj.PREFERENCE_TAG, 'ShowAdvanced', false);
+            end
 
             obj.validateAndReconcileInitialState();
 
-            obj.ValueHistory = Parameter.Value;
+            % An unwritten parameter starts an empty history, not a bogus point.
+            obj.ValueHistory = double.empty(1,0);
+            obj.StepDirections = double.empty(1,0);
+            if isnumeric(Parameter.Value) && isscalar(Parameter.Value)
+                obj.ValueHistory = Parameter.Value;
+                obj.StepDirections = 0;
+            end
 
             obj.createUI();
-            obj.updateUIFromCommitted();
+            obj.UIReady = true;
+            obj.refreshUI();
         end
 
         function delete(obj)
@@ -136,11 +250,12 @@ classdef StaircaseTraining < handle
             if ~isempty(obj.ParentDestroyedListener)
                 delete(obj.ParentDestroyedListener)
             end
+            setpref(obj.PREFERENCE_TAG, 'ShowAdvanced', obj.ShowAdvanced);
             if ~isempty(obj.RootGrid) && isvalid(obj.RootGrid)
                 delete(obj.RootGrid)
             end
             if obj.OwnsParentFigure && ~isempty(obj.Parent) && isvalid(obj.Parent)
-                setpref('StaircaseTraining', 'Position', obj.Parent.Position);
+                setpref(obj.PREFERENCE_TAG, 'Position', obj.Parent.Position);
                 delete(obj.Parent)
             end
         end
@@ -148,43 +263,220 @@ classdef StaircaseTraining < handle
         function v = updateParameter(obj, stepDirection)
             % Apply a step to Parameter.Value and append to history.
             % stepDirection should be "up" or "down" (case-insensitive); anything else is a no-op.
-            % The updated value is clamped to [MinValue, MaxValue]. The new value is returned.
+            % The step is taken in the configured value space (see ScaleType) and the
+            % result is clamped to [MinValue, MaxValue]. The new value is returned.
             % The caller must ensure it is safe to update Parameter.Value when calling this method.
             % The updated value is appended to ValueHistory and the plot is refreshed.
-            % Example usage: call this method from a trial-completion event listener, passing "up" or "down" based on trial outcome.
+            %
             % e.g. in a trial completion callback:
             %   if trial was a HIT
             %       G.updateParameter("down"); % make it harder
             %   elseif trial was a MISS
             %       G.updateParameter("up");   % make it easier
             %   end
-            %
-            % v = obj.updateParameter("up"); % returns the new parameter value after applying the step
             sd = lower(string(stepDirection));
             v = obj.Parameter.Value;
 
-            switch sd
-                case "up"
-                    v = v + obj.StepUp;
-                case "down"
-                    v = v - obj.StepDown;
-                otherwise
-                    return
+            if ~any(sd == ["up","down"])
+                return
             end
 
-            v = min(max(v, obj.MinValue), obj.MaxValue);
+            % A parameter the dispatcher has not written yet has an empty
+            % Value: training mode can be switched on from a checkbox or a
+            % phase load before the first trial. There is nothing to step
+            % away from, so say so and leave it alone.
+            if ~gui.StaircaseTraining.isSteppable(v)
+                obj.setStatus("Waiting for the first value of " + ...
+                    string(obj.Parameter.Name) + ".", isError=false);
+                return
+            end
+
+            nv = namedargs2cell(obj.stepOptions(v));
+            [v, info] = obj.stepValue(v, sd, nv{:});
+
+            % A rule the current value cannot be stepped in (a logarithmic
+            % ladder that has reached zero) reports once, not once a trial.
+            if ~info.Ok
+                if info.Message ~= obj.LastStepMessage
+                    vprintf(0,1,'%s staircase step skipped: %s', obj.Parameter.Name, info.Message);
+                    obj.LastStepMessage = info.Message;
+                end
+                obj.setStatus(info.Message, isError=true);
+                return
+            end
+            obj.LastStepMessage = "";
 
             obj.Parameter.Value = v; % direct write (caller must ensure safety)
             obj.ValueHistory(end+1) = v;
+            obj.StepDirections(end+1) = info.Direction;
 
-            obj.ParamValueLabel.Text = "Current: " + string(obj.Parameter.ValueStr);
-            obj.updateValueHistoryPlot();
+            obj.refreshCurrentValue();
+            obj.refreshPreview(); % the preview follows the value, not the session start
+            obj.updatePlot();
 
-            drawnow
+            drawnow limitrate
+        end
+
+        function resetHistory(obj)
+            % Discard the plotted history and restart it from the current value.
+            obj.ValueHistory = double.empty(1,0);
+            obj.StepDirections = double.empty(1,0);
+            if obj.hasCurrentValue()
+                obj.ValueHistory = obj.Parameter.Value;
+                obj.StepDirections = 0;
+            end
+            obj.refreshPreview();
+            obj.updatePlot();
+        end
+
+        function set.ScaleType(obj, value)
+            obj.ScaleType = value;
+            obj.onScaleTypeChanged();
+        end
+
+        function set.ScaleExponent(obj, value)
+            obj.ScaleExponent = value;
+            obj.refreshUI();
+        end
+
+        function set.ScaleReference(obj, value)
+            obj.ScaleReference = value;
+            obj.refreshUI();
+        end
+
+        function set.Breakpoints(obj, value)
+            obj.Breakpoints = gui.StaircaseTraining.sortBreakpoints(value);
+            obj.refreshUI();
+        end
+
+        function set.ShowAdvanced(obj, value)
+            obj.ShowAdvanced = value;
+            obj.applyAdvancedVisibility();
         end
     end
 
+    methods (Static)
+        [value, info] = stepValue(currentValue, direction, options)
+        tf = isSteppable(value)
+        B = sortBreakpoints(B)
+    end
+
+    methods (Access = protected)
+        createUI(obj)
+        refreshUI(obj)
+        refreshPreview(obj)
+        updatePlot(obj)
+    end
+
     methods (Access = private)
+        % Widget callbacks cannot assign to a property from an anonymous
+        % function, so each settable rule field gets a one-line setter.
+        function setShowAdvanced(obj, tf)
+            obj.ShowAdvanced = logical(tf);
+        end
+
+        function setScaleType(obj, value)
+            obj.ScaleType = string(value);
+        end
+
+        function setScaleExponent(obj, value)
+            obj.ScaleExponent = value;
+        end
+
+        function setScaleReference(obj, value)
+            obj.ScaleReference = value;
+        end
+
+        function opts = stepOptions(obj, currentValue)
+            % Marshal the committed rule into the argument struct stepValue takes.
+            %
+            % currentValue is passed in by callers that have already read it.
+            % On a hardware backend hw.Parameter.Value is a device round trip
+            % that rethrows whatever the backend throws, so a display that
+            % reads it once per widget it fills would put several transactions
+            % behind every keystroke.
+            arguments
+                obj
+                currentValue = []
+            end
+            opts = struct( ...
+                'StepUp', obj.StepUp, ...
+                'StepDown', obj.StepDown, ...
+                'ScaleType', obj.ScaleType, ...
+                'ScaleExponent', obj.ScaleExponent, ...
+                'ScaleReference', obj.referenceValue(currentValue), ...
+                'Breakpoints', obj.Breakpoints, ...
+                'MinValue', obj.MinValue, ...
+                'MaxValue', obj.MaxValue);
+        end
+
+        function tf = hasCurrentValue(obj)
+            % True when the parameter holds a value a rule can be applied to.
+            % Reads the parameter; prefer isSteppable where the value is in hand.
+            tf = gui.StaircaseTraining.isSteppable(obj.Parameter.Value);
+        end
+
+        function r = referenceValue(obj, currentValue)
+            % Resolve the value the step magnitudes are calibrated at.
+            %
+            % currentValue is only a last-resort candidate, and is passed in
+            % by callers holding it already rather than read again here.
+            %
+            % A reference the operator never chose has to be a FIXED value or
+            % a proportional ladder is not proportional to anything: taking
+            % the current value would make every step the same fraction of
+            % wherever the staircase happens to be, which is just a linear
+            % step with extra arithmetic. Min is the sensible anchor -- it is
+            % the easy end the training starts from -- and the field is
+            % seeded with the resolved number so it is never a mystery.
+            arguments
+                obj
+                currentValue = []
+            end
+
+            r = obj.ScaleReference;
+            if isfinite(r) && r ~= 0
+                return
+            end
+
+            if isempty(currentValue)
+                currentValue = obj.Parameter.Value;
+            end
+            candidates = [obj.MinValue, obj.MaxValue, 1];
+            if gui.StaircaseTraining.isSteppable(currentValue)
+                candidates = [obj.MinValue, obj.MaxValue, currentValue, 1];
+            end
+            if obj.ScaleType == "logarithmic"
+                candidates = candidates(candidates > 0);
+            else
+                candidates = candidates(candidates ~= 0);
+            end
+            candidates = candidates(isfinite(candidates));
+            if isempty(candidates)
+                r = 1;
+            else
+                r = candidates(1);
+            end
+        end
+
+        function onScaleTypeChanged(obj)
+            % Seed the reference so a warped space always shows what it is calibrated at.
+            if obj.ScaleType ~= "linear" && ~isfinite(obj.ScaleReference)
+                obj.ScaleReference = obj.referenceValue();
+            end
+            obj.refreshUI();
+        end
+
+        function s = percentStepText(obj)
+            % The up step as a percentage, which is what a proportional ladder means.
+            r = obj.referenceValue();
+            if ~(r > 0) || ~isfinite(r)
+                s = '?';
+                return
+            end
+            s = sprintf('%+.3g%%', 100*(exp(obj.StepUp/r) - 1));
+        end
+
         function validateAndReconcileInitialState(obj)
             % Validate limit properties and clamp values to limits.
             obj.validateLimits("StepUpLimits", isStep=true);
@@ -237,90 +529,113 @@ classdef StaircaseTraining < handle
             obj.(propName) = L;
         end
 
-        function createUI(obj)
-            % Create UI under Parent (embedded) or inside a new owned figure.
-            if isempty(obj.Parent)
-                fpos = getpref('StaircaseTraining', 'Position', [500 400 300 400]);
-                fig = uifigure('Name', 'Staircase Training', ...
-                    'Position', gui.fitPositionToMonitor(fpos));
-                fig.WindowStyle = char(obj.WindowStyle);
-                fig.CloseRequestFcn = @(~,~)delete(obj);
-                obj.Parent = fig;
-                obj.OwnsParentFigure = true;
+        function valueFieldChanged(obj, field, src)
+            % Commit an edit from one of the four value fields (reject on violation).
+            [ok,msg] = obj.applyValueEdit(field, src.Value);
+            src.Value = obj.(field); % revert on rejection; harmless when accepted
+            if ok
+                obj.setStatus("");
             else
-                if ~isvalid(obj.Parent)
-                    vprintf(0,1,'StaircaseTraining:InvalidParent','Parent is not valid.');
-                end
+                obj.setStatus(msg, isError=true);
             end
-
-            if ~obj.OwnsParentFigure
-                obj.ParentDestroyedListener = listener(obj.Parent, 'ObjectBeingDestroyed', @(~,~)delete(obj));
-            end
-
-            obj.RootGrid = uigridlayout(obj.Parent, [5 1]);
-            obj.RootGrid.RowHeight = {22,22,'1x',100,22};
-            obj.RootGrid.ColumnWidth = {'1x'};
-            obj.RootGrid.Padding = [5 5 5 5];
-            obj.RootGrid.RowSpacing = 2;
-
-            obj.ParamNameLabel = uilabel(obj.RootGrid,'Text',"",'FontWeight','bold');
-            obj.ParamNameLabel.Layout.Row = 1;
-
-            obj.ParamValueLabel = uilabel(obj.RootGrid,'Text',"",'FontAngle','italic');
-            obj.ParamValueLabel.Layout.Row = 2;
-
-            obj.ParamTable = uitable(obj.RootGrid);
-            obj.ParamTable.Layout.Row = 3;
-            obj.ParamTable.ColumnName = {'Param', char(8805), char(8804), 'Value'};
-            obj.ParamTable.ColumnEditable = [false true true true];
-            obj.ParamTable.CellEditCallback = @(src,evt)obj.tableCellEdited(src,evt);
-            obj.ParamTable.RowName = [];
-
-            obj.ValueHistoryAxes = uiaxes(obj.RootGrid);
-            obj.ValueHistoryAxes.Layout.Row = 4;
-            obj.ValueHistoryAxes.XAxis.Visible = 'off';
-            obj.ValueHistoryAxes.YAxis.Visible = 'off';
-            obj.ValueHistoryLine = line(obj.ValueHistoryAxes, NaN, NaN, LineWidth=1, Color='k');
-
-            obj.StatusLabel = uilabel(obj.RootGrid,'Text',"",'FontColor',[0.20 0.20 0.20]);
-            obj.StatusLabel.Layout.Row = 5;
+            obj.refreshUI();
         end
 
-        function tableCellEdited(obj, ~, evt)
-            % Validate and immediately apply edits from the table.
+        function limitsTableEdited(obj, evt)
+            % Commit an edit from the Advanced limits table (reject on violation).
             r = evt.Indices(1);
             c = evt.Indices(2);
             field = obj.rowFieldName(r);
-            if field == ""
+            if field == "" || ~any(c == [2 3])
                 return
             end
 
-            [ok,msg] = obj.applyTableEdit(field, c, evt.NewData);
-
-            obj.refreshRow(r);
+            [ok,msg] = obj.applyLimitEdit(field, c - 1, evt.NewData);
 
             if ok
                 obj.setStatus("");
             else
                 obj.setStatus(msg, isError=true);
             end
+            obj.refreshUI();
         end
 
-        function [ok,msg] = applyTableEdit(obj, field, col, newData)
-            % Apply a table edit to properties with reject-on-violation policy.
-            if col == 2 || col == 3
-                idx = col - 1; % 2->1 (lower), 3->2 (upper)
-                [ok,msg] = obj.applyLimitEdit(field, idx, newData);
+        function breakpointsEdited(obj, evt)
+            % Commit an edit to the piecewise breakpoint table (reject on violation).
+            B = obj.Breakpoints;
+            r = evt.Indices(1);
+            c = evt.Indices(2);
+            v = evt.NewData;
+
+            if ~(isnumeric(v) && isscalar(v) && ~isnan(v))
+                obj.setStatus("Breakpoint entries must be numeric.", isError=true);
+                obj.refreshUI();
+                return
+            end
+            % A non-finite From value is refused here rather than accepted and
+            % then dropped by sortBreakpoints, which would look like the edit
+            % simply vanished.
+            if c == 1 && ~isfinite(v)
+                obj.setStatus("A breakpoint's From value must be finite.", isError=true);
+                obj.refreshUI();
+                return
+            end
+            if c > 1 && ~(isfinite(v) && v > 0)
+                obj.setStatus("Breakpoint step sizes must be finite and > 0.", isError=true);
+                obj.refreshUI();
                 return
             end
 
-            if col == 4
-                [ok,msg] = obj.applyValueEdit(field, newData);
+            B(r,c) = double(v);
+            obj.Breakpoints = B; % set method sorts by From value
+            obj.setStatus("");
+        end
+
+        function addBreakpoint(obj)
+            % Append a breakpoint seeded between the current bounds.
+            B = obj.Breakpoints;
+            if isempty(B)
+                from = obj.seedBreakpointValue();
+            else
+                from = B(end,1) + max(obj.StepUp, eps);
+            end
+            obj.Breakpoints = [B; from obj.StepUp obj.StepDown];
+            obj.setStatus("");
+        end
+
+        function removeBreakpoint(obj)
+            % Remove the selected breakpoint row, or the last one when nothing is selected.
+            B = obj.Breakpoints;
+            if isempty(B)
                 return
             end
+            r = size(B,1);
+            sel = obj.BreakpointTable.Selection;
+            if ~isempty(sel)
+                r = sel(1,1);
+            end
+            B(r,:) = [];
+            obj.Breakpoints = B;
+            obj.setStatus("");
+        end
 
-            ok = true;
-            msg = "";
+        function v = seedBreakpointValue(obj)
+            % A first breakpoint that lands inside the working range.
+            lo = obj.MinValue;
+            hi = obj.MaxValue;
+            if isfinite(lo) && isfinite(hi)
+                v = lo + (hi - lo)/2;
+            elseif isfinite(lo)
+                v = lo + obj.StepUp;
+            elseif isfinite(hi)
+                v = hi - obj.StepDown;
+            else
+                % Unbounded both ways: anchor on the current value, or on
+                % zero before there is one. Not on MinValue, which is -Inf
+                % here and would make a row sortBreakpoints drops.
+                v = 0;
+                if obj.hasCurrentValue(), v = obj.Parameter.Value; end
+            end
         end
 
         function [ok,msg] = applyLimitEdit(obj, field, idx, v)
@@ -386,7 +701,7 @@ classdef StaircaseTraining < handle
         end
 
         function [ok,msg] = applyValueEdit(obj, field, v)
-            % Apply an edit to a value cell with validation.
+            % Apply an edit to a value field with validation.
             ok = false;
 
             if ~(isnumeric(v) && isscalar(v) && ~isnan(v))
@@ -431,61 +746,17 @@ classdef StaircaseTraining < handle
             msg = "";
         end
 
-        function refreshRow(obj, r)
-            % Refresh one table row from committed properties.
-            if isempty(obj.ParamTable) || ~isvalid(obj.ParamTable)
-                return
-            end
-            data = obj.ParamTable.Data;
-            if isempty(data)
-                data = obj.committedTableData();
-            end
-            data(r,:) = obj.committedRowData(r);
-            obj.ParamTable.Data = data;
-        end
-
-        function row = committedRowData(obj, r)
-            % Return a 1x4 row cell for the given table row index.
-            switch r
-                case 1
-                    row = {'Step Up', obj.StepUpLimits(1), obj.StepUpLimits(2), obj.StepUp};
-                case 2
-                    row = {'Step Down', obj.StepDownLimits(1), obj.StepDownLimits(2), obj.StepDown};
-                case 3
-                    row = {'Minimum', obj.MinValueLimits(1), obj.MinValueLimits(2), obj.MinValue};
-                case 4
-                    row = {'Maximum', obj.MaxValueLimits(1), obj.MaxValueLimits(2), obj.MaxValue};
-                otherwise
-                    row = {'',NaN,NaN,NaN};
-            end
-        end
-
-        function updateUIFromCommitted(obj)
-            % Refresh labels and table to reflect committed values.
-            if ~isempty(obj.ParamNameLabel) && isvalid(obj.ParamNameLabel)
-                obj.ParamNameLabel.Text = string(obj.Parameter.Name);
-            end
-            if ~isempty(obj.ParamValueLabel) && isvalid(obj.ParamValueLabel)
-                obj.ParamValueLabel.Text = "Current: " + string(obj.Parameter.ValueStr);
-            end
-
-            obj.setStatus("");
-            if ~isempty(obj.ParamTable) && isvalid(obj.ParamTable)
-                obj.ParamTable.Data = obj.committedTableData();
-            end
-        end
-
-        function data = committedTableData(obj)
-            % Build the table data from committed properties.
-            data = cell(4,4);
-            data(1,:) = {'Step Up', obj.StepUpLimits(1), obj.StepUpLimits(2), obj.StepUp};
-            data(2,:) = {'Step Down', obj.StepDownLimits(1), obj.StepDownLimits(2), obj.StepDown};
-            data(3,:) = {'Minimum', obj.MinValueLimits(1), obj.MinValueLimits(2), obj.MinValue};
-            data(4,:) = {'Maximum', obj.MaxValueLimits(1), obj.MaxValueLimits(2), obj.MaxValue};
+        function data = limitsTableData(obj)
+            % Build the Advanced limits table from committed properties.
+            data = cell(4,3);
+            data(1,:) = {'Step Up',   obj.StepUpLimits(1),   obj.StepUpLimits(2)};
+            data(2,:) = {'Step Down', obj.StepDownLimits(1), obj.StepDownLimits(2)};
+            data(3,:) = {'Minimum',   obj.MinValueLimits(1), obj.MinValueLimits(2)};
+            data(4,:) = {'Maximum',   obj.MaxValueLimits(1), obj.MaxValueLimits(2)};
         end
 
         function field = rowFieldName(~, row)
-            % Map table row index to the corresponding property name.
+            % Map limits-table row index to the corresponding property name.
             switch row
                 case 1, field = "StepUp";
                 case 2, field = "StepDown";
@@ -495,17 +766,75 @@ classdef StaircaseTraining < handle
             end
         end
 
-        function updateValueHistoryPlot(obj)
-            % Refresh the value-history plot.
-            if isempty(obj.ValueHistory) || isempty(obj.ValueHistoryAxes) || ~isvalid(obj.ValueHistoryAxes)
-                if ~isempty(obj.ValueHistoryAxes) && isvalid(obj.ValueHistoryAxes)
-                    cla(obj.ValueHistoryAxes);
-                end
+        function s = formatValue(obj, v)
+            % Format a parameter-space value the way the parameter itself would.
+            if ~isfinite(v)
+                s = sprintf('%g', v);
                 return
             end
-            obj.ValueHistoryLine.XData = 1:numel(obj.ValueHistory);
-            obj.ValueHistoryLine.YData = obj.ValueHistory;
-            axis(obj.ValueHistoryAxes, 'tight');
+            fmt = obj.Parameter.Format;
+            if isempty(fmt), fmt = '%g'; end
+            try
+                s = sprintf(fmt, v);
+            catch
+                s = sprintf('%g', v);
+            end
+        end
+
+        function s = unitSuffix(obj)
+            % " ms" when the parameter names a unit, "" when it does not.
+            u = strtrim(obj.Parameter.Unit);
+            if isempty(u)
+                s = '';
+            else
+                s = [' ' u];
+            end
+        end
+
+        function refreshCurrentValue(obj)
+            % Refresh only the header readout (cheap; called on every step).
+            if ~isempty(obj.ParamValueLabel) && isvalid(obj.ParamValueLabel)
+                obj.ParamValueLabel.Text = "Current: " + string(obj.Parameter.ValueStr);
+            end
+        end
+
+        function applyAdvancedVisibility(obj)
+            % Show or hide the Advanced section, collapsing its row when hidden.
+            if ~obj.UIReady || isempty(obj.AdvancedPanel) || ~isvalid(obj.AdvancedPanel)
+                return
+            end
+            obj.AdvancedPanel.Visible = matlab.lang.OnOffSwitchState(obj.ShowAdvanced);
+            if obj.ShowAdvanced
+                target = obj.ADVANCED_HEIGHT;
+                obj.AdvancedButton.Text = '▾ Advanced';
+            else
+                target = 0;
+                obj.AdvancedButton.Text = '▸ Advanced';
+            end
+            obj.RootGrid.RowHeight{4} = target;
+            obj.AdvancedButton.Value = obj.ShowAdvanced;
+
+            obj.resizeOwnedFigure(target - obj.AdvancedHeightApplied);
+            obj.AdvancedHeightApplied = target;
+        end
+
+        function resizeOwnedFigure(obj, delta)
+            % Give the disclosure its own space rather than taking the plot's.
+            %
+            % Only for a window this object owns: an embedded parent belongs to
+            % the behavior GUI around it, and growing that would move somebody
+            % else's layout. The window grows DOWNWARD (y falls as the height
+            % rises) so the title bar the operator just clicked stays put.
+            if delta == 0 || ~obj.OwnsParentFigure
+                return
+            end
+            if isempty(obj.Parent) || ~isvalid(obj.Parent)
+                return
+            end
+            pos = obj.Parent.Position;
+            pos(2) = pos(2) - delta;
+            pos(4) = pos(4) + delta;
+            obj.Parent.Position = gui.fitPositionToMonitor(pos);
         end
 
         function setStatus(obj, msg, options)
@@ -520,11 +849,10 @@ classdef StaircaseTraining < handle
             end
             obj.StatusLabel.Text = msg;
             if options.isError && strlength(msg) > 0
-                obj.StatusLabel.FontColor = [0.70 0.00 0.00];
+                obj.StatusLabel.FontColor = obj.COLOR_ERROR;
             else
-                obj.StatusLabel.FontColor = [0.20 0.20 0.20];
+                obj.StatusLabel.FontColor = obj.COLOR_MUTED;
             end
         end
     end
 end
-

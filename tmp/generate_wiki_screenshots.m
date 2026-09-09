@@ -262,10 +262,11 @@ end
 function [fig, cleanupFcn] = shotStaircaseTraining(C)
 % Caption: step rules for one parameter, with the value history below.
 rt = softwareRuntime(C);
-fig = uifigure('Visible', 'off', 'Position', [200 200 620 380], 'Tag', 'wikiShot');
+fig = uifigure('Visible', 'off', 'Position', [200 200 400 560], 'Tag', 'wikiShot');
 st = gui.StaircaseTraining(rt.find_parameter('ToneLevel'), Parent=fig, ...
     MinValue=10, MaxValue=70, StepUp=2, StepDown=5, ...
-    StepUpResponse="Hit", StepDownResponse="Miss");
+    StepUpResponse="Hit", StepDownResponse="Miss", ...
+    ShowAdvanced=false);   % state it, or the shot varies with this rig's preference
 cleanupFcn = @() delete(st);
 end
 

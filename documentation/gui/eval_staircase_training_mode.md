@@ -57,7 +57,8 @@ Supported response names are:
 - `"FalseAlarm"`
 - `"Abort"`
 
-The legacy spelling `"CorrectRejct"` is accepted and normalized to `"CorrectReject"`.
+These are the names `epsych.BitMask.decode` returns; anything else is refused by the
+argument validator rather than silently never matching.
 
 ## Name-value options
 
@@ -68,9 +69,13 @@ These options are accepted by `gui.eval_staircase_training_mode`:
 - `StepUpLimits`, `StepDownLimits`
 - `MinValueLimits`, `MaxValueLimits`
 - `StepUpResponse`, `StepDownResponse`
+- `ScaleType`, `ScaleExponent`, `ScaleReference`, `Breakpoints` — the value space the
+  steps are taken in (see [StaircaseTraining](StaircaseTraining.md))
 
-The staircase value and limit options are forwarded to `gui.StaircaseTraining`.
-The response-mapping options `StepUpResponse` and `StepDownResponse` are retained by `gui.eval_staircase_training_mode` and passed only to the `NewData` listener callback; they are not constructor arguments for `gui.StaircaseTraining`.
+Every option is forwarded to the `gui.StaircaseTraining` constructor.
+`StepUpResponse` and `StepDownResponse` are *also* retained here: the `NewData`
+listener is what acts on them, while the window uses them only to say which outcome
+steps which way.
 
 ## Runtime requirements
 

@@ -27,7 +27,7 @@ Daily workflow:
 - [RunExpt GUI Overview](overviews/RunExpt_GUI_Overview.md) — configuring subjects and running sessions
 - [Subjects & Projects](gui/gui_SubjectManager.md) — organizing subjects by project and adding several to a session at once
 - [Phase Selector](gui/PhaseSelector.md) — switching parameter sets between training stages
-- [Staircase Training GUI](gui/StaircaseTraining.md) — step rules and bounds for progressive training
+- [Staircase Training GUI](gui/StaircaseTraining.md) — step rules, bounds, and the value space (linear, proportional, power-law, piecewise) a staircase steps in
 - [Parameter Debugger](gui/gui_ParameterDebugger.md) — reading and writing hardware parameters by hand when a paradigm misbehaves
 
 Stimuli and calibration — these live in the `stimgen` submodule, which maintains

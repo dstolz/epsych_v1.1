@@ -1,83 +1,121 @@
 # StaircaseTraining
 
-![gui.StaircaseTraining window: a 4x4 table of Step Up/Down and Min/Max limits and values above a value-history plot](images/StaircaseTraining.png)
+![gui.StaircaseTraining window: the parameter and its current value, the four step-rule fields, the next-step preview, and the value-history plot](images/StaircaseTraining.png)
 
-`gui.StaircaseTraining` is a small MATLAB App Designer–style UI for configuring staircase (“progressive training”) step rules and bounds around a single `hw.Parameter`.
+`gui.StaircaseTraining` configures the step rule that drives a single `hw.Parameter` during progressive training, and plots where that rule has taken it.
 
-The window above shows the table described in [The table layout](#the-table-layout) after a few calls to `updateParameter`; the line plot below the table is the resulting `ValueHistory`.
-
-It is designed to be embedded inside another UI (panel/grid/etc.) or used standalone in its own figure.
+It is designed to be embedded inside another UI (panel/grid/etc.) or used standalone in its own figure. `gui.eval_staircase_training_mode` is what normally opens it.
 
 ## What problem it solves
 
-In many training/behavior tasks, you want to adjust a parameter over time based on trial outcomes:
+In many training tasks you adjust a parameter over time based on trial outcomes:
 
-- If the subject is doing well, make the task *harder* (decrease a parameter).
-- If the subject is struggling, make the task *easier* (increase a parameter).
+- If the subject is doing well, make the task *harder*.
+- If the subject is struggling, make the task *easier*.
 
 This class provides:
 
-- A table to edit `StepUp`, `StepDown`, `MinValue`, `MaxValue` and each field’s valid limits.
-- A method (`updateParameter`) to apply an “up” or “down” step to `Parameter.Value`.
-- A simple plot of the parameter value history.
+- Fields for `StepUp`, `StepDown`, `MinValue`, `MaxValue`.
+- A choice of **value space** the steps are taken in (linear, proportional, power-law, piecewise) under **Advanced**.
+- A preview line naming the two values the next step would land on.
+- `updateParameter("up"|"down")` to apply a step to `Parameter.Value`.
+- A plot of the value history, coloured by step direction.
 
-## Key concepts
+## The window
 
-### Immediate commit (table edits)
+Top to bottom:
 
-Edits in the table apply immediately:
+| Region | What it is |
+|---|---|
+| Header | Parameter name, its current value, and which outcome steps which way |
+| Step fields | `Step up`, `Step down`, `Minimum`, `Maximum`, each with the parameter's unit |
+| **Advanced** | The value space, and the per-field edit limits — collapsed by default |
+| Preview | `Next ▲ 1600 ms (+350)  ▼ 1150 ms (−100)` |
+| Plot | The value history as a stair trace |
+| Status | Why an edit was rejected |
 
-- Changing a **Value** cell directly updates the corresponding public property on the object (for example, editing “Step Up” updates `obj.StepUp`).
-- Changing a **limit** cell directly updates the corresponding `*Limits` property (for example, editing the lower bound for “Step Up” updates `obj.StepUpLimits(1)`).
+The **≥ / ≤ edit limits** live under Advanced. They bound what may be typed into the four fields, are set once per rig if ever, and previously occupied two of the four columns of the settings table — where an operator read past them every time they wanted to change a step size. Each field's accepted range is still one hover away, in its tooltip.
 
-The GUI does **not** automatically change `Parameter.Value` when you edit these settings. `Parameter.Value` only changes when you call `updateParameter`.
+The disclosure state is remembered per rig (preference group `StaircaseTraining`, key `ShowAdvanced`). When the window owns its figure it grows to make room for the section rather than taking the space from the plot.
 
-### Reject-on-violation validation
+## Value spaces
 
-When you edit the table, the edit is validated before it is accepted. If it would violate constraints, the GUI:
+![The Advanced section, with the Piecewise rule selected and its breakpoint table](images/StaircaseTraining_Advanced.png)
 
-- Rejects the edit.
-- Reverts the row back to the last committed value.
-- Shows an error message in the status label at the bottom.
+A staircase does not have to walk in equal native-unit steps. `ScaleType` decides how the step size changes as the value moves:
 
-Validation rules:
+| `ScaleType` | Rule | Use it when |
+|---|---|---|
+| `"linear"` (default) | `v ± Step` | The parameter is already perceptually linear |
+| `"logarithmic"` | `v * exp(±Step/Ref)` | Equal *ratios* matter — a delay, a frequency, an interval |
+| `"power"` | `((v^p) ± Step·p·Ref^(p−1))^(1/p)` | A compressive (`p<1`) or expansive (`p>1`) perceptual scale |
+| `"piecewise"` | Linear, with the magnitudes from the breakpoint table | Coarse steps far from threshold, fine steps near it |
+
+### The magnitudes keep one meaning
+
+`StepUp` and `StepDown` always mean **this many parameter units at the reference value**. Every space is calibrated so that its slope at the reference matches a linear step of the same size; away from the reference the spacing warps.
+
+That is deliberate. Switching space must not silently rescale a ladder that already works — it should only change how that ladder spreads out. A rig running 100 ms steps around 400 ms still takes a ~100 ms step at 400 ms after switching to proportional; what changes is that the step is ~200 ms at 800 ms and ~50 ms at 200 ms.
+
+The **reference** is shown in the Advanced row and is editable. Left unset (`NaN`) it resolves to the first usable value among `MinValue`, `MaxValue`, the parameter's current value, and 1 — and the field is seeded with the resolved number as soon as a warped space is chosen, so it is never a hidden quantity. It has to be a *fixed* value: calibrating on the current value would make every step the same fraction of wherever the staircase happens to be, which is a linear step with extra arithmetic.
+
+### Proportional stepping needs positive values
+
+`"logarithmic"` is undefined at and below zero. A step from a non-positive value is **refused**: the parameter is left alone, the preview line and the status line say why, and the refusal is logged once rather than once per trial. Keep `MinValue` above zero when using it.
+
+### Piecewise breakpoints
+
+The Breakpoints tab holds `[From value, ▲ Step, ▼ Step]` rows. The active row is the last one whose *From* value is at or below the current value; below the first breakpoint the `Step up`/`Step down` fields apply. Rows are sorted by *From* on entry, so they can be typed in any order, and a row with a non-finite *From* is dropped (it could never be selected).
+
+### From code
+
+Every rule is a public property, so a paradigm can configure one without the operator touching Advanced:
+
+```matlab
+G = gui.StaircaseTraining(p, ...
+    MinValue=400, MaxValue=4000, StepUp=100, StepDown=50, ...
+    ScaleType="logarithmic", ScaleReference=400);
+
+G.ScaleType = "piecewise";
+G.Breakpoints = [1500 200 100; 2500 500 250];
+```
+
+`gui.eval_staircase_training_mode` forwards `ScaleType`, `ScaleExponent`, `ScaleReference` and `Breakpoints` to the constructor.
+
+Setting any of them from a script refreshes the window; the operator can still change them afterwards. None of the rule settings are persisted between sessions — only the disclosure state and the window position are. A remembered training *regime* would change how a subject is trained without anyone choosing it that session.
+
+### Headless
+
+The step rule is a pure static, so it can be exercised — or reused — without a figure:
+
+```matlab
+[v, info] = gui.StaircaseTraining.stepValue(1000, "up", ...
+    StepUp=100, ScaleType="logarithmic", ScaleReference=400, MaxValue=4000);
+```
+
+`info` reports `Ok`, `Message`, `Direction`, `Step`, `Unclamped`, `Clamped` and `Delta`. It never throws: its caller is a trial-completion listener.
+
+## Immediate commit and reject-on-violation
+
+Edits apply immediately — editing `Step up` writes `obj.StepUp`, editing a limit cell writes `obj.StepUpLimits(1)`. The GUI does **not** change `Parameter.Value` when you edit these; that happens only in `updateParameter`.
+
+An edit that would violate a constraint is rejected: the widget reverts to the committed value and the status line says why.
 
 - `MinValue` must be ≤ `MaxValue`.
-- Every value must remain within its corresponding limits (`StepUp` within `StepUpLimits`, etc.).
-- Step sizes (`StepUp`, `StepDown`) must be finite and > 0.
-- Step limits must be ≥ 0, and the upper limit must be > 0.
+- Every value must stay within its own limits.
+- Step sizes must be finite and > 0; step limits must be ≥ 0 with an upper limit > 0.
+- Breakpoint steps must be finite and > 0.
 
-### Step semantics
+## The plot
 
-- `StepUp` and `StepDown` are positive magnitudes.
-- `updateParameter("up")` increases `Parameter.Value` by `StepUp`.
-- `updateParameter("down")` decreases `Parameter.Value` by `StepDown`.
-- After stepping, the value is clamped to the range `[MinValue, MaxValue]`.
+- A **stair** trace, because that is what the data is: the parameter holds each value until the next outcome moves it, and interpolating between steps would draw a ramp the rig never played.
+- Markers coloured by direction — up, down, and the value the session started from.
+- The newest value is circled and labelled.
+- `MinValue`/`MaxValue` are drawn as dashed reference lines, but only when the staircase is close enough for them to matter. The axis is scaled to the **trace**: a ladder working between 800 and 1600 ms inside bounds of 400 and 4000 ms would otherwise be squeezed into a quarter of the axes, and its fine structure is the point.
+- Under `"logarithmic"` the y axis is a log axis, so the spacing that was configured is the spacing that is seen.
+- Every graphics object is created once and updated in place — a training session is hundreds of trials, and one object per step would leave hundreds of them to re-render on every `drawnow`.
 
-“Clamped” means the value is forced to stay inside the range:
-
-- If it goes below `MinValue`, it becomes `MinValue`.
-- If it goes above `MaxValue`, it becomes `MaxValue`.
-
-## Requirements and dependencies
-
-### Parameter object
-
-The constructor requires a `hw.Parameter` instance (from `obj/+hw/Parameter.m`). `gui.StaircaseTraining` uses:
-
-- `Parameter.Name` (shown at the top)
-- `Parameter.Value` (read/updated by `updateParameter`)
-- `Parameter.ValueStr` (used for display in the UI)
-
-### MATLAB UI components
-
-The GUI uses standard UI components:
-
-- `uifigure` (only if you do not pass a `Parent`)
-- `uigridlayout`
-- `uitable`
-- `uilabel`
-- `uiaxes` (for the value history plot)
+Right-click the plot or the settings for **Advanced settings**, **Reset history**, and **Copy history to clipboard**.
 
 ## Constructor
 
@@ -90,26 +128,11 @@ Name–value options:
 
 - `Parent` (default `[]`): if provided, the GUI is embedded in this container.
 - `MinValue`, `MaxValue`, `StepUp`, `StepDown`: initial committed values.
-- `StepUpLimits`, `StepDownLimits`, `MinValueLimits`, `MaxValueLimits`: initial limits.
+- `StepUpLimits`, `StepDownLimits`, `MinValueLimits`, `MaxValueLimits`: initial edit limits.
+- `ScaleType`, `ScaleExponent`, `ScaleReference`, `Breakpoints`: the value space.
+- `ShowAdvanced`: open the Advanced section. Unstated, the operator's remembered preference decides.
+- `StepUpResponse`, `StepDownResponse`: shown in the header; the listener in `gui.eval_staircase_training_mode` is what acts on them.
 - `WindowStyle`: `"alwaysontop" | "modal" | "normal"` (only used when `Parent=[]`).
-
-## The table layout
-
-The table has 4 rows and 4 columns:
-
-- Rows:
-  1. Step Up
-  2. Step Down
-  3. Minimum
-  4. Maximum
-
-- Columns:
-  1. **Param** (read-only label)
-  2. **≥** (editable lower limit)
-  3. **≤** (editable upper limit)
-  4. **Value** (editable current value)
-
-When you edit a cell, the entire row is refreshed from the committed properties.
 
 ## updateParameter
 
@@ -118,63 +141,32 @@ v = G.updateParameter("up")
 v = G.updateParameter("down")
 ```
 
-- Input is case-insensitive.
-- Any other input is a no-op (no change).
-- Returns the new parameter value `v`.
-- Appends the new value to `G.ValueHistory` and refreshes the history plot.
+- Input is case-insensitive; anything else is a no-op.
+- Returns the new parameter value, clamped to `[MinValue, MaxValue]`.
+- Appends to `G.ValueHistory` and `G.StepDirections`, and refreshes the readout, the preview and the plot.
 
-Important: `updateParameter` directly writes `Parameter.Value`. If another part of your application is also updating the same parameter, you must handle synchronization outside of this class.
+`updateParameter` writes `Parameter.Value` directly. If another part of your application also updates the same parameter, synchronisation is your responsibility. (`gui.eval_staircase_training_mode` suspends `isRandom` for exactly this reason, and `cl_AppetitiveStimDetect` stands its block sequence down.)
 
-## Usage examples
+`resetHistory()` discards the plotted history and restarts it from the current value.
 
-### Example 1: Standalone window
+## Requirements and dependencies
 
-```matlab
-% Assuming you already have (or create) a hw.Parameter named p
-p.Name = 'Tone Level';
-p.Value = 20;
-
-G = gui.StaircaseTraining(p, ...
-    MinValue=0, MaxValue=80, ...
-    StepUp=5, StepDown=2);
-```
-Later, after a trial completes:
-
-```matlab
-G.updateParameter("down");   % make it harder
-```
-or
-```matlab
-G.updateParameter("up");     % make it easier
-```
-
-### Example 2: Embedded in an existing app container
-
-```matlab
-fig = uifigure();
-h = uipanel();
-
-% p is a hw.Parameter
-G = gui.StaircaseTraining(p, Parent=h);
-```
+`hw.Parameter` — the class reads `Name`, `Value`, `ValueStr`, `Unit` and `Format`. The unit and format are display only; they are what put `ms` beside the fields and on the axis.
 
 ## Lifecycle and cleanup
 
-- If `Parent` is not provided (`Parent=[]`), the class creates and owns a new `uifigure`.
-- When the object is deleted, it deletes the UI components it owns.
-- If it owns its figure, it saves the window position using MATLAB preferences:
-  - Preference group: `StaircaseTraining`
-  - Preference key: `Position`
-
-If you embed the GUI in another container, the class attaches a listener so it will delete itself when the parent is destroyed.
+- With no `Parent`, the class creates and owns a `uifigure` and remembers its position (preference group `StaircaseTraining`, key `Position`).
+- Embedded, it attaches a listener and deletes itself when the parent is destroyed.
+- Deleting the object deletes the UI it owns.
 
 ## Notes and limitations
 
-- The value history starts with the initial `Parameter.Value` when the GUI is constructed.
-- The history plot is intentionally simple (axes labels are hidden).
-- This class validates the GUI’s own `MinValue/MaxValue` bounds; it does not enforce the `hw.Parameter.Min`/`Max` constraints.
+- The value history starts with `Parameter.Value` as it was when the GUI was constructed.
+- This class validates its own `MinValue`/`MaxValue`; it does not enforce `hw.Parameter.Min`/`Max` (`hw.Parameter` clamps on write itself).
 
 ## Related files
 
-- `obj/+gui/@StaircaseTraining/StaircaseTraining.m` (this class)
-- `obj/+hw/Parameter.m` (`hw.Parameter` definition)
+- `obj/+gui/@StaircaseTraining/` (this class; `stepValue.m` is the rule)
+- `obj/+gui/eval_staircase_training_mode.m` ([doc](eval_staircase_training_mode.md))
+- `obj/+hw/@Parameter/Parameter.m`
+- `tmp/smoke_test_staircase_training.m` (standing proof)

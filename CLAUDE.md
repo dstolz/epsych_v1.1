@@ -864,7 +864,40 @@ unconstructable. `epsych.SelfTest` check A3 is the tripwire.
   (`gui.components.Parameter_Monitor` → `parametermonitor`) and `gui.components.ComponentToolbar`
   falls back to the generic `component` glyph, so a new `gui.PopOut` adopter
   works before anyone draws for it
-- Session control: StaircaseTraining, StatusBar, Triggers
+- Session control: StatusBar, Triggers
+- **gui.StaircaseTraining**: the step rule driving one `hw.Parameter` during
+  progressive training, and the plot of where it has gone. The rule is a pure
+  static (`stepValue`), so the four VALUE SPACES a step can be taken in are
+  testable with no figure: linear, `logarithmic` (proportional — a fixed
+  fraction per step), `power` (Stevens-law compression or expansion), and
+  `piecewise` (magnitudes from a breakpoint table — coarse far from
+  threshold, fine near it). The thing that makes them interchangeable is the
+  CALIBRATION: `StepUp`/`StepDown` always mean parameter units AT the
+  reference, and each space matches a linear step's slope there, so changing
+  space cannot silently rescale a ladder that already works — it only changes
+  how the ladder spreads out away from the reference. The reference must be a
+  FIXED value (it seeds itself from `MinValue` and is shown in the field the
+  moment a warped space is chosen): calibrating on the current value would
+  make every step the same fraction of wherever the staircase happens to be,
+  which is a linear step with extra arithmetic. Four more a reader would
+  otherwise re-derive: a proportional step from a non-positive value is
+  REFUSED rather than fudged, logged once instead of once a trial, since
+  training runs unattended; the preview line (`Next ▲ 1600 ms (+350) ▼ 1150 ms
+  (−100)`) is what makes a warped space legible at all and so follows the
+  CURRENT value, refreshed after every step and never by reading the device;
+  the plot's y axis is scaled to the TRACE with a bound pulled in only when
+  the ladder gets near it, because a range of 800–1600 inside bounds of
+  400–4000 drew the fine structure — which reversal the animal is on — in a
+  quarter of the axes; and the window opens over a parameter with an EMPTY
+  `Value` (`add_parameter` fills `Values`, not `Value`, and a checkbox or a
+  phase load can switch training on before the first dispatch), stepping only
+  once there is something to step from. The `≥`/`≤` edit limits moved into an
+  Advanced disclosure — two of the four columns an operator read past every
+  time they changed a step size — remembered per rig; the RULE settings
+  deliberately do NOT persist, since a remembered regime would change how a
+  subject is trained without anyone choosing it that session. Standing proof
+  `tmp/smoke_test_staircase_training.m`
+  (documentation/gui/StaircaseTraining.md)
 - **gui.ParameterDebugger**: the other window on RunExpt's Help menu (Ctrl+E) — every
   hw.Parameter a protocol defines, in one table, readable and writable by hand. It
   **never polls**: a read happens only on a double-click, Read Selected, or Read All

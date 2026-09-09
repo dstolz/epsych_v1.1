@@ -35,9 +35,16 @@ function [value,success] = eval_staircase_training_mode(obj,src,event,Parameter,
 %       gui.StaircaseTraining. Defaults are [0 500].
 %   MinValueLimits, MaxValueLimits - Two-element edit limits for the
 %       staircase min/max controls.
+%   ScaleType - Value space the steps are taken in: "linear" (default),
+%       "logarithmic" (proportional), "power", or "piecewise". See
+%       gui.StaircaseTraining; the operator can also change it in the
+%       window's Advanced section.
+%   ScaleExponent, ScaleReference - Power-law exponent, and the value the
+%       step magnitudes are calibrated at (NaN resolves it from the bounds).
+%   Breakpoints - Nx3 [FromValue StepUp StepDown] for ScaleType="piecewise".
 %   StepUpResponse - Trial outcome that triggers an "up" step. Supported
 %       values are "Hit", "Miss", "CorrectReject", "FalseAlarm", and
-%       "Abort". The legacy spelling "CorrectRejct" is also accepted.
+%       "Abort" -- the names epsych.BitMask.decode returns.
 %   StepDownResponse - Trial outcome that triggers a "down" step. Uses the
 %       same supported values as StepUpResponse.
 %
@@ -61,8 +68,12 @@ arguments
     options.StepUpLimits   (1,2) double = [0 500]
     options.MinValueLimits (1,2) double = [Parameter.Min Parameter.Max]
     options.MaxValueLimits (1,2) double = [Parameter.Min Parameter.Max]
-    options.StepUpResponse (1,1) string {mustBeMember(options.StepUpResponse,["Hit","Miss","CorrectReject","CorrectReject","FalseAlarm","Abort"])} = "Hit"
-    options.StepDownResponse (1,1) string {mustBeMember(options.StepDownResponse,["Hit","Miss","CorrectReject","CorrectReject","FalseAlarm","Abort"])} = "Abort"
+    options.ScaleType (1,1) string {mustBeMember(options.ScaleType,["linear","logarithmic","power","piecewise"])} = "linear"
+    options.ScaleExponent (1,1) double {mustBeFinite, mustBePositive} = 0.5
+    options.ScaleReference (1,1) double = NaN
+    options.Breakpoints (:,3) double = zeros(0,3)
+    options.StepUpResponse (1,1) string {mustBeMember(options.StepUpResponse,["Hit","Miss","CorrectReject","FalseAlarm","Abort"])} = "Hit"
+    options.StepDownResponse (1,1) string {mustBeMember(options.StepDownResponse,["Hit","Miss","CorrectReject","FalseAlarm","Abort"])} = "Abort"
 end
 
 success = false;
@@ -116,6 +127,16 @@ try
             vprintf(2,'Launching %s Training GUI',pName)
             nvArgs = namedargs2cell(options);
             h = gui.StaircaseTraining(Parameter, nvArgs{:});
+
+            % Reopening after the operator closed the window by hand lands
+            % here with the map entry still in place. addlistener ties the
+            % listener's life to the SOURCE, not to the handle it returns, so
+            % overwriting the map entry would leave the old listener attached
+            % to RUNTIME.EVENTS: two listeners, and the parameter stepped
+            % twice per trial for the rest of the session.
+            if obj.StaircaseTrainingListeners.isKey(pName)
+                delete(obj.StaircaseTrainingListeners(pName));
+            end
 
             obj.StaircaseTrainingListeners(pName) = addlistener( ...
                 RUNTIME.EVENTS, 'NewData', ...
@@ -233,6 +254,15 @@ vprintf(3,'Updating %s Training Mode: %s',P.Name,s)
 
 curValStr = P.ValueStr;
 newValue = h.updateParameter(s);
+
+% updateParameter declines the step when the rule cannot be applied to the
+% current value -- the parameter has not been written yet, or a proportional
+% ladder has reached zero -- and returns that unstepped value. It must not
+% reach the trials table: an empty one would deal [] into every row of the
+% parameter's column and blank the schedule for the rest of the session.
+if isempty(newValue) || ~isnumeric(newValue)
+    return
+end
 vprintf(3,'Updated parameter "%s": %s -> %s',P.Name,curValStr,P.ValueStr)
 
 % only update the trials table for hardware-backed parameters
