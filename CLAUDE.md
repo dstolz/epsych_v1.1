@@ -19,15 +19,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Setup
 
 ```bash
-# Clone with submodules (stimgen lives in a separate repo)
+# Clone with submodules (stimgen and granary each live in a separate repo)
 git clone --recurse-submodules https://github.com/dstolz/epsych2.git
 # For an existing clone:
 git submodule update --init --recursive
 
-# granary (the logging package) is a separate repository and a HARD dependency
-# -- nothing in the toolbox can log without it. Clone it beside epsych2:
-git clone https://github.com/dstolz/granary.git
-# Somewhere else? Point at it once instead:
+# granary (the logging package) is a HARD dependency -- nothing in the toolbox
+# can log without it. It is the obj/granary submodule, so the line above is all
+# that is needed. Sharing one copy across checkouts? Point at it once instead:
 #   setpref('EPsych','GranaryPath','<folder holding +granary>')
 ```
 
@@ -1074,16 +1073,19 @@ re-uploading the state table.
 - RPco.x connection (TDTRP) and RPvds tag reading (ReadRPvdsTags)
 - Synapse SDK (SynapseAPI/)
 
-#### granary – Logging (SEPARATE REPOSITORY)
+#### obj/granary/ – Logging (GIT SUBMODULE)
 The machinery behind vprintf; almost nothing should call it directly.
-**It is not in this repository.** `granary` lives at
-[dstolz/granary](https://github.com/dstolz/granary) and is a hard dependency:
-vprintf is a thin facade over `granary.printf`, so nothing in the toolbox can
-log without it. `epsych_startup`'s `setup_granary` finds it — already on the
-path, else `getpref('EPsych','GranaryPath')`, else `obj/granary` (where a
-submodule would sit), else a sibling of the checkout, else a sibling one level
-up, which is where a **git worktree** finds it — and asserts with clone
-instructions when it cannot, rather than letting "Undefined variable granary"
+Separate repository: [dstolz/granary](https://github.com/dstolz/granary) —
+package is at `obj/granary/+granary/`. Edits here belong to that repo, not
+epsych2; commit there and update the submodule pointer. It is a hard
+dependency: vprintf is a thin facade over `granary.printf`, so nothing in the
+toolbox can log without it. `epsych_startup`'s `setup_granary` finds it —
+already on the path, else `getpref('EPsych','GranaryPath')`, else the
+`obj/granary` submodule, else a sibling of the checkout, else a sibling one
+level up. The two sibling fallbacks stay for clones made before the submodule
+and for a **git worktree**, which lives a directory deeper than the checkout it
+was made from. It asserts with `git submodule update --init` instructions when
+it cannot, rather than letting "Undefined variable granary"
 surface from whichever call site logged first. Three settings are applied there
 and nowhere else: `LogRoot` = the checkout (so `.error_logs` stays where EPsych
 has always written), `FacadeFiles` = `{'vprintf.m','LogBridge.m'}` (see
@@ -1266,7 +1268,7 @@ Reference: examples/customgui/, runtime/guis/@ep_GenericGUI/, paradigms/cl_SaveD
 | examples/stimgen/ | Demo protocol/config/TDT circuit assets |
 | obj/+gui/ | GUI components |
 | obj/+teensy/ | Teensy trial programs: state-machine model, compiler, simulator, TrialDesigner GUI |
-| *(external)* granary | Logging: verbosity gate, record dispatcher, console/file/JSON sinks. Separate repo, located by `epsych_startup` |
+| obj/granary/ | Logging: verbosity gate, record dispatcher, console/file/JSON sinks (git submodule: dstolz/granary) |
 | obj/+psychophysics/ | Analysis (Detection, Staircase, BestPEST, MLP) |
 | obj/+peripherals/ | Motor control, pump communication |
 | firmware/ | Microcontroller firmware (EPsychTeensy) |
@@ -1282,8 +1284,9 @@ Reference: examples/customgui/, runtime/guis/@ep_GenericGUI/, paradigms/cl_SaveD
 - Commit messages should reference the area changed
 - Use feature branches for significant changes
 - No force pushes to main/master without discussion
-- `obj/stimgen` is a submodule pinned to `main`. Changes there are committed in
-  the stimgen repo; bumping the pointer here is a separate, deliberate commit.
+- `obj/stimgen` and `obj/granary` are submodules pinned to `main`. Changes there
+  are committed in their own repo; bumping the pointer here is a separate,
+  deliberate commit.
 
 ## Documentation Resources
 

@@ -14,20 +14,27 @@ Most code never touches this package directly. Call `vprintf`. Reach for
 `granary` when you need to know _where_ the log is, make it durable, or add a
 destination.
 
-## It is a separate repository
+## It is a separate repository, attached as a submodule
 
-`granary` is **not in this repository**. It lives at
-[dstolz/granary](https://github.com/dstolz/granary) and is a hard dependency:
-`vprintf` is a thin forward to `granary.printf`, so nothing here can log
-without it. Clone it beside your epsych2 checkout, or point at an existing copy
-with `setpref('EPsych','GranaryPath','<folder holding +granary>')`.
+`granary` is developed and released on its own at
+[dstolz/granary](https://github.com/dstolz/granary), and is attached to this
+repository as a git submodule at `obj/granary/` — the same arrangement as
+[stimgen](../stimgen.md). It is a hard dependency: `vprintf` is a thin forward
+to `granary.printf`, so nothing here can log without it. Clone with
+`--recurse-submodules`, or run `git submodule update --init --recursive` in an
+existing clone.
 
-`epsych_startup`'s `setup_granary` locates it — already on the path, then that
-preference, then `obj/granary` (where a submodule would sit), then a sibling of
-the checkout, then a sibling one level up, which is where a **git worktree**
-finds it. When it cannot, startup stops with clone instructions rather than
-letting `Undefined variable granary` surface later from whichever call site
-happened to log first.
+`epsych_startup`'s `setup_granary` locates it — already on the path, then a
+`setpref('EPsych','GranaryPath','<folder holding +granary>')` override, then
+the submodule at `obj/granary`, then a sibling of the checkout, then a sibling
+one level up. The two sibling fallbacks are what keep a clone made before the
+submodule working, and are where a **git worktree** finds it, since a worktree
+lives a directory deeper than the checkout it was made from. When none of them
+has it, startup stops with instructions rather than letting `Undefined variable
+granary` surface later from whichever call site happened to log first.
+
+Edits to the package belong to that repository: commit them there, then bump
+the pointer here as a separate, deliberate commit.
 
 Startup also applies the three settings that a library cannot discover about
 its host:

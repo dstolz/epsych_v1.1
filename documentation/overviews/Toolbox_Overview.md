@@ -78,9 +78,9 @@ Stimulus objects (tones, noise, clicks, and more), a stimulus bank player, and s
 
 Every message EPsych prints or records goes through `vprintf`, which is a thin facade over `granary.printf`. The package behind it keeps the command window and the daily log file on **separate** verbosity levels, so quieting the console never discards the record that explains a failure. See [../granary/granary_Logging.md](../granary/granary_Logging.md).
 
-`granary` is a separate repository ([dstolz/granary](https://github.com/dstolz/granary)) and, unlike stimgen, is **not** a submodule — clone it beside your EPsych checkout, or point at it once with `setpref('EPsych','GranaryPath',...)`.
+`granary` is a separate repository ([dstolz/granary](https://github.com/dstolz/granary)) attached here as a git submodule at `obj/granary/`, the same as stimgen. Clone with `--recurse-submodules`, or run `git submodule update --init --recursive` in an existing clone. To share one copy across several checkouts, point at it once with `setpref('EPsych','GranaryPath',...)`.
 
-> 🔑 **This dependency fails loudly, not silently.** Nothing in the toolbox can log without `granary`, so `epsych_startup` stops with clone instructions rather than starting. That is the opposite of the stimgen failure above, and deliberately so.
+> 🔑 **This dependency fails loudly, not silently.** Nothing in the toolbox can log without `granary`, so `epsych_startup` stops with instructions rather than starting. That is the opposite of the stimgen failure above, and deliberately so.
 
 ### Hardware layers (`obj/+hw/` and `TDTfun/`)
 

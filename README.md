@@ -21,7 +21,7 @@ The repository includes both legacy procedural code and a gradual migration towa
 
 ## Installation
 
-Stimulus generation lives in a separate repository ([dstolz/stimgen](https://github.com/dstolz/stimgen)) attached here as a git submodule, so clone recursively:
+Stimulus generation ([dstolz/stimgen](https://github.com/dstolz/stimgen)) and logging ([dstolz/granary](https://github.com/dstolz/granary)) each live in their own repository, attached here as git submodules, so clone recursively:
 
 ```bash
 git clone --recurse-submodules https://github.com/dstolz/epsych2.git
@@ -37,7 +37,7 @@ addpath('C:\path\to\epsych2')
 epsych_startup
 ```
 
-Skipping the submodule step does not fail loudly — protocols containing stimulus objects load with silently degraded placeholder values. `epsych_startup` warns when it detects this. Full instructions are in the [Installation Guide](documentation/overviews/Installation_Guide.md), and the submodule contract is described in [documentation/stimgen.md](documentation/stimgen.md).
+The two submodules fail differently when skipped. A missing `granary` is **loud**: nothing in the toolbox can log without it, so `epsych_startup` stops with instructions rather than starting. A missing `stimgen` is **silent** — protocols containing stimulus objects load with degraded placeholder values, and `epsych_startup` only warns. Full instructions are in the [Installation Guide](documentation/overviews/Installation_Guide.md); the stimgen submodule contract is described in [documentation/stimgen.md](documentation/stimgen.md) and the logging seam in [documentation/granary/granary_Logging.md](documentation/granary/granary_Logging.md).
 
 ## Documentation
 

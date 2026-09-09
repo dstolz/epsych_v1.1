@@ -140,7 +140,7 @@ Peripheral hardware interfaces that do not fit the core `hw` hierarchy: `periphe
 
 Detailed references: [../peripherals/](../peripherals/)
 
-### granary (external repository)
+### granary (git submodule: `obj/granary/`)
 
 The logger behind `vprintf`. `granary.isEnabled` gates on two globals — `GVerbosity` for the command window, `GLogVerbosity` (default `Inf`, everything) for the error log — and each sink applies the one for its own destination, so quieting the console never quiets the log. `granary.Logger` builds one record per message and dispatches it to its sinks (`granary.sink.Console`, `granary.sink.TextFile`, and the opt-in `granary.sink.JsonLines`). It owns the daily `.error_logs` file: rotation, flushing, handle recovery, and failure latching. Nothing in the package throws, because EPsych logs from inside `catch` blocks.
 

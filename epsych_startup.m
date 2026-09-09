@@ -248,17 +248,18 @@ end
 function setup_granary(rootdir)
 % Put the granary logging package on the path and configure it for this tree.
 %
-% granary is a separate repository: vprintf is a thin facade over it, so
-% nothing in the toolbox can log until it is found.  That makes this the one
-% dependency worth failing loudly about -- left to itself it would surface as
-% "Undefined variable granary" from whichever call site happened to log first,
-% which is never the code that is actually wrong.
+% granary is its own repository, attached here as a git submodule at
+% obj/granary.  vprintf is a thin facade over it, so nothing in the toolbox can
+% log until it is found.  That makes this the one dependency worth failing
+% loudly about -- left to itself it would surface as "Undefined variable
+% granary" from whichever call site happened to log first, which is never the
+% code that is actually wrong.
 %
-% Searched in order: already on the path, an explicit preference, obj/granary
-% inside this checkout (where a submodule would sit), a sibling beside this
-% checkout, then a sibling one level up -- which is where a "git worktree"
-% finds it, since a worktree lives a directory deeper than the checkout it was
-% made from.
+% Searched in order: already on the path, an explicit preference, the submodule
+% at obj/granary, a sibling beside this checkout, then a sibling one level up.
+% The two sibling fallbacks are kept for the clones that predate the submodule
+% and for a "git worktree", which lives a directory deeper than the checkout it
+% was made from and so has no submodule of its own until it is initialized.
 
 if isempty(which('granary.printf'))
     candidates = {};
@@ -290,12 +291,12 @@ end
 assert(~isempty(which('granary.printf')),'epsych_startup:granaryMissing', ...
     ['The granary logging package was not found, so EPsych cannot log and ' ...
      'will not start.\n' ...
-     '    Clone it beside this checkout:\n' ...
-     '        git clone https://github.com/dstolz/granary "%s"\n' ...
+     '    It is a submodule, so fetch it from within "%s":\n' ...
+     '        git submodule update --init --recursive\n' ...
      '    or point at an existing copy:\n' ...
      '        setpref(''EPsych'',''GranaryPath'',''<folder holding +granary>'')\n' ...
      '    or add it to the Matlab path before calling epsych_startup.'], ...
-    fullfile(fileparts(rootdir),'granary'));
+    rootdir);
 
 % LogRoot puts .error_logs inside this checkout, which is where EPsych has
 % always written.  FacadeFiles names the two files that stand between a call

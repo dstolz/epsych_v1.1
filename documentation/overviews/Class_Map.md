@@ -122,7 +122,7 @@ Support and task-specific classes
 │  └─ NanoMotorControlGUI
 ├─ util
 │  └─ VideoConverter → gui.VideoConverterSetup
-├─ granary                        (separate repository: dstolz/granary)
+├─ granary                        (git submodule: dstolz/granary at obj/granary/)
 │  ├─ Logger
 │  ├─ Level (int32 enumeration)
 │  └─ sink.Sink

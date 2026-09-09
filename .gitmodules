@@ -2,3 +2,7 @@
 	path = obj/stimgen
 	url = https://github.com/dstolz/stimgen.git
 	branch = main
+[submodule "obj/granary"]
+	path = obj/granary
+	url = https://github.com/dstolz/granary.git
+	branch = main

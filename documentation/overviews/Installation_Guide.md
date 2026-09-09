@@ -76,24 +76,21 @@ cd epsych2
 git submodule update --init --recursive
 ```
 
-[`granary`](https://github.com/dstolz/granary), the logging package, is **not** a
-submodule — it is a standalone library, so clone it separately. The simplest
-place is beside the EPsych checkout, which is where `epsych_startup` looks:
+That fetches both submodules: [`stimgen`](https://github.com/dstolz/stimgen),
+the stimulus package, at `obj/stimgen/`, and
+[`granary`](https://github.com/dstolz/granary), the logging package, at
+`obj/granary/`.
 
-```bash
-git clone https://github.com/dstolz/granary.git
-```
-
-That gives you `C:\src\epsych2` and `C:\src\granary` side by side. To keep it
-somewhere else, say so once and EPsych will remember:
+To share one copy of `granary` across several checkouts, say so once and EPsych
+will use it instead:
 
 ```matlab
 setpref('EPsych','GranaryPath','D:\shared\granary')   % the folder holding +granary
 ```
 
-Unlike the submodule, this failure is **loud**: `vprintf` is a thin facade over
-`granary.printf`, so nothing in the toolbox can log without it and
-`epsych_startup` stops with clone instructions rather than starting.
+Unlike a missing stimgen, a missing `granary` fails **loudly**: `vprintf` is a
+thin facade over `granary.printf`, so nothing in the toolbox can log without it
+and `epsych_startup` stops with instructions rather than starting.
 
 Then, in MATLAB:
 
