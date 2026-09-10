@@ -1098,7 +1098,46 @@ re-uploading the state table.
   split a forced choice does not have, which is why TwoAFCBehaviorGUI has no
   gui.components.SessionPerformance panel
   (documentation/psychophysics/psychophysics_NAFC.md)
-- **psychophysics.Staircase**: Reversal detection and threshold estimation
+- **psychophysics.Staircase**: Reversal detection and threshold estimation, and —
+  since 2026-09-10 — the OTHER threshold the same trials can give: `fitPsychometric`
+  fits a psychometric function to them by maximum likelihood. The two are not
+  redundant and should not be reconciled: `Results.Threshold` averages the last N
+  reversals and so converges on whatever proportion the STEP RULE targets (a
+  symmetric 2-down-1-up settles near 70.7%, not 50%), while the fit uses every
+  scored trial at every level visited and reports the function's own location
+  parameter plus the level at a criterion the caller names. The estimator
+  (`fitProportions`) is a pure static over counts and the function it fits
+  (`psychometricFunction`/`psychometricLevel`) another, so both are testable with
+  no DATA, no runtime and no figure; `fitPsychometric` is only the seam that turns
+  a session into `(levels, numYes, numTotal)` — Hit is a yes, Miss a no, an abort
+  neither (`Metrics.rateDenominator`'s convention), a code carrying both counted
+  in `NumUnscored` rather than resolved. Shapes and parameterization are
+  `psychophysics.BestPEST`'s exactly, so a threshold from either is comparable,
+  and nothing needs the Optimization, Curve Fitting or Statistics Toolbox
+  (`fminsearch`, `Metrics.zinv`, `gammainc`). What a reader would otherwise
+  re-derive: the result is RETURNED and never written onto `Results`, since a fit
+  stored beside live trials is a stale number waiting to be read; a dataset that
+  cannot support a fit gets `Converged`/`Identifiable` false and a `Message`
+  rather than a plausible number, and the tests behind that are EXACT statements
+  about the data (fewer than two distinct levels, every scored trial the same
+  outcome, and complete separation — every "no" level below every "yes" — where
+  the slope is unbounded and whatever the optimizer stopped at is an artifact of
+  its iteration cap) rather than tolerances on the estimate; `ThresholdCriterion`
+  is read BETWEEN THE ASYMPTOTES by default, which is the only reading that is
+  always reachable and that makes 0.5 mean alpha whatever gamma is, with
+  `CriterionScale="absolute"` for "the 70.7% level" and a deliberate NaN when
+  that proportion lies outside them (a 2AFC absolute 0.5 is not a midpoint, it is
+  unreachable); the `MinResponseRange` flag names `Direction` when the data run
+  the other way, turning a flat non-result into a signpost; the bootstrap draws
+  from a private `RandStream` so a seeded fit cannot move a trial selector's
+  stream; and no Hessian standard error is offered at all, because adaptive
+  sampling breaks exactly its assumptions — the same reason the slope from a
+  staircase is documented as biased upward and the deviance p-value as
+  untrustworthy at one trial per level. Standing proof
+  `tmp/smoke_test_staircase_fit.m`, whose group 9 parses both `arguments` blocks
+  because MATLAB cannot inherit one and `fitPsychometric` must repeat
+  `fitProportions`' 16 forwarded declarations
+  (see documentation/psychophysics/psychophysics_StaircaseFit.md)
 - **psychophysics.BestPEST**, **psychophysics.MLP**: Threshold-seeking algorithms
 - **psychophysics.SessionMetrics**: Session-level counts, rates, d', A' and criterion over a
   `psychophysics.TrialWindow` (all trials, last N, first N, or an explicit range). The
