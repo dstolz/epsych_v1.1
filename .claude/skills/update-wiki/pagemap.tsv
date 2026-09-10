@@ -6,6 +6,9 @@ obj/+gui/@BehaviorGUI	Building-a-Behavior-GUI, Behavior-GUI-Components, GUI-Fram
 obj/+gui/@SelfTest	RunExpt-SelfTest, Troubleshooting	documentation/overviews/RunExpt_SelfTest.md
 obj/+gui/@PopOut	Behavior-GUI-Components, GUI-Framework-Internals	documentation/gui/gui_PopOut.md
 obj/+gui/+components/@SyringePump	Behavior-GUI-Components, Video-and-Peripherals	documentation/gui/gui_SyringePump.md
+obj/+gui/+components/@NanoMotor	Behavior-GUI-Components, Video-and-Peripherals	documentation/gui/gui_NanoMotor.md
+obj/+gui/@AdaptiveTraining	Training-and-Online-Analysis, Behavior-GUI-Components	documentation/gui/AdaptiveTraining.md
+obj/+gui/eval_adaptive_training_mode.m	Training-and-Online-Analysis	documentation/gui/eval_adaptive_training_mode.md
 obj/+gui/@ParameterDebugger	Behavior-GUI-Components, GUI-Framework-Internals, Troubleshooting	documentation/gui/gui_ParameterDebugger.md
 obj/+gui/@BehaviorBuilder	Behavior-GUI-Builder, Building-a-Behavior-GUI	documentation/gui/gui_BehaviorBuilder.md
 obj/+gui/+components/@ComponentToolbar	Behavior-GUI-Components, GUI-Framework-Internals	documentation/gui/gui_ComponentToolbar.md
@@ -14,6 +17,7 @@ obj/+gui/@SubjectManager	Subjects-and-Projects, Subject-Roster-Internals	documen
 obj/+gui/@VlcRecorderSetup	Video-and-Peripherals	documentation/gui/VlcRecorderSetup.md
 obj/+gui/	Behavior-GUI-Components, GUI-Framework-Internals, Training-and-Online-Analysis, Programmers-Toolkit	documentation/gui/
 obj/+hw/@NE1000	Video-and-Peripherals, Hardware-Abstraction-Layer	documentation/hw/hw_NE1000.md
+obj/+hw/@VlcRecorder	Video-and-Peripherals, Hardware-Abstraction-Layer	documentation/hw/hw_VlcRecorder.md
 obj/+hw/@Interface	Hardware-Abstraction-Layer, hw.Interface-Class-Reference, Writing-a-Hardware-Backend	documentation/hw/hw_Interface.md, documentation/hw/hw_Interface_Tutorial.md
 obj/+hw/@Parameter	Hardware-Abstraction-Layer, Designing-Protocols	documentation/hw/hw_Parameter.md
 obj/+hw/	Hardware-Abstraction-Layer, Writing-a-Hardware-Backend, Programmers-Toolkit	documentation/hw/
@@ -31,6 +35,7 @@ obj/+epsych/	Runtime-and-Events, Protocol-Internals, Programmers-Toolkit	documen
 obj/+psychophysics/	Psychophysics-Framework, Training-and-Online-Analysis, Programmers-Toolkit	documentation/psychophysics/
 obj/+stimbridge/	Stimgen-Integration, Stimuli-and-Calibration	documentation/stimgen.md
 obj/stimgen	Stimgen-Integration, Stimuli-and-Calibration	documentation/stimgen.md (submodule docs are authoritative)
+obj/granary	Installation-and-Setup, Troubleshooting, Contributing-and-Conventions	documentation/granary/granary_Logging.md (submodule docs are authoritative)
 obj/+teensy/	Teensy-Trial-Designer, Teensy-Program-Model, Programmers-Toolkit	documentation/teensy/, documentation/hw/hw_Teensy_Program_Protocol.md
 helpers/vprintf.m	Troubleshooting, Contributing-and-Conventions, Programmers-Toolkit	documentation/granary/granary_Logging.md
 obj/+peripherals/	Video-and-Peripherals, Utilities	documentation/peripherals/

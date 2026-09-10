@@ -67,6 +67,7 @@ shots = { ...
     'SelfTest',          @shotSelfTest; ...
     'StimPlayer',        @shotStimPlayer; ...
     'CalibrationGui',    @shotCalibrationGui; ...
+    'VlcRecorderSetup',  @shotVlcRecorderSetup; ...
     'TeensyTrialDesigner',        @shotTeensyChannels; ...
     'TeensyTrialDesigner_States', @shotTeensyStates; ...
     'TeensyTestBench',            @shotTeensyTestBench; ...
@@ -216,11 +217,15 @@ end
 % -------------------------------------------------------------------------
 function [fig, cleanupFcn] = shotParameterScatter(C)
 % Caption: tone level against trial number for a 150-trial session, colored
-% by the decoded response.
+% by the decoded response, with a 20-trial moving-average trend line.
 S = detectionSession(C);
 fig = uifigure('Visible', 'off', 'Position', [200 200 760 440], 'Tag', 'wikiShot');
-gui.components.ParameterScatter(S.DATA, fig, PreferenceTag='wikiShotScatterBig', ...
+sc = gui.components.ParameterScatter(S.DATA, fig, PreferenceTag='wikiShotScatterBig', ...
     XParameter='TrialIndex', YParameter='ToneLevel', ColorParameter='Response');
+sc.TrendType = 'movmean';
+sc.TrendWindow = 20;
+sc.ShowTrendStats = true;
+sc.update;
 cleanupFcn = @() delete(S.Psych);
 end
 
@@ -260,13 +265,23 @@ end
 
 
 function [fig, cleanupFcn] = shotAdaptiveTraining(C)
-% Caption: step rules for one parameter, with the value history below.
+% Caption: step rules for one parameter, with the value history below --
+% a level ladder that goes 2 dB quieter on a hit and 5 dB louder on a miss.
 rt = softwareRuntime(C);
+P = rt.find_parameter('ToneLevel');
+P.Value = 50;
 fig = uifigure('Visible', 'off', 'Position', [200 200 400 560], 'Tag', 'wikiShot');
-st = gui.AdaptiveTraining(rt.find_parameter('ToneLevel'), Parent=fig, ...
-    MinValue=10, MaxValue=70, StepUp=2, StepDown=5, ...
-    StepUpResponse="Hit", StepDownResponse="Miss", ...
+st = gui.AdaptiveTraining(P, Parent=fig, ...
+    MinValue=10, MaxValue=70, StepUp=5, StepDown=2, ...
+    StepUpResponse="Miss", StepDownResponse="Hit", ...
     ShowAdvanced=false);   % state it, or the shot varies with this rig's preference
+% A plausible run, mostly hits with the odd miss, so the plot has a ladder
+% on it rather than one point.
+outcomes = ["down","down","up","down","down","down","up","down","down","down", ...
+            "down","up","down","down","down","down","up","down","down","down"];
+for i = 1:numel(outcomes)
+    st.updateParameter(outcomes(i));
+end
 cleanupFcn = @() delete(st);
 end
 
@@ -758,6 +773,24 @@ G = epsych.calibrate;
 drawnow
 fig = figureByName('Stim Calibration');
 cleanupFcn = @() delete(G);
+end
+
+
+%% ------------------------------------------------------------------------
+%  Peripherals
+% -------------------------------------------------------------------------
+function [fig, cleanupFcn] = shotVlcRecorderSetup(~)
+% Caption: the numeric-only form (EnablePreview=false), which needs no camera
+% -- the same fallback a rig without the USB Webcams support package gets --
+% with the recording caption switched on so its section is not greyed out.
+% PersistPrefs=false: the shot never presses Apply, but it must not be able to
+% rewrite the rig's ep_RunExpt_Video group if it ever did.
+rec = hw.VlcRecorder();
+rec.connect();
+rec.set_parameter('EnableCaption', true);
+fig = uifigure('Visible', 'off', 'Position', [200 200 780 800], 'Tag', 'wikiShot');
+g = gui.VlcRecorderSetup(rec, Parent=fig, EnablePreview=false, PersistPrefs=false);
+cleanupFcn = @() cellfun(@delete, {g, rec, fig});
 end
 
 

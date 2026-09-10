@@ -1,6 +1,6 @@
 # VlcRecorderSetup
 
-`gui.VlcRecorderSetup` is a MATLAB App Designer–style UI for configuring `hw.VlcRecorder` capture parameters (device, frame rate, resolution, and crop) and VLC window options (minimal interface, always on top) against a live webcam preview.
+`gui.VlcRecorderSetup` is a MATLAB App Designer–style UI for configuring `hw.VlcRecorder` capture parameters (device, frame rate, resolution, crop, and orientation), the caption burned into recordings, and VLC window options (minimal interface, always on top) against a live webcam preview.
 
 It is designed to be embedded inside another UI (panel/grid/etc.) or used standalone in its own figure, and can also be opened directly from the recorder via `rec.setupGUI()`.
 
@@ -11,8 +11,10 @@ It is designed to be embedded inside another UI (panel/grid/etc.) or used standa
 - A live MATLAB `webcam` preview of the configured (or best-guess) camera.
 - An interactive crop rectangle (`images.roi.Rectangle`) on top of the preview, kept in sync with four numeric crop fields.
 - Device, resolution, and frame-rate controls.
+- An **Orientation** dropdown for `Transform` (rotate or flip the frame).
+- A **Caption in recording** section for the caption burned into every recorded frame.
 - A **VLC window** section for the two options that shape the VLC window itself rather than the captured frame.
-- A "Preview in VLC" toggle to verify the actual VLC `croppadd` output before recording.
+- A "Preview in VLC" toggle to verify the actual VLC output — crop, orientation, and caption — before recording.
 
 ## Key concepts
 
@@ -51,6 +53,14 @@ The device dropdown (editable) is populated from the union of `hw.VlcRecorder.li
 ### Resolution and Apply
 
 An explicit resolution selected in the dropdown is always what Apply commits as `Resolution` — even if the MATLAB preview could not switch to it (the driver rejected it, or the preview camera differs from the recording device); VLC's `--dshow-size` asks the driver to negotiate the nearest supported size. When the dropdown shows "(camera default)" and the preview is running, Apply commits the *actual previewed frame size* instead, pinning the crop values to a known frame size. With the preview disabled or unavailable, "(camera default)" commits `[0 0]` (let the camera decide).
+
+### Orientation and caption
+
+**Orientation** sets `Transform`: `none`, `90`, `180`, `270`, `hflip`, `vflip`, `transpose`, or `antitranspose` — every orientation VLC's `transform` filter can produce. It is applied after the crop, so the crop rectangle keeps meaning what the un-rotated preview shows.
+
+**Caption in recording** holds the `EnableCaption` checkbox, the `CaptionTemplate` field (`{subject}`, `{subjects}`, `{box}`, `{file}`, `{date}`, `{time}`, `{datetime}`), and the `CaptionPosition`, `CaptionColor`, and `CaptionSize` controls. Those three grey out while the caption is off but keep their values, so unticking the box never loses the operator's template.
+
+**Preview in VLC draws the caption** in the configured corner, colour, and size. With no session open there is no subject to name, so `hw.VlcRecorder.sampleCaption` fills `{subject}` and `{box}` with visible stand-ins (`SUBJECT`, `1`); the sample is staged into `CaptionText` for the preview and cleared on leaving it. All of these are committed by Apply/OK like everything else here, and mirrored into `ep_RunExpt_Video` — except `CaptionText`, which is resolved from the session at recording start and never remembered. See `documentation/hw/hw_VlcRecorder.md` for the parameter-level detail and the two VLC quirks the caption depends on.
 
 ### VLC window options
 

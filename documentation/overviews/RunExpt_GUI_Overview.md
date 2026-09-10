@@ -239,7 +239,7 @@ Each of these is applied to the live session by `epsych.SubjectRoster.assignToSe
 
 A membership can set no behavior GUI at all (`(none)`); the session still runs, you just will not get a live performance GUI.
 
-The webcam device itself (camera, frame rate, resolution, crop) is configured separately in **Utilities → Video → Webcam Recorder Setup...**.
+The webcam device itself (camera, frame rate, resolution, crop, orientation, and the caption burned into recordings) is configured separately in **Utilities → Video → Webcam Recorder Setup...**.
 
 The recording paths in force for a session live on `RunExpt.PATHS`, seeded from the per-machine `ep_RunExpt_Video` / `ep_RunExpt_Intan` preference groups and overwritten by the committed memberships. They are applied to every `hw.Intan_RHX` interface at run time. RHX names its files with a mandatory `_<timestamp>` suffix, so the Intan `.rhd`/`.rhs`, the behavioral `.mat`, and the webcam `.ts` are paired by shared filename prefix rather than exact equality.
 
@@ -262,7 +262,7 @@ The recording paths in force for a session live on `RunExpt.PATHS`, seeded from 
   - **Peripherals...** (submenu) — peripheral hardware GUIs that aren't video:
     - Commutator GUI (`Ctrl+G`) — motorized commutator control; see [../peripherals/peripherals_NanoMotorControl.md](../peripherals/peripherals_NanoMotorControl.md).
   - **Video** (submenu) — everything that touches the camera or its recordings:
-    - Webcam Recorder Setup... (`Ctrl+W`) — camera, frame rate, resolution, crop; see [../gui/VlcRecorderSetup.md](../gui/VlcRecorderSetup.md).
+    - Webcam Recorder Setup... (`Ctrl+W`) — camera, frame rate, resolution, crop, orientation, recording caption; see [../gui/VlcRecorderSetup.md](../gui/VlcRecorderSetup.md).
     - **Live Webcam View (No Recording)** opens a VLC window showing the camera with the same device, frame rate, resolution, and crop a recording would use, but writes nothing to disk — useful for aiming the camera or checking on a subject. The VLC window carries a yellow **LIVE VIEW - NOT RECORDING** overlay and window title, and the status bar shows a matching amber banner at its right end. Select it again to close the view.
       - The item is available during a session as well as between runs. Opening or closing the view restarts VLC, which stalls the trial loop for about a second (up to eight when closing), so prefer to do it between trials. A view opened before **Run** stays open through a session; if that session is recording, the recording takes over the camera and the live view closes. The item refuses while a recording is in progress, since that recording's own window already shows the stream.
     - **Batch Video Converter...** — converts recordings already on disk to another format with ffmpeg (`util.VideoConverter` through `gui.VideoConverterSetup`). It opens on the session's **Video Recording Path** — the membership's, else this machine's (the Data Save Path when neither is set) with the file pattern set to the `.ts` files the recorder writes; both, and every encoding option, are editable in the window. The converter only reads and writes files, so it stays available while a session is running — though an encode competes with the session for CPU. See [../util/VideoConverter.md](../util/VideoConverter.md).

@@ -382,8 +382,13 @@ end
 
 function fig = shotParameterScatter(S)
 fig = shotFigure([700 380]);   % narrower and the colorbar's outcome names clip
-gui.components.ParameterScatter(S.DATA, fig, PreferenceTag='wikiShotScatter', ...
+sc = gui.components.ParameterScatter(S.DATA, fig, PreferenceTag='wikiShotScatter', ...
     XParameter='StimDelay', YParameter='RespLatency', ColorParameter='Response');
+% A linear trend with its statistics in the title, so the shot shows the
+% overlay and not only the markers.
+sc.TrendType = 'linear';
+sc.ShowTrendStats = true;
+sc.update;
 end
 
 
@@ -639,14 +644,32 @@ end
 function fig = shotAdaptiveTraining(S)
 % Over Depth, with the step sizes the paradigm itself carries
 % (Depth_StepOnMiss / Depth_StepOnHit) and the parameter's own limits.
+% The window steps Parameter.Value, and the session's parameters are
+% hw.Replay (read-only), so it drives a software copy of Depth instead.
 P = S.RUNTIME.find_parameter('Depth');
+sw = hw.Software;
+D = sw.add_parameter('Depth', -10, Unit=P.Unit, Min=P.Min, Max=P.Max, Format='%.0f');
+D.Value = -10;
 fig = shotFigure([400 560]);   % the window is a tall column now, not a table
-gui.AdaptiveTraining(P, Parent=fig, ...
+G = gui.AdaptiveTraining(D, Parent=fig, ...
     MinValue=P.Min, MaxValue=P.Max, ...
     StepUp=abs(S.RUNTIME.find_parameter('Depth_StepOnMiss').Value), ...
     StepDown=abs(S.RUNTIME.find_parameter('Depth_StepOnHit').Value), ...
     StepUpResponse="Miss", StepDownResponse="Hit", ...
     ShowAdvanced=false);   % the shot is of the default view, not this rig's preference
+% A plausible run, mostly hits with the odd miss, so the plot has a ladder
+% on it rather than one point.
+replayOutcomes(G);
+fig.UserData = {G, sw};
+end
+
+
+function replayOutcomes(G)
+outcomes = ["down","down","up","down","down","down","up","up","down","down", ...
+            "down","up","down","down","down","down","up","down","down","down"];
+for i = 1:numel(outcomes)
+    G.updateParameter(outcomes(i));
+end
 end
 
 

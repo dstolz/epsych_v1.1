@@ -1,8 +1,9 @@
 classdef VlcRecorderSetup < handle
     % g = gui.VlcRecorderSetup(Recorder, Name=Value,...)
     % Configure hw.VlcRecorder capture parameters (device, frame rate,
-    % resolution, crop) and VLC window options (minimal interface, always on
-    % top) against a live MATLAB webcam preview.
+    % resolution, crop, orientation), the caption burned into recordings, and
+    % VLC window options (minimal interface, always on top) against a live
+    % MATLAB webcam preview.
     %
     % A MATLAB `webcam` feed is shown in an axes with an interactive
     % `images.roi.Rectangle` overlay defining the crop region. Device,

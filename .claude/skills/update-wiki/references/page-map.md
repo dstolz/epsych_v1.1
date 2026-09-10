@@ -112,4 +112,8 @@ repeating them:
 - Registering a backend touches **four** sites, not the three CLAUDE.md lists.
 - `psychophysics.Detection` is a standalone handle class, **not** a
   `psychophysics.Psych` subclass.
-- The behavior GUI is set from **Customize → Customize…** in RunExpt.
+- The behavior GUI, saving function, timer settings, and recording paths are set
+  in the project's **Session Defaults** (Subjects window), not in RunExpt's
+  Customize dialog, which now holds only what describes the machine.
+- granary, like stimgen, is a submodule (`obj/granary`) with its own docs, and
+  `classes.sh` excludes it from the class index the same way.

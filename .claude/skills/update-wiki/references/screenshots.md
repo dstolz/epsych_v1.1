@@ -71,6 +71,7 @@ Whole-window shots (`<wiki>/images/`), and the pages that embed them:
 | `SelfTest.png` | `SelfTest` | Running-a-Session, Troubleshooting |
 | `StimPlayer.png` | `StimPlayer` | Stimuli-and-Calibration |
 | `CalibrationGui.png` | `CalibrationGui` | Stimuli-and-Calibration |
+| `VlcRecorderSetup.png` | `VlcRecorderSetup` | Video-and-Peripherals |
 | `TeensyTrialDesigner.png` `TeensyTrialDesigner_States.png` `TeensyTestBench.png` | `TeensyTrialDesigner`, `…_States`, `TeensyTestBench` | Teensy-Trial-Designer |
 
 Several of these are **published twice** and drift apart if you touch only one;
@@ -91,9 +92,11 @@ page, one image per `###` entry: `Parameter_Control`, `Parameter_Update`,
 `AdaptiveTraining`, `SyringePump`, `NanoMotor`, `ParameterDebugger`,
 `FilenameValidator`, `BehaviorGUI_Helpers`.
 
-**Not generated:** `NanoMotorControlGUI.png` and `VlcRecorderSetup.png` were
-captured by hand (they need real hardware). Leave them alone unless the user can
-supply a new capture; do not delete them as "stale".
+**Not generated:** `NanoMotorControlGUI.png` was captured by hand: its window
+connects from its constructor and rethrows, so it cannot open without a board on
+the bench. Leave it alone unless the user can supply a new capture; do not delete
+it as "stale". (`VlcRecorderSetup.png` used to be hand-captured too; its shot
+now runs numeric-only, `EnablePreview=false`, which needs no camera.)
 
 Branded assets — `banner.svg`, `workflow-diagram.svg`, `architecture-diagram.svg`,
 `logo.svg`, `logo-outline.svg`, `favicon.svg`, `favicon-16.svg`,

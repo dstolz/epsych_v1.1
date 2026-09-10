@@ -12,8 +12,8 @@
 # Page naming is fixed: <qualified.Name>-Class-Reference.md, e.g.
 # hw.Interface-Class-Reference.md, PRGMSTATE-Class-Reference.md.
 #
-# obj/stimgen/ is deliberately excluded — it is a separately released submodule
-# whose own documentation is authoritative (see CLAUDE.md).
+# obj/stimgen/ and obj/granary/ are deliberately excluded — each is a separately
+# released submodule whose own documentation is authoritative (see CLAUDE.md).
 #
 # Exit 0 = work to do, 3 = every class covered and nothing changed, 1 = fatal.
 
@@ -78,7 +78,6 @@ group_for() {
         gui.*)           GNUM=4;  GLABEL="GUI components";            GPKG="gui" ;;
         psychophysics.*) GNUM=5;  GLABEL="Psychophysics and analysis"; GPKG="psychophysics" ;;
         teensy.*)        GNUM=6;  GLABEL="Teensy trial programs";     GPKG="teensy" ;;
-        granary.*)         GNUM=7;  GLABEL="Logging";                   GPKG="granary" ;;
         peripherals.*|util.*) GNUM=8; GLABEL="Peripherals and media"; GPKG="peripherals, util" ;;
         cl_*|ep_*)       GNUM=9;  GLABEL="Paradigms and runtime shells"; GPKG="paradigms/, runtime/" ;;
         *)               GNUM=10; GLABEL="Toolbox level";             GPKG="top level" ;;
@@ -144,7 +143,7 @@ inventory() {
         printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
             "$qname" "$f" "$dirpath" "$GNUM" "$GLABEL" "$GPKG" "$summary"
     done < <(grep -rl '^[[:space:]]*classdef' --include=*.m obj helpers runtime paradigms 2>/dev/null \
-             | grep -v '^obj/stimgen' | sort)
+             | grep -v -e '^obj/stimgen' -e '^obj/granary' | sort)
 }
 
 changed_p() {   # changed_p <dirpath>  -> "yes" when the baseline range touched it
@@ -206,7 +205,7 @@ report)
     echo "wiki:      $WIKI"
     echo "baseline:  $BASE_LABEL"
     [[ -n "$FILTER" ]] && echo "filter:    $FILTER"
-    echo "excluded:  obj/stimgen/ (submodule — its own docs are authoritative)"
+    echo "excluded:  obj/stimgen/, obj/granary/ (submodules — their own docs are authoritative)"
 
     missing=""; behind=""; covered=0; total=0
     while IFS=$'\t' read -r qname f dirpath gnum glabel gpkg summary; do
