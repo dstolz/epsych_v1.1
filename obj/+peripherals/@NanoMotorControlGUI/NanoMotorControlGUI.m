@@ -1,5 +1,5 @@
 classdef NanoMotorControlGUI < handle
-%NANAMOTORCONTROLGUI GUI front-end for NanoMotorControl.
+%NANOMOTORCONTROLGUI Operator window for the Arduino Nano DM320T stepper controller.
 %
 %   peripherals.NanoMotorControlGUI builds a compact uigridlayout-based
 %   control panel for the peripherals.NanoMotorControl serial interface.
