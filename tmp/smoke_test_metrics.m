@@ -1,7 +1,7 @@
 function smoke_test_metrics()
 % smoke_test_metrics()
 % Exercise psychophysics.Metrics, the stateless signal-detection arithmetic
-% every analysis class now delegates to: the toolbox-free z-transform, the
+% every analysis class now delegates to: the z-transform, the
 % four corrections for rates of 0 and 1, d'/criterion/beta, the nonparametric
 % A' and B'', proportion correct, the counts entry point, and the forwarding
 % shims left behind in psychophysics.Detection and gui.Helper. Headless-safe:
@@ -25,7 +25,12 @@ PC  = @psychophysics.Metrics.percentCorrect;
 CR  = @psychophysics.Metrics.correctRates;
 tol = 1e-12;
 
-hasStats = license('test','statistics_toolbox') && exist('norminv','file') == 2;
+% psychophysics.Metrics.z / zinv ARE norminv / normcdf as of 2026-09-11, so
+% the Statistics Toolbox is a hard requirement rather than a nicety here. Say
+% so plainly instead of skipping checks and reporting a pass.
+assert(license('test','statistics_toolbox') && exist('norminv','file') == 2, ...
+    ['psychophysics.Metrics requires the Statistics Toolbox (norminv/normcdf). ' ...
+     'This test cannot run without it.']);
 
 % 1. z and zinv ------------------------------------------------------------
 % Published standard normal quantiles
@@ -51,20 +56,19 @@ n = -4:0.01:4;
 assert(max(abs(Z(ZI(n)) - n)) < 1e-10, 'z should invert zinv');
 assert(ZI(-Inf) == 0 && ZI(Inf) == 1, 'zinv should map +/-Inf to 0 and 1');
 
-% The toolbox-free promise, checked two ways: numerically where the toolbox
-% is installed, and mechanically so a later edit cannot quietly undo it
-if hasStats
-    assert(max(abs(Z(p) - norminv(p))) < 1e-12, 'z should agree with norminv');
-    assert(max(abs(ZI(n) - normcdf(n))) < 1e-12, 'zinv should agree with normcdf');
-    fprintf('PASS: z/zinv agree with the Statistics Toolbox\n');
-else
-    fprintf('SKIP: Statistics Toolbox absent, z/zinv not cross-checked against norminv\n');
-end
+% Cross-checked against zLegacy, the erfcinv expansion this class used to
+% carry, which is now the only INDEPENDENT implementation in the file --
+% comparing z against norminv would compare a function with itself, since
+% that is what z calls. A bad swap shows up here and in the published
+% quantiles above.
+assert(max(abs(Z(p) - zLegacy(p))) < 1e-12, ...
+    'z should agree with the erfcinv expansion it replaced');
+assert(max(abs(ZI(n) - 0.5*erfc(-n/sqrt(2)))) < 1e-12, ...
+    'zinv should agree with the erfc expansion it replaced');
 
-src = fileread(which('psychophysics.Metrics'));
-code = regexprep(string(split(src, newline)), '%.*$', '');
-assert(~any(contains(code, ["norminv(" "normcdf(" "normpdf(" "norminv " "normcdf "])), ...
-    'psychophysics.Metrics must not call the Statistics Toolbox outside its comments');
+% The source scan that used to stand here forbade norminv/normcdf inside
+% Metrics, guarding a toolbox-free promise that was retired on 2026-09-11.
+% It would now fail on the very lines it was written to prevent.
 fprintf('PASS: psychophysics.Metrics.z / zinv\n');
 
 % 2. rate ------------------------------------------------------------------
@@ -504,9 +508,9 @@ end
 
 function z = zLegacy(p)
 % The z-transform as the pre-refactor code computed it, so the compatibility
-% checks compare against something this class did not produce. Written with
-% erfcinv rather than norminv so the test still runs without the toolbox;
-% section 1 is what proves the two agree.
+% checks compare against something this class did not produce. Deliberately
+% erfcinv rather than norminv: since Metrics.z now CALLS norminv, this is the
+% file's only implementation independent of it, and section 1 leans on that.
 z = -sqrt(2) * erfcinv(2 * p);
 end
 
