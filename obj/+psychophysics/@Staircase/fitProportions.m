@@ -5,9 +5,8 @@ function F = fitProportions(levels, numYes, numTotal, options)
 % Maximum-likelihood psychometric fit from per-level response counts.
 %
 % Fits P(x) = gamma + (1 - gamma - lambda)*F(x; alpha, beta) to binomial
-% counts by maximizing the likelihood with fminsearch (Nelder-Mead, core
-% MATLAB -- no Optimization, Curve Fitting, or Statistics Toolbox is used
-% anywhere in this file). The shapes and their parameterization are
+% counts by maximizing the likelihood with fminsearch (Nelder-Mead). The
+% shapes and their parameterization are
 % psychophysics.Staircase.psychometricFunction's.
 %
 % Counts in, so it is pure: psychophysics.Staircase.fitPsychometric turns a
@@ -358,9 +357,7 @@ llSat           = sum(numYes.*log(pSat) + (numTotal - numYes).*log(1 - pSat));
 F.Deviance   = 2*(llSat - F.LogLikelihood);
 F.DevianceDF = F.NumLevels - nFree;
 if F.DevianceDF > 0
-    % chi2cdf(D,df) == gammainc(D/2, df/2); gammainc is core MATLAB, so this
-    % costs no Statistics Toolbox licence.
-    F.DeviancePValue = 1 - gammainc(F.Deviance/2, F.DevianceDF/2);
+    F.DeviancePValue = 1 - chi2cdf(F.Deviance, F.DevianceDF);
 end
 F.AIC = -2*F.LogLikelihood + 2*nFree;
 
@@ -486,7 +483,7 @@ if sum(ok) >= 2
         case "Logistic"
             y = log(pn(ok) ./ (1 - pn(ok)));
         case "Normal"
-            y = psychophysics.Metrics.z(pn(ok));
+            y = norminv(pn(ok));
         case "Weibull"
             y = log(-log(1 - pn(ok)));
     end
@@ -532,13 +529,17 @@ end
 function CI = bootstrapCI_(F, options, pFit)
 % Parametric bootstrap: resample binomial counts from the fitted curve at the
 % observed levels, refit, and take percentiles of the replicate estimates.
-if isempty(options.RandomSeed)
-    stream = RandStream.getGlobalStream;
-else
-    % A private stream rather than rng(seed): a fit must not silently move a
-    % session's global random state, which a trial selector may be drawing from.
-    stream = RandStream('twister', 'Seed', options.RandomSeed);
+% binornd draws from the GLOBAL stream -- no Statistics Toolbox generator
+% accepts a RandStream -- so a seeded bootstrap saves the caller's state,
+% seeds, and puts it back. A fit must not leave a session's random state
+% moved, which a trial selector may be drawing from; onCleanup rather than a
+% line at the end so an error on the way out cannot strand it reseeded.
+restoreState = [];
+if ~isempty(options.RandomSeed)
+    restoreState = rng;
+    rng(options.RandomSeed, 'twister');
 end
+streamGuard = onCleanup(@() restoreGlobalStream_(restoreState));
 
 n = options.Bootstrap;
 alphaB = nan(1, n);
@@ -556,12 +557,9 @@ passThrough = {'Shape', options.Shape, 'Direction', options.Direction, ...
     'CurvePoints', 0, 'Bootstrap', 0, 'Quiet', true};
 
 for k = 1:n
-    kb = zeros(1, F.NumLevels);
-    for j = 1:F.NumLevels
-        % rand(stream,...) rather than binornd: no Statistics Toolbox, and
-        % the counts here are small enough that it costs nothing.
-        kb(j) = sum(rand(stream, 1, F.NumTotal(j)) < pFit(j));
-    end
+    % One call for every level: binornd broadcasts the trial counts against
+    % the fitted probabilities.
+    kb = binornd(F.NumTotal, pFit);
 
     Fb = psychophysics.Staircase.fitProportions(F.Levels, kb, F.NumTotal, passThrough{:});
     if ~Fb.Converged
@@ -578,9 +576,9 @@ pct = 100*[(1 - options.ConfidenceLevel)/2, (1 + options.ConfidenceLevel)/2];
 CI.Level      = options.ConfidenceLevel;
 CI.Requested  = n;
 CI.Replicates = sum(isfinite(alphaB));
-CI.Alpha      = percentile_(alphaB, pct);
-CI.Beta       = percentile_(betaB,  pct);
-CI.Threshold  = percentile_(thrB,   pct);
+CI.Alpha      = prctile(alphaB, pct);
+CI.Beta       = prctile(betaB,  pct);
+CI.Threshold  = prctile(thrB,   pct);
 
 if CI.Replicates < n
     vprintf(1, 'Psychometric fit: %d of %d bootstrap replicates produced no estimate and were dropped.', ...
@@ -589,23 +587,9 @@ end
 end
 
 % =========================================================================
-function q = percentile_(v, pct)
-% Percentiles by linear interpolation of the order statistics -- the same
-% definition prctile uses, without the Statistics Toolbox.
-v = sort(v(isfinite(v)));
-n = numel(v);
-
-if n == 0
-    q = nan(size(pct));
-    return
+function restoreGlobalStream_(state)
+% Put the global random state back exactly as the bootstrap found it.
+if ~isempty(state)
+    rng(state);
 end
-if n == 1
-    q = repmat(v, size(pct));
-    return
-end
-
-pos = 100*((1:n) - 0.5)/n;
-q = interp1(pos, v, pct, 'linear');
-q(pct < pos(1))   = v(1);
-q(pct > pos(end)) = v(end);
 end

@@ -24,10 +24,10 @@ Four files implement it, all in `obj/+psychophysics/@Staircase/`:
 | `psychophysics.Staircase.psychometricFunction(x, alpha, beta, ...)` | The function being fitted. |
 | `psychophysics.Staircase.psychometricLevel(P, alpha, beta, ...)` | Its inverse — how a threshold is read off a fit. |
 
-Nothing here needs the Optimization, Curve Fitting, or Statistics Toolbox.
-The optimizer is `fminsearch`, the normal CDF comes from
-[`psychophysics.Metrics`](psychophysics_Metrics.md) (built on `erfc`), and the
-χ² tail comes from core MATLAB's `gammainc`.
+The optimizer is `fminsearch`; the normal CDF and its inverse are `normcdf`
+and `norminv`, the χ² tail is `chi2cdf`, the bootstrap resamples with
+`binornd` and summarizes with `prctile` — the Statistics Toolbox throughout,
+rather than expansions of `erfc` and `gammainc` maintained here.
 
 ## Quick start
 
@@ -197,9 +197,10 @@ fprintf('threshold %.2f [%.2f %.2f]\n', F.Threshold, F.CI.Threshold);
 Two things to know about that interval. It **conditions on the levels the
 session happened to run**: on adaptive data those levels are themselves a
 response to the subject, and the interval does not carry that. And
-`RandomSeed` draws from a private `RandStream`, so a seeded bootstrap
-**never moves the global random stream** — a trial selector may be drawing
-from it.
+`RandomSeed` leaves the global random stream **exactly as it found it** — a
+trial selector may be drawing from it. `binornd` takes no `RandStream`, as no
+Statistics Toolbox generator does, so a seeded bootstrap saves the stream
+state, seeds, and restores it through an `onCleanup`.
 
 No Hessian-based standard error is offered. Its asymptotic assumptions are
 exactly the ones adaptive sampling breaks, and a number with a hidden
@@ -305,7 +306,7 @@ decides — so a staircase with few reversals cannot drag the estimate anywhere.
 run(fullfile(epsychRoot,'tmp','smoke_test_staircase_fit.m'))
 ```
 
-Headless, no toolbox beyond core MATLAB. Nine groups: the function/inverse
+Headless — no figure, no hardware. Nine groups: the function/inverse
 round trip for every shape and asymptote; parameter recovery against known
 `alpha` and `beta`; the criterion scales including the 2AFC trap; every
 refusal by its message; the identifiability flags; the goodness-of-fit

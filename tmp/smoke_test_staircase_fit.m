@@ -2,7 +2,7 @@
 % Standing proof for psychophysics.Staircase's psychometric fit:
 % fitPsychometric, fitProportions, psychometricFunction, psychometricLevel.
 %
-% Headless -- no figure, no hardware, no toolbox beyond core MATLAB. Run it
+% Headless -- no figure and no hardware. Run it
 % after any change to the fit:
 %
 %   run(fullfile(epsychRoot,'tmp','smoke_test_staircase_fit.m'))
@@ -14,7 +14,7 @@
 %   4  every refusal, by its message
 %   5  the identifiability flags: separation, flatness, wrong Direction
 %   6  goodness-of-fit invariants
-%   7  the bootstrap: reproducible, and it leaves the global RNG alone
+%   7  the bootstrap: reproducible, and it restores the global RNG
 %   8  end to end from a simulated session, through epsych.BitMask codes
 %   9  the forwarded option defaults in fitPsychometric have not drifted
 %      away from fitProportions' own
@@ -235,15 +235,16 @@ Fb2 = psychophysics.Staircase.fitProportions(lv, ky, nT, Bootstrap=120, RandomSe
 [nPass,nFail] = check(nPass, nFail, Fb1.CI.Replicates > 0.9*Fb1.CI.Requested, ...
     sprintf('%d of %d replicates produced an estimate', Fb1.CI.Replicates, Fb1.CI.Requested));
 
-% A seeded bootstrap must not move the session's random state: a trial
-% selector may be drawing from it.
+% A seeded bootstrap must not leave the session's random state moved: a trial
+% selector may be drawing from it. binornd has no stream argument, so the fit
+% seeds the global stream and puts it back -- this is what proves it does.
 rng(4242);
-rand();                             % advance it, so a reseed would show
+rand();                             % advance it, so a stray reseed would show
 stateBefore = rng;
 psychophysics.Staircase.fitProportions(lv, ky, nT, Bootstrap=50, RandomSeed=1);
 stateAfter = rng;
 [nPass,nFail] = check(nPass, nFail, isequal(stateBefore.State, stateAfter.State), ...
-    'a seeded bootstrap leaves the global RNG stream untouched');
+    'a seeded bootstrap restores the global RNG stream exactly');
 
 %% ---- 8. end to end from a session ---------------------------------------
 fprintf('\n-- 8. from a simulated session --\n');
@@ -364,12 +365,8 @@ end
 
 %% =========================================================================
 function ky = simulateCounts(p, nPerLevel)
-% Binomial draws without the Statistics Toolbox, matching the bootstrap's own
-% sampler.
-ky = zeros(1, numel(p));
-for k = 1:numel(p)
-    ky(k) = sum(rand(1, nPerLevel) < p(k));
-end
+% Binomial draws, the same sampler the bootstrap uses.
+ky = binornd(nPerLevel, p);        % scalar N broadcasts against the rates
 end
 
 %% =========================================================================

@@ -15,8 +15,8 @@ function P = psychometricFunction(x, alpha, beta, options)
 %
 % These are the same three shapes, with the same parameterization, that
 % psychophysics.BestPEST uses, so a threshold from either is directly
-% comparable. The normal CDF is taken from psychophysics.Metrics, which is
-% built on erfc, so nothing here needs the Statistics Toolbox.
+% comparable -- including the Statistics Toolbox normcdf underneath the
+% normal shape, which is BestPEST's too.
 %
 % Pure and stateless: it holds no data and reads no object, which is what
 % makes the fit in fitProportions testable against hand-computed values.
@@ -66,7 +66,11 @@ switch options.Shape
         F = 1 ./ (1 + exp(-beta .* (x - alpha)));
 
     case "Normal"
-        F = psychophysics.Metrics.zinv((x - alpha) .* beta);
+        % The ONE-ARGUMENT normcdf, deliberately: normcdf(x, alpha, 1./beta)
+        % is the same function only for beta > 0, and a negative beta -- how
+        % Direction="decreasing" is represented -- would reach it as a
+        % negative sigma.
+        F = normcdf((x - alpha) .* beta);
 
     case "Weibull"
         % A fractional power of a negative number is complex in MATLAB and

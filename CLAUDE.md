@@ -1031,8 +1031,9 @@ re-uploading the state table.
   into counts needs the trial window, the exclusion mask, and an aborts policy,
   which are properties of a session rather than arithmetic. `fromCounts` is the
   seam. Three things a reader would otherwise re-derive: `z` is built on
-  `erfcinv`, so d' no longer needs the Statistics Toolbox (and the smoke test
-  scans the source to keep it that way); the correction for rates of 0 and 1 is
+  `norminv` (and `zinv` on `normcdf`), so the normal-distribution arithmetic is
+  the toolbox's rather than this repository's — reversed on 2026-09-11 from an
+  `erfcinv` expansion guarded by a source scan, which is gone; the correction for rates of 0 and 1 is
   **named at every call** — `"none"`, `"clamp"` (default `[0.01 0.99]`),
   `"halfcell"`, `"loglinear"` — and the two trial-count dependent modes **error**
   rather than falling back to a clamp, since a silent fallback is exactly how the
@@ -1113,8 +1114,8 @@ re-uploading the state table.
   neither (`Metrics.rateDenominator`'s convention), a code carrying both counted
   in `NumUnscored` rather than resolved. Shapes and parameterization are
   `psychophysics.BestPEST`'s exactly, so a threshold from either is comparable,
-  and nothing needs the Optimization, Curve Fitting or Statistics Toolbox
-  (`fminsearch`, `Metrics.zinv`, `gammainc`). What a reader would otherwise
+  and the arithmetic is the Statistics Toolbox's throughout (`normcdf`,
+  `norminv`, `chi2cdf`, `binornd`, `prctile`, with `fminsearch` optimizing). What a reader would otherwise
   re-derive: the result is RETURNED and never written onto `Results`, since a fit
   stored beside live trials is a stale number waiting to be read; a dataset that
   cannot support a fit gets `Converged`/`Identifiable` false and a `Message`
@@ -1237,6 +1238,26 @@ ERROR is reachable from any state.
 - Target MATLAB R2024b (baseline R2014b+)
 - Use arguments syntax for functions with >2 parameters or when validation needed
 - Do NOT use compiler directives (e.g., %#ok<AGROW>)
+
+**Toolbox functions over hand-rolled equivalents**
+- The toolboxes listed under Key Facts are licensed and available on the lab's
+  machines. **Call the toolbox function** — `normcdf`, `norminv`, `binornd`,
+  `prctile`, `chi2cdf`, `glmfit`, `fitdist` — rather than reimplementing it from
+  a primitive such as `erfc`/`erfcinv` or open-coding a percentile. A MathWorks
+  implementation is tested, documented, and maintained by someone else; a custom
+  one is a correctness liability the lab owns forever.
+- This is a standing preference, not a case-by-case judgement, and it REVERSED
+  the older "no Statistics Toolbox" position on 2026-09-11. `Metrics.z` and
+  `Metrics.zinv` are now `norminv` and `normcdf`; the source-scanning assertion
+  in `tmp/smoke_test_metrics.m` that forbade those names inside `Metrics` is
+  gone. Do not add new guards of that kind. `Metrics.z`/`zinv` keep their names
+  rather than being deleted for `norminv`/`normcdf` at each call site, for a
+  concrete reason: a static method named `norminv` would capture the
+  unqualified call in its own body and recurse.
+- The reverse still holds where a dependency is genuinely optional: nothing in a
+  hot trial-loop path should acquire a licence it does not need, and
+  `obj/stimgen` and `obj/granary` are released independently and must not gain
+  toolbox dependencies through EPsych.
 
 **Naming**
 - PascalCase for components, interfaces, type aliases

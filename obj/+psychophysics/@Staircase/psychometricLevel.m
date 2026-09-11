@@ -56,7 +56,7 @@ switch options.Shape
         x = alpha + log(pn ./ (1 - pn)) ./ beta;
 
     case "Normal"
-        x = alpha + psychophysics.Metrics.z(pn) ./ beta;
+        x = alpha + norminv(pn) ./ beta;
 
     case "Weibull"
         x = alpha .* (-log(1 - pn)) .^ (1 ./ beta);
