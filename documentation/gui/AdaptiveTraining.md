@@ -106,6 +106,8 @@ An edit that would violate a constraint is rejected: the widget reverts to the c
 - Step sizes must be finite and > 0; step limits must be ≥ 0 with an upper limit > 0.
 - Breakpoint steps must be finite and > 0.
 
+Assigning `StepUp`, `StepDown`, `MinValue`, `MaxValue`, or one of the four `*Limits` properties from a script redraws the window the same way, but is **not** re-validated: a script is trusted the way the constructor's options are, and these rules belong to the operator's edits. A widget edit assigns up to two of these properties and then refreshes once; the per-property redraw stands down for its duration, since every refresh reads `Parameter.Value` and on a hardware backend that is a device round trip.
+
 ## The plot
 
 - A **stair** trace, because that is what the data is: the parameter holds each value until the next outcome moves it, and interpolating between steps would draw a ramp the rig never played.

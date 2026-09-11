@@ -59,9 +59,9 @@ try
         [~,vfn,vext] = fileparts(ffn);
         self.setStatus(sprintf('Video recording started: %s%s',vfn,vext))
     else
-        vprintf(0,1,'Video recording failed to start; continuing without video. Check View > Webcam Recorder Setup.')
+        vprintf(0,1,'Video recording failed to start; continuing without video. Check Utilities > Video > Webcam Recorder Setup.')
         self.setStatus('Video recording failed to start; the session continues without video.', ...
-            'check View > Webcam Recorder Setup.')
+            'check Utilities > Video > Webcam Recorder Setup.')
     end
 catch ME
     vprintf(0,1,ME)

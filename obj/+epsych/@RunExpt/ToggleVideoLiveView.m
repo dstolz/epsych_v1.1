@@ -57,11 +57,11 @@ try
         self.setStatus('Live webcam view opened. Nothing is being recorded.')
     else
         uialert(self.H.figure1, ...
-            'Could not open the live webcam view. Check View > Webcam Recorder Setup.', ...
+            'Could not open the live webcam view. Check Utilities > Video > Webcam Recorder Setup.', ...
             'EPsych','Icon','error');
         vprintf(0,1,'Live webcam view failed to open.')
         self.setStatus('Live webcam view failed to open.', ...
-            'check View > Webcam Recorder Setup.')
+            'check Utilities > Video > Webcam Recorder Setup.')
     end
 catch ME
     vprintf(0,1,ME)

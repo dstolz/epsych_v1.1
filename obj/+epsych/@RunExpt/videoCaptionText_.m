@@ -2,8 +2,8 @@ function txt = videoCaptionText_(self, recordingFile)
 % txt = videoCaptionText_(self, recordingFile)
 % Resolve the webcam recorder's caption template against this session.
 %
-% The recorder holds the template (the operator's, edited in View > Webcam
-% Recorder Setup and remembered in the 'ep_RunExpt_Video' preferences); this
+% The recorder holds the template (the operator's, edited in Utilities > Video >
+% Webcam Recorder Setup and remembered in the 'ep_RunExpt_Video' preferences); this
 % fills in what only a session knows. Returns "" when captions are off or the
 % template is empty, which leaves the recording unmarked.
 %

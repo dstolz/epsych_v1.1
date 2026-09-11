@@ -169,6 +169,7 @@ classdef AdaptiveTraining < handle
         ParentDestroyedListener event.listener = event.listener.empty
 
         UIReady (1,1) logical = false % property set methods refresh only once the UI exists
+        Committing (1,1) logical = false % a widget commit is under way; it refreshes once when it ends
         LastStepMessage (1,1) string = "" % latch, so a rule that cannot step logs once
         AdvancedHeightApplied (1,1) double = 0 % rows currently given to the Advanced section
     end
@@ -329,6 +330,51 @@ classdef AdaptiveTraining < handle
             obj.updatePlot();
         end
 
+        % The four step fields and their edit limits redraw when a script
+        % assigns them, as the value-space properties below always have.
+        % Assigning them does not re-validate: a script is trusted the way
+        % the constructor's options are, and the fields' reject-on-violation
+        % rules belong to the operator's edits.
+        function set.StepUp(obj, value)
+            obj.StepUp = value;
+            obj.propertyChanged();
+        end
+
+        function set.StepDown(obj, value)
+            obj.StepDown = value;
+            obj.propertyChanged();
+        end
+
+        function set.MinValue(obj, value)
+            obj.MinValue = value;
+            obj.propertyChanged();
+        end
+
+        function set.MaxValue(obj, value)
+            obj.MaxValue = value;
+            obj.propertyChanged();
+        end
+
+        function set.StepUpLimits(obj, value)
+            obj.StepUpLimits = value;
+            obj.propertyChanged();
+        end
+
+        function set.StepDownLimits(obj, value)
+            obj.StepDownLimits = value;
+            obj.propertyChanged();
+        end
+
+        function set.MinValueLimits(obj, value)
+            obj.MinValueLimits = value;
+            obj.propertyChanged();
+        end
+
+        function set.MaxValueLimits(obj, value)
+            obj.MaxValueLimits = value;
+            obj.propertyChanged();
+        end
+
         function set.ScaleType(obj, value)
             obj.ScaleType = value;
             obj.onScaleTypeChanged();
@@ -385,6 +431,22 @@ classdef AdaptiveTraining < handle
 
         function setScaleReference(obj, value)
             obj.ScaleReference = value;
+        end
+
+        function propertyChanged(obj)
+            % Redraw after a script's assignment. A widget commit assigns
+            % up to two of these properties and then refreshes once itself;
+            % each refresh reads Parameter.Value, a device round trip on a
+            % hardware backend, so the per-property redraw stands down.
+            if ~obj.Committing
+                obj.refreshUI();
+            end
+        end
+
+        function endCommit(obj)
+            % onCleanup target for the widget commits: never leave the flag
+            % set, or every later scripted assignment would stop redrawing.
+            obj.Committing = false;
         end
 
         function opts = stepOptions(obj, currentValue)
@@ -531,7 +593,10 @@ classdef AdaptiveTraining < handle
 
         function valueFieldChanged(obj, field, src)
             % Commit an edit from one of the four value fields (reject on violation).
+            obj.Committing = true;
+            done = onCleanup(@() obj.endCommit());
             [ok,msg] = obj.applyValueEdit(field, src.Value);
+            delete(done);
             src.Value = obj.(field); % revert on rejection; harmless when accepted
             if ok
                 obj.setStatus("");
@@ -550,7 +615,10 @@ classdef AdaptiveTraining < handle
                 return
             end
 
+            obj.Committing = true;
+            done = onCleanup(@() obj.endCommit());
             [ok,msg] = obj.applyLimitEdit(field, c - 1, evt.NewData);
+            delete(done);
 
             if ok
                 obj.setStatus("");

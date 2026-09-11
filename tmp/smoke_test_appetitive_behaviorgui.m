@@ -59,8 +59,8 @@ assert(isequal(g.Performance.Metrics, ["HitRate","FARate","AbortRate","DPrime"])
     'performance panel should show the paradigm''s four metrics');
 assert(isvalid(g.PhaseSelector), 'phase selector should exist');
 assert(isvalid(g.SessionClock), 'session clock should exist');
-assert(isequal(g.SessionClock.PanelH.Layout.Row, 1) && isequal(g.SessionClock.PanelH.Layout.Column, 5), ...
-    'session clock should sit in the open top-row cell (row 1, column 5)');
+assert(isequal(g.SessionClock.PanelH.Layout.Row, [1 2]) && isequal(g.SessionClock.PanelH.Layout.Column, 5), ...
+    'session clock should fill column 5 across rows 1-2, beside the Next Trial / Performance panels');
 assert(isvalid(g.NotesButton) && g.NotesButton.IsButtonOnly, ...
     'notes button should exist in its button-only form');
 assert(g.NotesButton.Store == rt.NOTES, 'notes button should write to the session store');

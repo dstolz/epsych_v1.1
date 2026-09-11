@@ -125,6 +125,9 @@ The layout, the port, the speed, the move amount and its units are remembered
 per `PreferenceTag` (the hosting figure's `Tag`/`Name` by default), but **only
 when the operator was the one who changed them**: a value a paradigm assigned
 is the paradigm's to reassert, not something to resurrect a session later.
+For the port that means a choice from the dropdown or the Port menu, or a port
+found by pressing **Detect** (or **Connect** with none chosen); `Port = ...`
+and `detectPort()` called from code are not remembered.
 *Reset to Default* in the Show menu comes back to the layout the build method
 asked for and forgets the operator's.
 

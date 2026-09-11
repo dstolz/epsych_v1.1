@@ -32,9 +32,9 @@ classdef cl_AppetitiveDetection_BehaviorGUI < gui.BehaviorGUI
     % Example:
     %   cl_AppetitiveDetection_BehaviorGUI(RUNTIME)   % called by epsych.RunExpt
     %
-    % See also: gui.BehaviorGUI, cl_AppetitiveDetection_GUI_B, epsych.RunExpt,
+    % See also: gui.BehaviorGUI, cl_AppetitiveStimDetect, epsych.RunExpt,
     % documentation/gui/gui_BehaviorGUI.md,
-    % documentation/layouts/cl_AppetitiveDetection_GUI_B_layout.md
+    % documentation/paradigms/cl_AppetitiveStimDetect.md
 
     properties (SetAccess = protected)
         PhaseSelector          % gui.components.PhaseSelector instance

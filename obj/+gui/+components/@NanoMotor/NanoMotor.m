@@ -1210,10 +1210,10 @@ classdef NanoMotor < gui.PopOut
             [items, value] = obj.portItems_();
             obj.H_.port = uidropdown(lg, Items = items, Value = value, FontSize = fs - 1, ...
                 Tooltip = 'Serial port the controller is on (right-click to re-read the list)', ...
-                ValueChangedFcn = @(src,~) obj.selectPort_(src.Value));
+                ValueChangedFcn = @(src,~) obj.selectPort_(src.Value, true));
             obj.H_.detect = uibutton(lg, Text = 'Detect', FontSize = fs - 2, ...
                 Tooltip = 'Probe every serial port for a controller (a few seconds per port)', ...
-                ButtonPushedFcn = @(~,~) obj.detectPort());
+                ButtonPushedFcn = @(~,~) obj.onDetectPressed_());
             obj.H_.connect = uibutton(lg, Text = 'Connect', FontSize = fs - 1, ...
                 Tooltip = 'Open the serial link; nothing is connected until this is pressed', ...
                 ButtonPushedFcn = @(~,~) obj.onConnectPressed_());
@@ -1528,18 +1528,43 @@ classdef NanoMotor < gui.PopOut
         function onConnectPressed_(obj)
             if obj.IsConnected
                 obj.disconnect();
-            else
-                obj.connect();
+                return
+            end
+            hadPort = ~isempty(obj.StagedPort_);
+            obj.connect();
+            % Connect with no port chosen probes for one; the port found is
+            % the operator's the same way a Detect press's would be.
+            if ~hadPort && obj.IsConnected
+                obj.rememberSetting_('Port', obj.StagedPort_);
             end
         end
 
-        function selectPort_(obj, port)
+        function onDetectPressed_(obj)
+            % The operator asked for the probe, so the port it finds is
+            % theirs to remember; detectPort called from code is not.
+            port = obj.detectPort();
+            if ~isempty(port)
+                obj.rememberSetting_('Port', port);
+            end
+        end
+
+        function selectPort_(obj, port, remember)
+            % Stage a port. Only the operator's own choice is remembered: a
+            % port a paradigm assigns (Port = ...) or detectPort finds from
+            % code is the caller's to reassert, like every other setting here.
+            arguments
+                obj
+                port
+                remember (1,1) logical = false
+            end
             port = char(string(port));
             if strcmp(port, '(none)')
                 port = '';
             end
             obj.StagedPort_ = port;
-            obj.rememberSetting_('Port', port);
+            if remember
+                obj.rememberSetting_('Port', port);
+            end
             obj.refreshPorts();
             obj.updateLinkUI_();
         end
@@ -1720,7 +1745,7 @@ classdef NanoMotor < gui.PopOut
                 uimenu(cm, Text = 'Refresh Port List', Separator = 'on', ...
                     MenuSelectedFcn = @(~,~) obj.refreshPorts());
                 uimenu(cm, Text = 'Detect Controller...', ...
-                    MenuSelectedFcn = @(~,~) obj.detectPort());
+                    MenuSelectedFcn = @(~,~) obj.onDetectPressed_());
                 uimenu(cm, Text = 'Zero Position', ...
                     MenuSelectedFcn = @(~,~) obj.zeroPosition());
                 obj.SwapMenuH_ = uimenu(cm, Text = 'Swap CW / CCW Labels', ...
@@ -1782,7 +1807,7 @@ classdef NanoMotor < gui.PopOut
             items = obj.portItems_();
             for i = 1:numel(items)
                 item = uimenu(m, Text = items{i}, ...
-                    MenuSelectedFcn = @(~,~) obj.selectPort_(items{i}));
+                    MenuSelectedFcn = @(~,~) obj.selectPort_(items{i}, true));
                 item.Checked = strcmp(items{i}, obj.StagedPort_);
             end
 

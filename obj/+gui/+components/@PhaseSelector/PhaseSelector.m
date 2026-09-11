@@ -3,7 +3,7 @@ classdef PhaseSelector < handle
     % GUI component for selecting and saving experimental phases.
     %
     % Phases and protocols share one format: a phase file is a protocol file
-    % (.eprot/.prot; see epsych.Protocol). Saving a phase serializes the session's
+    % (.eprot; see epsych.Protocol). Saving a phase serializes the session's
     % protocol with the current parameter values (Runtime.writeParametersProtocol);
     % loading a phase reads a protocol and applies its parameters to the live
     % session (Runtime.readParameters). Legacy JSON parameter snapshots remain
@@ -62,7 +62,7 @@ classdef PhaseSelector < handle
     % See also: documentation/overviews/Architecture_Overview.md
 
     properties (SetObservable)
-        PhasePath (1,1) string % Directory containing phase files (.eprot/.prot protocols; legacy .json)
+        PhasePath (1,1) string % Directory containing phase files (.eprot protocols; legacy .json)
         CurrentPhase (1,1) uint8 = 0 % Index of currently loaded phase (0 = no phase)
         h_PhaseSelect           % Handle to dropdown UI control
         h_LoadPhase             % Handle to load button UI control
@@ -101,6 +101,10 @@ classdef PhaseSelector < handle
             % s = gui.components.PhaseSelector.getComponentSpec()
             % Two-step construction: the object is made with the runtime and
             % a folder, then draws itself into the container.
+            % No PreferenceTag option: the remembered folder is machine-wide
+            % (PREF_KEY), and the constructor takes no name-value options, so
+            % a declared tag would make the builder hand one to a second
+            % instance that could not then be constructed.
             % See gui.ComponentSpec.
             s = gui.ComponentSpec();
             s.type        = 'PhaseSelector';
@@ -110,8 +114,7 @@ classdef PhaseSelector < handle
             s.shape       = ["runtime","arg:PhasePath"];
             s.postFcn     = @gui.components.PhaseSelector.buildIntoContainer;
             s.options     = [ ...
-                gui.ComponentSpecOption('name','PhasePath','inputType','text'), ...
-                gui.ComponentSpecOption('name','PreferenceTag','inputType','text')];
+                gui.ComponentSpecOption('name','PhasePath','inputType','text')];
         end
 
         function buildIntoContainer(h, ~, ctx)
@@ -167,7 +170,7 @@ classdef PhaseSelector < handle
 
         function findPhaseFiles(obj)
             % findPhaseFiles(obj)
-            % Loads phase files (.eprot/.prot protocols, plus legacy .json snapshots)
+            % Loads phase files (.eprot protocols, plus legacy .json snapshots)
             % from PhasePath and updates Names and FullFilenames.
             %
             % A missing, unset, or empty PhasePath is not an error: the phase list

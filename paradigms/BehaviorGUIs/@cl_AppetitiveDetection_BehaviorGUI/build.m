@@ -75,7 +75,7 @@ function build(obj, fig)
 %   StimDelayTrain_StepUp : Training step size for increasing stimulus delay.
 %
 % Documentation: documentation/gui/gui_BehaviorGUI.md
-% Documentation: documentation/layouts/cl_AppetitiveDetection_GUI_B_layout.md
+% Documentation: documentation/paradigms/cl_AppetitiveStimDetect.md
 
 R = obj.RUNTIME;
 P = obj.P;

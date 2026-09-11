@@ -37,7 +37,7 @@ end
 % duration -- by hand rather than through gui.PopOut.setAlwaysOnTop,
 % which would save "not on top" as the operator's choice.
 hostFig = ancestor(obj.Parent,'figure');
-restore = localUnpin(hostFig); %#ok<NASGU>
+restore = localUnpin(hostFig); % an onCleanup, so an error on the way still re-pins
 
 fig = uifigure('Name','Reorder Metrics','Visible','off', ...
     'WindowStyle','modal','Resize','off');
@@ -80,6 +80,7 @@ catch ME
 end
 
 if isvalid(fig), delete(fig); end
+delete(restore); % re-pin the host now the dialog is gone
 
 if isempty(newItems) || isequal(newItems(:)', 1:numel(items)), return; end
 obj.setMetricOrder(names(newItems));
