@@ -1,8 +1,8 @@
 function createPlotContextMenu_(obj)
 % createPlotContextMenu_(obj)
 % Build a right-click context menu on the plot axes for adjusting
-% ThresholdFromLastNReversals, ThresholdFormula, ConvertToDecibels, ShowSteps,
-% and ShowReversals, and for opening the plot in a window of its own.
+% ThresholdFromLastNReversals, ThresholdFormula, ShowSteps, and ShowReversals,
+% and for opening the plot in a window of its own.
 %
 % Parameters:
 %   obj — psychophysics.Staircase instance
@@ -34,12 +34,6 @@ uimenu(mFormula, 'Text', 'Mean', ...
 uimenu(mFormula, 'Text', 'Geometric Mean', ...
     'Checked', matlab.lang.OnOffSwitchState(obj.ThresholdFormula == "GeometricMean"), ...
     'MenuSelectedFcn', @(src,~) setFormula(obj, mFormula, "GeometricMean"));
-
-% --- Decibel y-axis toggle ---
-% dB = 20*log10(x) with x = 1 (100% depth) as the reference.
-uimenu(cm, 'Text', 'Y Axis in dB (re 100%)', 'Separator', 'on', ...
-    'Checked', matlab.lang.OnOffSwitchState(obj.ConvertToDecibels), ...
-    'MenuSelectedFcn', @(src,~) toggleDecibels(obj, src));
 
 % --- Show Steps toggle ---
 uimenu(cm, 'Text', 'Show Steps', 'Separator', 'on', ...
@@ -101,14 +95,6 @@ function setFormula(obj, parentMenu, formula)
         parentMenu.Children(k).Checked = matlab.lang.OnOffSwitchState( ...
             strcmp(parentMenu.Children(k).Text, activeText));
     end
-end
-
-function toggleDecibels(obj, src)
-    obj.ConvertToDecibels = ~obj.ConvertToDecibels;
-    src.Checked = matlab.lang.OnOffSwitchState(obj.ConvertToDecibels);
-    % Thresholds and reversal values are computed from the converted
-    % values, so recompute rather than only redrawing.
-    obj.refresh();
 end
 
 function toggleShowSteps(obj, src)

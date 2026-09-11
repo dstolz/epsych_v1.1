@@ -12,8 +12,8 @@ function F = fitPsychometric(obj, options)
 % the session visited.
 %
 % The trials are the staircase's own: STIMULUS trials as StimulusTrialType
-% selects them, with ExcludedTrials already removed and ConvertToDecibels
-% already applied, so the fit is always in the units the plot is showing.
+% selects them, with ExcludedTrials already removed, so the fit is always in
+% the units the plot is showing.
 % A trial counts as a "yes" when its response code carries Hit, and as a "no"
 % when it carries Miss. An aborted trial is left out by default -- an abort is
 % a lapse of engagement rather than a wrong answer, the same convention
@@ -59,13 +59,13 @@ function F = fitPsychometric(obj, options)
 %
 % Returns:
 %   F - Fit result struct from fitProportions, plus the fields describing
-%       where the counts came from: ParameterName, ConvertToDecibels,
-%       NumScored, NumAborted, NumUnscored, NumUndefinedLevel and
+%       where the counts came from: ParameterName, NumScored,
+%       NumAborted, NumUnscored, NumUndefinedLevel and
 %       GuessRateSource. Check F.Converged and F.Identifiable before reading
 %       F.Threshold; F.Message says what went wrong when either is false.
 %
 % Example:
-%   S = psychophysics.Staircase(DATA, 'Depth', ConvertToDecibels=true);
+%   S = psychophysics.Staircase(DATA, 'Depth');   % Depth in dB re 100%
 %   F = S.fitPsychometric(ThresholdCriterion=0.707, CriterionScale="absolute");
 %   fprintf('reversal threshold %.2f dB, fitted %.2f dB\n', ...
 %       S.Results.Threshold, F.Threshold);
@@ -104,7 +104,6 @@ end
 
 extra = struct( ...
     'ParameterName',     obj.ParameterName, ...
-    'ConvertToDecibels', obj.ConvertToDecibels, ...
     'NumScored',         0, ...
     'NumAborted',        0, ...
     'NumUnscored',       0, ...
@@ -158,8 +157,8 @@ extra.NumUnscored = sum(stim) - extra.NumScored;
 lv     = s.stimValues(scored);
 isYes  = yes(scored);
 
-% A level of NaN is a real outcome of ConvertToDecibels on a nonpositive
-% value, not corruption; it is dropped and counted, never treated as zero.
+% A level of NaN (a trial whose value was not recorded) is dropped and
+% counted, never treated as zero.
 usable = isfinite(lv);
 extra.NumUndefinedLevel = sum(~usable);
 lv    = lv(usable);

@@ -37,8 +37,7 @@ In offline mode, no listener is attached. The staircase is computed immediately 
 S = psychophysics.Staircase(DATA, Parameter, ...
     StaircaseDirection='Up', ...
     StimulusTrialType=epsych.BitMask.TrialType_0, ...
-    ConvertToDecibels=true, ...
-  Plot=true);
+    Plot=true);
 ```
 
 ## Constructor
@@ -83,8 +82,6 @@ S = psychophysics.Staircase(..., Name=Value)
 > S.ThresholdFormula = 'GeometricMean';
 > S.refresh_history();
 > ```
-- `ConvertToDecibels`
-  - When `true`, stimulus values are converted with `20*log10(x)` and nonpositive values become `NaN`.
 - `Plot`
   - When `true`, plotting is enabled during construction.
 - `PlotAxes`
@@ -112,9 +109,14 @@ S = psychophysics.Staircase(..., Name=Value)
 - `ThresholdFormula`
   - Accepts `'Mean'` or `'GeometricMean'`; combines the reversal values.
   - Default: `'Mean'`. Set after construction, then call `refresh_history()`.
-- `ConvertToDecibels`
-  - Converts tracked values to decibels before analysis, referenced to full scale (100% depth): `dB = 20*log10(x/1)`.
-  - Also toggled at runtime from the plot's right-click menu (**Y Axis in dB (re 100%)**), which recomputes the staircase and relabels the y axis.
+  - Use `'Mean'` for a parameter already on a log scale, such as an AM depth
+    in dB re 100%: the arithmetic mean of `20*log10(x)` IS `20*log10(geomean(x))`,
+    so it is already the geometric mean of the linear quantity.
+  - A geometric mean is undefined for negative values — which is every value
+    of a dB depth below 100%. There `Results.Threshold` is `NaN`, the plot
+    shows no threshold, and one message is logged rather than one per trial:
+    this is computed from a `NewData` listener, so an error would repeat on
+    every trial for the rest of the session.
 - `Bits` and `BitColors`
   - Response-code categories and matching display colors used by plotting helpers.
 
@@ -148,7 +150,7 @@ an outcome.
 - `responseCodes`
   - Returns codes from `DATA.ResponseCode` and falls back to `DATA.RespCode` for older saved structs, or `[]` when no data is available.
 - `stimulusValues`
-  - Returns the tracked parameter values, optionally converted to decibels.
+  - Returns the tracked parameter values, as recorded.
 - `trialCount`
   - Returns `numel(obj.DATA)`.
 - `ParameterName`
@@ -230,12 +232,9 @@ string exactly as entered in the Protocol Designer. Parameters with no unit, and
 staircases constructed from a DATA field name, are labeled with the name alone.
 
 Right-clicking the plot axes exposes the analysis settings that are worth changing while
-reviewing a session: **Threshold Reversals**, **Threshold Formula**, **Y Axis in dB (re 100%)**
-(`ConvertToDecibels`), **Show Steps**, and **Show Reversals**. The decibel option converts the
-tracked values with `20*log10(x)`, so the reported threshold and reversal values are in dB re
-100% depth as well — the y-axis label swaps the raw unit for `dB re 100%`. Because the mean is
-then taken in the decibel domain, the dB threshold is not simply `20*log10` of the linear
-threshold.
+reviewing a session: **Threshold Reversals**, **Threshold Formula**, **Show Steps**, and
+**Show Reversals**. Values are plotted and analyzed in the parameter's own units; a quantity
+wanted in dB is recorded in dB, as `cl_AppetitiveStimDetect` records `Depth`.
 
 The same menu offers **Open in Separate Window** (`S.popOut()`), which plots the staircase
 larger in a window of its own. That window holds a *second* `psychophysics.Staircase` over the
@@ -253,12 +252,7 @@ The class selects staircase trials from `DATA.TrialType` when that field is avai
 
 ### 2. Stimulus extraction
 
-The tracked values are read from `DATA.(Parameter.validName)` for object-based parameters, or directly from the named DATA field when offline mode is constructed with a string parameter name. If `ConvertToDecibels` is enabled, the values are converted with:
-
-```matlab
-v(v <= 0) = NaN;
-v = 20*log10(v);
-```
+The tracked values are read from `DATA.(Parameter.validName)` for object-based parameters, or directly from the named DATA field when offline mode is constructed with a string parameter name. They are used as recorded; nothing is converted.
 
 For offline compatibility, `responseCodes` are read from `DATA.ResponseCode` when present and fall back to `DATA.RespCode` for older saved structs.
 
@@ -274,13 +268,13 @@ If `StaircaseDirection` is `'Up'`, the sign is inverted before reversals are det
 
 ### 4. Reversal detection
 
-Reversal detection ignores holds (zero-valued steps, which occur legitimately after an Abort/CorrectReject/FalseAlarm repeats the previous stimulus value) and `NaN` steps (which can arise from `ConvertToDecibels`). A reversal is detected when consecutive *nonzero* normalized step directions differ; the reversal is marked at the first stimulus trial that reaches the new extremum. The class stores the resulting locations in `Results.ReversalIdx` and the post-reversal direction in `Results.ReversalDirection`.
+Reversal detection ignores holds (zero-valued steps, which occur legitimately after an Abort/CorrectReject/FalseAlarm repeats the previous stimulus value) and `NaN` steps (a trial whose recorded value is `NaN`). A reversal is detected when consecutive *nonzero* normalized step directions differ; the reversal is marked at the first stimulus trial that reaches the new extremum. The class stores the resulting locations in `Results.ReversalIdx` and the post-reversal direction in `Results.ReversalDirection`.
 
 ### 5. Threshold estimation
 
 If at least one reversal is available, the class uses the most recent `ThresholdFromLastNReversals` reversal values and computes:
 
-- `Results.Threshold` with either `mean` or `geomean`
+- `Results.Threshold` with either `mean` or `geomean` (`NaN` when a geometric mean is asked of negative values)
 - `Results.ThresholdStd` with `std`
 
 ## Examples
@@ -288,7 +282,9 @@ If at least one reversal is available, the class uses the most recent `Threshold
 ### Offline analysis from saved trials
 
 ```matlab
-S = psychophysics.Staircase(DATA, Parameter, ThresholdFormula='GeometricMean');
+S = psychophysics.Staircase(DATA, Parameter);
+S.ThresholdFormula = 'GeometricMean';   % a property, not a constructor option
+S.refresh_history();
 
 fprintf('Reversals: %d\n', S.Results.ReversalCount);
 fprintf('Threshold: %.3f\n', S.Results.Threshold);
@@ -313,7 +309,7 @@ S.Plot();
 
 1. Staircase state is maintained in memory only. Save threshold and reversal results explicitly if they are needed later.
 2. Trial selection matters. If `StimulusTrialType` does not match the real staircase trials, threshold estimates will be wrong.
-3. `ConvertToDecibels` replaces nonpositive values with `NaN` before conversion.
+3. `GeometricMean` needs nonnegative values; for a parameter recorded in dB, use `Mean`.
 4. `CatchTrialType` is stored by the object, but the main history computation path is driven by `StimulusTrialType`.
 5. With only a small number of reversals, `Results.Threshold` and `Results.ThresholdStd` may be unstable.
 
@@ -328,6 +324,11 @@ S.Plot();
 
 ## Changelog
 
+- 2026-09-11: `ConvertToDecibels` and the **Y Axis in dB (re 100%)** menu item are
+  removed; a staircase is analyzed in the parameter's own units. `GeometricMean`
+  on negative reversal values — which is what a depth recorded in dB gives —
+  no longer throws `geomean`'s error from the `NewData` listener on every trial;
+  `Results.Threshold` is `NaN` and one message is logged.
 - 2026-09-10: `fitPsychometric` fits a psychometric function to the staircase's
   own trials by maximum likelihood, reporting threshold, slope, an optional
   bootstrap interval, and goodness of fit — alongside, not instead of, the

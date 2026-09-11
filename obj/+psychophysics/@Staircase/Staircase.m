@@ -19,8 +19,6 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
     %       extract stimulus values from DATA.
     %   StaircaseDirection - "Up" or "Down" reversal convention.
     %   StimulusTrialType - BitMask identifying trials included in the staircase.
-    %   ConvertToDecibels - Convert stimulus values to dB re 100% depth using
-    %       20*log10(x); also available as a right-click option on the plot.
     %   ExcludedTrials - Trial exclusions specified as a logical mask or
     %       1-based trial indices.
     %   Results - Structure containing computed staircase outputs such as
@@ -57,7 +55,6 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
 
         ThresholdFromLastNReversals (1,1) double {mustBePositive, mustBeInteger} = 12  % Number of reversals to use in threshold calculation
         ThresholdFormula (1,1) string {mustBeMember(ThresholdFormula,["Mean","GeometricMean"])} = "Mean"  % Formula for computing threshold from reversals
-        ConvertToDecibels (1,1) logical = false  % If true, convert stimulus values to dB re 100% depth using 20*log10(x); toggled from the plot's right-click menu
 
         % Optional plotting configuration (when enabled via Plot or constructor option).
         % Accent colors avoid the reserved response-outcome hues (green/red/blue/
@@ -94,6 +91,7 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
 
     properties (Access = private)
         sessionCache_ = []     % memoized per-trial vectors; see sessionVectors_
+        geomeanUndefined_ (1,1) logical = false  % latches the undefined-geometric-mean log to once per episode
 
         % Plot state (optional).
         plotEnabled_ (1,1) logical = false
@@ -119,7 +117,7 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
     methods
         function obj = Staircase(RUNTIME, Parameter,options)
             % S = psychophysics.Staircase(RUNTIME, Parameter)
-            % S = psychophysics.Staircase(RUNTIME, Parameter, StaircaseDirection="Up", ConvertToDecibels=true)
+            % S = psychophysics.Staircase(RUNTIME, Parameter, StaircaseDirection="Up")
             % S = psychophysics.Staircase(DATA, Parameter)
             % S = psychophysics.Staircase(RUNTIME, Parameter, Plot=true)
             % S = psychophysics.Staircase(RUNTIME, Parameter, Plot=true, PlotAxes=ax)
@@ -139,8 +137,6 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
             % after modifying obj.DATA.
             %
             % Stimulus trials are filtered by StimulusTrialType mask for reversal detection.
-            % When ConvertToDecibels is true, stimulus values are transformed as
-            % dB = 20*log10(x) with x<=0 replaced by NaN.
             %
             % Plotting is optional. When Plot is true and PlotAxes is empty, the
             % Staircase creates and owns a new figure/axes for online updates.
@@ -152,7 +148,6 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
             %   StimulusTrialType    - BitMask for stimulus trials (default: TrialType_0).
             %   CatchTrialType       - BitMask for catch trials (default: TrialType_1).
             %   StaircaseDirection   - "Up" or "Down" (default: "Down").
-            %   ConvertToDecibels    - Convert stimulus values to dB (default: false).
             %   Plot                 - Enable staircase plotting (default: false).
             %   PlotAxes             - Axes to draw into; creates new figure when empty.
             %   ExcludedTrials       - Trial exclusions as a logical mask or 1-based indices.
@@ -169,7 +164,6 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
                 options.StimulusTrialType (1,1) epsych.BitMask = epsych.BitMask.TrialType_0
                 options.CatchTrialType (1,1) epsych.BitMask = epsych.BitMask.TrialType_1
                 options.StaircaseDirection (1,1) string {mustBeMember(options.StaircaseDirection,["Up","Down"])} = "Down"
-                options.ConvertToDecibels (1,1) logical = false
                 options.Plot (1,1) logical = false
                 options.PlotAxes = []
                 options.ExcludedTrials = []
@@ -181,7 +175,6 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
             obj.StimulusTrialType = options.StimulusTrialType;
             obj.CatchTrialType = options.CatchTrialType;
             obj.StaircaseDirection = options.StaircaseDirection;
-            obj.ConvertToDecibels = options.ConvertToDecibels;
 
             if isempty(obj.RUNTIME)
                 obj.refresh();
@@ -312,8 +305,7 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
             % Parameters:
             %   obj - psychophysics.Staircase instance.
             % Returns:
-            %   v - Stimulus values for the tracked Parameter, optionally converted to
-            %       decibels with nonpositive values replaced by NaN.
+            %   v - Stimulus values for the tracked Parameter.
             if isempty(obj.DATA)
                 v = [];
             else
@@ -324,10 +316,6 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
                     throwAsCaller(ME);
                 end
                 v = obj.dataFieldValues_(fieldName);
-                if obj.ConvertToDecibels
-                    v(v<=0) = nan;
-                    v = 20*log10(v);
-                end
             end
         end
 
@@ -392,7 +380,7 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
             % Reversals are defined on the sequence of nonzero, non-NaN steps:
             % holds (sd == 0) occur legitimately when the controller repeats a
             % value after an abort or catch outcome, and NaN steps arise from
-            % ConvertToDecibels; neither may create or mask a reversal.
+            % a trial whose recorded value is NaN; neither may create or mask a reversal.
             stepPos = find(~isnan(sd) & sd ~= 0);
             nzSteps = sd(stepPos);
             if numel(nzSteps) >= 2
@@ -411,15 +399,39 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
                 lastN = max(1, results.ReversalCount - obj.ThresholdFromLastNReversals + 1):results.ReversalCount;
                 thresholdValues = s.stimValues(results.ReversalIdx(lastN));
 
-                if obj.ThresholdFormula == "Mean"
-                    results.Threshold = mean(thresholdValues);
-                else % GeometricMean
-                    results.Threshold = geomean(thresholdValues);
-                end
+                results.Threshold = obj.thresholdFromReversals_(thresholdValues);
                 results.ThresholdStd = std(thresholdValues);
             end
 
             obj.Results = results;
+        end
+
+        function thr = thresholdFromReversals_(obj, values)
+            % thr = thresholdFromReversals_(obj, values)
+            % Combine reversal values into a threshold under ThresholdFormula.
+            % Runs from a NewData listener every trial, so an undefined
+            % geometric mean is NaN (which the plot and title already read as
+            % "no threshold") rather than an error, logged once per episode.
+            % A parameter already in dB (an AM depth re 100%) is the usual
+            % way to get there: its values are negative, and the log scale
+            % means Mean is the geometric mean of the linear quantity anyway.
+            undefined = false;
+            if obj.ThresholdFormula == "Mean"
+                thr = mean(values);
+            elseif any(values < 0)
+                thr = NaN;
+                undefined = true;
+            else
+                thr = geomean(values);
+            end
+
+            if undefined && ~obj.geomeanUndefined_
+                vprintf(1, 1, ['Staircase %s: the geometric mean of the reversals is undefined ' ...
+                    'for negative values (min %g); threshold not shown. Use Mean, which is ' ...
+                    'the right formula for a parameter already on a log scale.'], ...
+                    char(obj.ParameterName), min(values));
+            end
+            obj.geomeanUndefined_ = undefined;
         end
 
         function results = emptyResults_(obj)
@@ -449,8 +461,8 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
         function h = createPopOut_(obj, container)
             % A second staircase over the same trials, plotted in its own
             % window. A sibling analysis object rather than a second view of
-            % this one: the plot's settings (threshold reversals, formula, dB
-            % axis) are properties of the analysis, so sharing it would make
+            % this one: the plot's settings (threshold reversals, formula)
+            % are properties of the analysis, so sharing it would make
             % a change in the pop-out rewrite the embedded plot as well.
             layout = uigridlayout(container, [1 1]);
             layout.RowHeight   = {'1x'};
@@ -465,7 +477,6 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
                 StimulusTrialType  = obj.StimulusTrialType, ...
                 CatchTrialType     = obj.CatchTrialType, ...
                 StaircaseDirection = obj.StaircaseDirection, ...
-                ConvertToDecibels  = obj.ConvertToDecibels, ...
                 ExcludedTrials     = obj.ExcludedTrials, ...
                 ShowSteps          = obj.ShowSteps, ...
                 ShowReversals      = obj.ShowReversals);

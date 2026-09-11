@@ -191,9 +191,9 @@ assert(CPop.trialCount == SC.trialCount, 'the pop-out should open on the same tr
 assert(isequal(CPop.Results.Threshold, SC.Results.Threshold), ...
     'the pop-out should compute the same threshold as the host');
 
-CPop.ConvertToDecibels = ~SC.ConvertToDecibels;
+CPop.ThresholdFromLastNReversals = 2;
 CPop.refresh_history();
-assert(SC.ConvertToDecibels == false, 'host dB setting changed with the pop-out');
+assert(SC.ThresholdFromLastNReversals == 12, 'host threshold setting changed with the pop-out');
 assert(isvalid(ax), 'the host axes must survive the pop-out');
 
 popFig = SC.PopOutFigure;

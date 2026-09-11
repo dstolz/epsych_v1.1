@@ -80,9 +80,8 @@ otherwise produce silently.
 ## Where the counts come from
 
 `fitPsychometric` scores the staircase's **stimulus** trials — the ones
-`StimulusTrialType` selects — with `ExcludedTrials` already removed and
-`ConvertToDecibels` already applied, so the fit is always in the units the
-staircase plot is showing.
+`StimulusTrialType` selects — with `ExcludedTrials` already removed, so the
+fit is always in the units the staircase plot is showing: the parameter's own.
 
 | Response code carries | Counted as |
 |---|---|
@@ -109,8 +108,8 @@ their values are equal. `LevelTolerance` merges levels within an absolute
 distance of one another, for a rig whose level accumulates floating-point
 drift; the merged level is the mean of the values it stands for.
 
-A level of `NaN` — what `ConvertToDecibels` makes of a nonpositive value — is
-dropped and counted in `F.NumUndefinedLevel`, never treated as zero.
+A level of `NaN` — a trial whose value was not recorded — is dropped and
+counted in `F.NumUndefinedLevel`, never treated as zero.
 
 ## The threshold criterion is a choice
 
@@ -270,8 +269,8 @@ caller needs `isfield`.
 | `CI` | Bootstrap interval: `Level`, `Requested`, `Replicates`, `Alpha`, `Beta`, `Threshold`. |
 
 `fitPsychometric` adds where the counts came from: `ParameterName`,
-`ConvertToDecibels`, `NumScored`, `NumAborted`, `NumUnscored`,
-`NumUndefinedLevel`, `GuessRateSource`.
+`NumScored`, `NumAborted`, `NumUnscored`, `NumUndefinedLevel`,
+`GuessRateSource`.
 
 **Nothing is stored on the staircase.** The fit is returned, never written
 onto `S.Results`, so it can never be a stale number sitting beside live

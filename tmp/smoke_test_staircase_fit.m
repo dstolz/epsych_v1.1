@@ -285,39 +285,66 @@ Fc = S.fitPsychometric(GuessFromCatchTrials=true);
 [nPass,nFail] = check(nPass, nFail, isequal(Fc.NumTotal, F.NumTotal), ...
     'and the catch trials are still not in the counts');
 
-% Exclusions and dB conversion are the staircase's, so the fit inherits them.
+% Exclusions are the staircase's, so the fit inherits them.
 S.ExcludedTrials = 1:20;
 Fx = S.fitPsychometric();
 [nPass,nFail] = check(nPass, nFail, Fx.NumScored < F.NumScored, ...
     sprintf('ExcludedTrials reaches the fit (%d -> %d scored)', F.NumScored, Fx.NumScored));
 S.ExcludedTrials = [];
 
-% ConvertToDecibels: the fit must be in the units the plot is showing. Modulation
-% depth is a proportion, so this session's levels are positive and convert.
+% The fit is in the units the plot is showing -- the parameter's own. A depth
+% recorded in dB re 100% (as cl_AppetitiveStimDetect records it) is negative,
+% and its levels must reach the fit untouched.
 HIT  = bitset(uint32(0), uint32(epsych.BitMask.Hit));
 MISS = bitset(uint32(0), uint32(epsych.BitMask.Miss));
-linLevels = [0.1 0.2 0.4 0.8];
+dbLevels = [-20 -14 -8 -2];
 DEPTH = struct('Depth',{},'RespCode',{},'TrialType',{});
-for iLevel = 1:numel(linLevels)
+for iLevel = 1:numel(dbLevels)
     for iRep = 1:12
         rc = MISS;
         if iRep <= 3*iLevel, rc = HIT; end
-        DEPTH(end+1) = struct('Depth',linLevels(iLevel),'RespCode',rc,'TrialType',0);
+        DEPTH(end+1) = struct('Depth',dbLevels(iLevel),'RespCode',rc,'TrialType',0);
     end
 end
 
-Slin = psychophysics.Staircase(DEPTH, 'Depth');
-Sdb  = psychophysics.Staircase(DEPTH, 'Depth', ConvertToDecibels=true);
-Flin = Slin.fitPsychometric();
+Sdb  = psychophysics.Staircase(DEPTH, 'Depth');
 Fdb  = Sdb.fitPsychometric();
-
 [nPass,nFail] = check(nPass, nFail, ...
-    isequal(round(Flin.Levels,10), round(linLevels,10)) && ...
-    isequal(round(Fdb.Levels,10),  round(20*log10(linLevels),10)) && ...
-    isequal(Fdb.NumYes, Flin.NumYes), ...
-    'ConvertToDecibels reaches the fit: the same counts, at 20*log10 of the levels');
-[nPass,nFail] = check(nPass, nFail, Fdb.ConvertToDecibels && ~Flin.ConvertToDecibels, ...
-    'and the fit says which units it is in');
+    isequal(Fdb.Levels, dbLevels) && isequal(Fdb.NumYes, 3*(1:4)) && Fdb.NumUndefinedLevel == 0, ...
+    'negative (dB) levels reach the fit as recorded, none dropped as undefined');
+[nPass,nFail] = check(nPass, nFail, ~isprop(Sdb, 'ConvertToDecibels') && ~isfield(Fdb, 'ConvertToDecibels'), ...
+    'ConvertToDecibels is gone from the staircase and from the fit result');
+
+% GeometricMean over negative reversal values used to throw geomean's error
+% from the NewData listener on every trial. A dB track with reversals:
+track = [-4 -8 -12 -8 -12 -8 -4 -8 -12 -8];
+TRK = struct('Depth',num2cell(track),'RespCode',num2cell(repmat(HIT,1,numel(track))), ...
+    'TrialType',num2cell(zeros(1,numel(track))));
+Slin = psychophysics.Staircase(TRK, 'Depth');
+thrMean = Slin.Results.Threshold;
+Slin.ThresholdFormula = "GeometricMean";
+threw = false;
+try
+    Slin.refresh();
+    Slin.refresh();          % a second pass logs nothing new
+catch
+    threw = true;
+end
+[nPass,nFail] = check(nPass, nFail, ~threw && isnan(Slin.Results.Threshold) && isfinite(thrMean), ...
+    'GeometricMean over negative reversals is NaN, not an error; Mean is unaffected');
+Slin.ThresholdFormula = "Mean";
+Slin.refresh();
+[nPass,nFail] = check(nPass, nFail, Slin.Results.Threshold == thrMean, ...
+    'switching back to Mean restores the threshold');
+POS = TRK;
+pos = num2cell(10.^(track/20));
+[POS.Depth] = pos{:};
+Spos = psychophysics.Staircase(POS, 'Depth');
+Spos.ThresholdFormula = "GeometricMean";
+Spos.refresh();
+[nPass,nFail] = check(nPass, nFail, abs(20*log10(Spos.Results.Threshold) - thrMean) < 1e-9, ...
+    'the geometric mean of linear depths is the mean of the same depths in dB');
+delete(Spos);
 
 % Nothing is written back onto the object.
 resultsBefore = S.Results;

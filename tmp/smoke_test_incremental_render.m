@@ -207,16 +207,18 @@ Sfresh.Plot(axB);
 nFail = nFail + compareStaircase('Staircase: incremental vs fresh',Sinc,axA,Sfresh,axB);
 
 % A setting changed with no refresh behind it must not be served stale
-% vectors: refreshPlot alone has to notice the dB conversion.
+% vectors: refreshPlot alone has to notice the trial-type selection.
 before = seriesData(axA);
-Sinc.ConvertToDecibels = true;
+Sinc.StimulusTrialType = epsych.BitMask.TrialType_1;
+Sinc.CatchTrialType = epsych.BitMask.TrialType_0;
 Sinc.refreshPlot();
-nFail = nFail + check('Staircase: dB toggle without a refresh reaches the plot', ...
+nFail = nFail + check('Staircase: trial-type swap without a refresh reaches the plot', ...
     ~isequaln(before,seriesData(axA)));
 
-Sfresh.ConvertToDecibels = true;
+Sfresh.StimulusTrialType = epsych.BitMask.TrialType_1;
+Sfresh.CatchTrialType = epsych.BitMask.TrialType_0;
 Sfresh.refreshPlot();
-nFail = nFail + compareStaircase('Staircase: dB axis',Sinc,axA,Sfresh,axB);
+nFail = nFail + compareStaircase('Staircase: swapped trial types',Sinc,axA,Sfresh,axB);
 
 delete(Sinc);
 delete(Sfresh);
