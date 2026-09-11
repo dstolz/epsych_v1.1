@@ -1129,9 +1129,12 @@ re-uploading the state table.
   `CriterionScale="absolute"` for "the 70.7% level" and a deliberate NaN when
   that proportion lies outside them (a 2AFC absolute 0.5 is not a midpoint, it is
   unreachable); the `MinResponseRange` flag names `Direction` when the data run
-  the other way, turning a flat non-result into a signpost; the bootstrap draws
-  from a private `RandStream` so a seeded fit cannot move a trial selector's
-  stream; and no Hessian standard error is offered at all, because adaptive
+  the other way, turning a flat non-result into a signpost; a seeded bootstrap
+  leaves the global random stream exactly as it found it, since a trial selector
+  may be drawing from it — `binornd` takes no `RandStream`, as no Statistics
+  Toolbox generator does, so the state is saved, seeded, and put back through an
+  `onCleanup` rather than held privately; and no Hessian standard error is
+  offered at all, because adaptive
   sampling breaks exactly its assumptions — the same reason the slope from a
   staircase is documented as biased upward and the deviance p-value as
   untrustworthy at one trial per level. Standing proof
