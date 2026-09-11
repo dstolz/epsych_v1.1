@@ -18,8 +18,9 @@ psychophysics.Metrics.fromCounts(18, 7, 3, 22)            % every metric at once
 Two things follow from being stateless. It never touches `epsych.BitMask`, `DATA`, or
 `RUNTIME` — turning a response-code vector into four counts needs the trial window, the
 exclusion mask, and an aborts policy, all of which live in
-[psychophysics.Psych](psychophysics_Psych.md). And its core needs no Statistics Toolbox:
-`z` is built on `erfcinv`, so d' is computable on a rig that has only base MATLAB.
+[psychophysics.Psych](psychophysics_Psych.md). `z` and `zinv` are the Statistics Toolbox `norminv` and `normcdf` under names that
+pair with each other, so the normal-distribution arithmetic is MathWorks' to
+maintain and every d' in the toolbox reaches it through one place.
 
 ## Corrections for rates of 0 and 1
 
@@ -66,8 +67,8 @@ surprising d' — is answerable without re-deriving it.
 
 | Method | Formula | Notes |
 |---|---|---|
-| `z(p)` | `-sqrt(2)*erfcinv(2*p)` | Inverse normal CDF. No correction: 0 and 1 give `∓Inf`, NaN and out-of-range give NaN. Named `z`, not `norminv` — an unqualified `norminv(p)` inside a classdef resolves to the toolbox function, not the static method. |
-| `zinv(n)` | `0.5*erfc(-n/sqrt(2))` | Forward normal CDF. Generates the rates a known d' and c would produce. |
+| `z(p)` | `norminv(p)` | Inverse normal CDF. No correction: 0 and 1 give `∓Inf`, NaN and out-of-range give NaN. Named `z`, not `norminv` — an unqualified `norminv(p)` inside a classdef resolves to the toolbox function, not the static method. |
+| `zinv(n)` | `normcdf(n)` | Forward normal CDF. Generates the rates a known d' and c would produce. |
 | `rate(num, den)` | `num./den` | NaN where `den == 0`. No trials of a kind is not a rate of zero. |
 | `rateDenominator(nScored, nAbort, include)` | `nScored (+ nAbort)` | The aborts policy, in one place — see below. |
 | `correctRates(H, F, ...)` | — | Returns the corrected pair, `[H F]`. |
@@ -212,8 +213,9 @@ S.DPrime, S.Criterion, S.APrime, S.BPrimePrime
 ## Verification
 
 `tmp/smoke_test_metrics.m` is the standing check: published normal quantiles and d'/c
-values, agreement with the Statistics Toolbox `norminv`/`normcdf` where it is installed
-(and a scan of the source proving the class does not call it), NaN propagation through
+values, agreement between `z`/`zinv` and the `erfcinv`/`erfc` expansions they replaced
+(the only implementations in the file independent of the `norminv`/`normcdf` they now
+call, so the comparison is not a function against itself), NaN propagation through
 every correction and every metric, broadcasting, the correction equivalences — including
 that `"halfcell"` leaves interior rates untouched and reproduces the implementation
 retired from `teensy.Simulator` — round trips from rates generated at a known d' and c,
@@ -231,9 +233,16 @@ and that the `Detection` and `gui.Helper` forwarders still return their historic
 
 ## Changelog
 
+- 2026-09-11: `z` and `zinv` are the Statistics Toolbox `norminv` and `normcdf` rather
+  than `erfcinv` and `erfc` expansions maintained here — a standing preference for
+  toolbox functions over hand-rolled equivalents, reversing the original toolbox-free
+  design. Values are unchanged to double precision. The source scan that forbade
+  `norminv`/`normcdf` inside the class is gone; the cross-check against the retired
+  expansions replaces it. The Statistics Toolbox is now a hard requirement of
+  `psychophysics.Metrics`, and so of every d' in the toolbox.
 - 2026-08-19: Initial release. Stateless signal-detection arithmetic extracted from
-  `psychophysics.Detection`, `gui.Helper` and `teensy.Simulator`, with a toolbox-free
-  z-transform, trial-count dependent corrections, correct NaN propagation, and B'' and
+  `psychophysics.Detection`, `gui.Helper` and `teensy.Simulator`, with a then
+  toolbox-free z-transform, trial-count dependent corrections, correct NaN propagation, and B'' and
   relative criterion added. The aborts denominator became an `IncludeAborts` option
   defaulting to exclusion, settling a disagreement between `SessionMetrics` and the
   per-stimulus-value analyses.

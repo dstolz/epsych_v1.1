@@ -1031,8 +1031,9 @@ re-uploading the state table.
   into counts needs the trial window, the exclusion mask, and an aborts policy,
   which are properties of a session rather than arithmetic. `fromCounts` is the
   seam. Three things a reader would otherwise re-derive: `z` is built on
-  `erfcinv`, so d' no longer needs the Statistics Toolbox (and the smoke test
-  scans the source to keep it that way); the correction for rates of 0 and 1 is
+  `norminv` (and `zinv` on `normcdf`), so the normal-distribution arithmetic is
+  the toolbox's rather than this repository's — reversed on 2026-09-11 from an
+  `erfcinv` expansion guarded by a source scan, which is gone; the correction for rates of 0 and 1 is
   **named at every call** — `"none"`, `"clamp"` (default `[0.01 0.99]`),
   `"halfcell"`, `"loglinear"` — and the two trial-count dependent modes **error**
   rather than falling back to a clamp, since a silent fallback is exactly how the
@@ -1098,7 +1099,49 @@ re-uploading the state table.
   split a forced choice does not have, which is why TwoAFCBehaviorGUI has no
   gui.components.SessionPerformance panel
   (documentation/psychophysics/psychophysics_NAFC.md)
-- **psychophysics.Staircase**: Reversal detection and threshold estimation
+- **psychophysics.Staircase**: Reversal detection and threshold estimation, and —
+  since 2026-09-10 — the OTHER threshold the same trials can give: `fitPsychometric`
+  fits a psychometric function to them by maximum likelihood. The two are not
+  redundant and should not be reconciled: `Results.Threshold` averages the last N
+  reversals and so converges on whatever proportion the STEP RULE targets (a
+  symmetric 2-down-1-up settles near 70.7%, not 50%), while the fit uses every
+  scored trial at every level visited and reports the function's own location
+  parameter plus the level at a criterion the caller names. The estimator
+  (`fitProportions`) is a pure static over counts and the function it fits
+  (`psychometricFunction`/`psychometricLevel`) another, so both are testable with
+  no DATA, no runtime and no figure; `fitPsychometric` is only the seam that turns
+  a session into `(levels, numYes, numTotal)` — Hit is a yes, Miss a no, an abort
+  neither (`Metrics.rateDenominator`'s convention), a code carrying both counted
+  in `NumUnscored` rather than resolved. Shapes and parameterization are
+  `psychophysics.BestPEST`'s exactly, so a threshold from either is comparable,
+  and the arithmetic is the Statistics Toolbox's throughout (`normcdf`,
+  `norminv`, `chi2cdf`, `binornd`, `prctile`, with `fminsearch` optimizing). What a reader would otherwise
+  re-derive: the result is RETURNED and never written onto `Results`, since a fit
+  stored beside live trials is a stale number waiting to be read; a dataset that
+  cannot support a fit gets `Converged`/`Identifiable` false and a `Message`
+  rather than a plausible number, and the tests behind that are EXACT statements
+  about the data (fewer than two distinct levels, every scored trial the same
+  outcome, and complete separation — every "no" level below every "yes" — where
+  the slope is unbounded and whatever the optimizer stopped at is an artifact of
+  its iteration cap) rather than tolerances on the estimate; `ThresholdCriterion`
+  is read BETWEEN THE ASYMPTOTES by default, which is the only reading that is
+  always reachable and that makes 0.5 mean alpha whatever gamma is, with
+  `CriterionScale="absolute"` for "the 70.7% level" and a deliberate NaN when
+  that proportion lies outside them (a 2AFC absolute 0.5 is not a midpoint, it is
+  unreachable); the `MinResponseRange` flag names `Direction` when the data run
+  the other way, turning a flat non-result into a signpost; a seeded bootstrap
+  leaves the global random stream exactly as it found it, since a trial selector
+  may be drawing from it — `binornd` takes no `RandStream`, as no Statistics
+  Toolbox generator does, so the state is saved, seeded, and put back through an
+  `onCleanup` rather than held privately; and no Hessian standard error is
+  offered at all, because adaptive
+  sampling breaks exactly its assumptions — the same reason the slope from a
+  staircase is documented as biased upward and the deviance p-value as
+  untrustworthy at one trial per level. Standing proof
+  `tmp/smoke_test_staircase_fit.m`, whose group 9 parses both `arguments` blocks
+  because MATLAB cannot inherit one and `fitPsychometric` must repeat
+  `fitProportions`' 16 forwarded declarations
+  (see documentation/psychophysics/psychophysics_StaircaseFit.md)
 - **psychophysics.BestPEST**, **psychophysics.MLP**: Threshold-seeking algorithms
 - **psychophysics.SessionMetrics**: Session-level counts, rates, d', A' and criterion over a
   `psychophysics.TrialWindow` (all trials, last N, first N, or an explicit range). The
@@ -1198,6 +1241,26 @@ ERROR is reachable from any state.
 - Target MATLAB R2024b (baseline R2014b+)
 - Use arguments syntax for functions with >2 parameters or when validation needed
 - Do NOT use compiler directives (e.g., %#ok<AGROW>)
+
+**Toolbox functions over hand-rolled equivalents**
+- The toolboxes listed under Key Facts are licensed and available on the lab's
+  machines. **Call the toolbox function** — `normcdf`, `norminv`, `binornd`,
+  `prctile`, `chi2cdf`, `glmfit`, `fitdist` — rather than reimplementing it from
+  a primitive such as `erfc`/`erfcinv` or open-coding a percentile. A MathWorks
+  implementation is tested, documented, and maintained by someone else; a custom
+  one is a correctness liability the lab owns forever.
+- This is a standing preference, not a case-by-case judgement, and it REVERSED
+  the older "no Statistics Toolbox" position on 2026-09-11. `Metrics.z` and
+  `Metrics.zinv` are now `norminv` and `normcdf`; the source-scanning assertion
+  in `tmp/smoke_test_metrics.m` that forbade those names inside `Metrics` is
+  gone. Do not add new guards of that kind. `Metrics.z`/`zinv` keep their names
+  rather than being deleted for `norminv`/`normcdf` at each call site, for a
+  concrete reason: a static method named `norminv` would capture the
+  unqualified call in its own body and recurse.
+- The reverse still holds where a dependency is genuinely optional: nothing in a
+  hot trial-loop path should acquire a licence it does not need, and
+  `obj/stimgen` and `obj/granary` are released independently and must not gain
+  toolbox dependencies through EPsych.
 
 **Naming**
 - PascalCase for components, interfaces, type aliases

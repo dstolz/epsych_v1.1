@@ -613,7 +613,8 @@ classdef Detection < handle & matlab.mixin.SetGet
             % norminv Bounded inverse normal CDF
             %
             %   Kept for compatibility. psychophysics.Metrics.z is the
-            %   implementation, and needs no Statistics Toolbox.
+            %   implementation, which since 2026-09-11 is the Statistics
+            %   Toolbox norminv -- NOT this method, which clamps first.
             %
             %   One behavior change: an undefined rate now yields NaN. The
             %   max/min clamp this replaced dropped NaN -- min(NaN,0.99) is

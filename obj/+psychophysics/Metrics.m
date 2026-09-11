@@ -27,7 +27,8 @@ classdef Metrics
     % into a bound, which is the difference between this class and the
     % min/max clamp it replaces.
     %
-    % The core needs no Statistics Toolbox: z is built on erfcinv.
+    % z and zinv are the Statistics Toolbox norminv and normcdf under names
+    % that pair with each other; every d' in the toolbox goes through them.
     %
     % An aborted trial is the one judgement call in the denominators, and it
     % is an option rather than a convention: IncludeAborts defaults to false,
@@ -86,21 +87,21 @@ classdef Metrics
             % n = psychophysics.Metrics.z(p)
             % Inverse standard normal CDF -- the "z-transform" of a rate.
             %
-            %       z(p) = -sqrt(2) * erfcinv(2*p)
+            % A thin, named wrapper over the Statistics Toolbox norminv, so
+            % every d' and criterion in the toolbox goes through one place and
+            % the formula itself is MathWorks' to maintain. It was an erfcinv
+            % expansion until 2026-09-11; that avoided a licence EPsych's
+            % machines have anyway, at the cost of owning a numerical routine.
             %
-            % Built on erfcinv, which is core MATLAB, so d' and criterion no
-            % longer require the Statistics Toolbox. Agreement with the
-            % toolbox norminv is exact to double precision and is asserted by
-            % tmp/smoke_test_metrics.m wherever the toolbox is installed.
-            %
-            % The name is z rather than norminv deliberately: an unqualified
-            % norminv(p) inside a classdef resolves to the toolbox function
-            % rather than to the static method, which is the only reason the
-            % psychophysics.Detection.norminv this replaces ever worked.
+            % The method is named z and NOT norminv, and that is load bearing
+            % now that the body calls norminv: a static named norminv would
+            % capture the unqualified call below and recurse. (The same
+            % shadowing is why psychophysics.Detection.norminv -- a bounded
+            % variant, still present as public API -- ever worked.)
             %
             % No correction is applied here. p == 0 gives -Inf and p == 1
             % gives +Inf, which is the honest answer; NaN yields NaN, and a p
-            % outside [0 1] yields NaN.
+            % outside [0 1] yields NaN. norminv agrees on every one of those.
             %
             % Parameters:
             %   p - Probabilities, any size.
@@ -110,19 +111,21 @@ classdef Metrics
             arguments
                 p double
             end
-            n = -sqrt(2) .* erfcinv(2 .* p);
+            n = norminv(p);
         end
 
         function p = zinv(n)
             % p = psychophysics.Metrics.zinv(n)
             % Forward standard normal CDF, the inverse of z.
             %
-            %       zinv(n) = 0.5 * erfc(-n/sqrt(2))
+            % The Statistics Toolbox normcdf, named to pair with z. Generating
+            % the rates a known d' and criterion would produce is how
+            % tmp/smoke_test_metrics.m checks the arithmetic against theory
+            % rather than against itself.
             %
-            % Present so a caller can go the other way without the toolbox.
-            % Generating the rates a known d' and criterion would produce is
-            % how tmp/smoke_test_metrics.m checks the arithmetic against
-            % theory rather than against itself.
+            % The ONE-ARGUMENT form: normcdf(n) is the standard normal, which
+            % is what a z-score wants; normcdf(x, mu, sigma) is a different
+            % question and needs a positive sigma.
             %
             % Parameters:
             %   n - z-scores, any size.
@@ -132,7 +135,7 @@ classdef Metrics
             arguments
                 n double
             end
-            p = 0.5 .* erfc(-n ./ sqrt(2));
+            p = normcdf(n);
         end
 
         function r = rate(num, den)

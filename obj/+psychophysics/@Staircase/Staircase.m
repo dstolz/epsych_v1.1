@@ -26,6 +26,14 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
     %   Results - Structure containing computed staircase outputs such as
     %       Threshold, ReversalIdx, and StepDirection.
     %
+    % Key methods:
+    %   refresh_history  - Recompute reversals and the reversal threshold.
+    %   Plot / popOut    - The staircase track, embedded or in its own window.
+    %   fitPsychometric  - Maximum-likelihood threshold, slope and psychometric
+    %       function from the trials themselves, rather than from the
+    %       reversals. Returned, never stored, so it cannot go stale beside
+    %       live data. See documentation/psychophysics/psychophysics_StaircaseFit.md.
+    %
     % Example:
     %   S = psychophysics.Staircase(RUNTIME, Parameter, Plot=true);
     %   S = psychophysics.Staircase(DATA, Parameter, StaircaseDirection="Up");
@@ -34,6 +42,7 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
     %   S.Plot();
     %   S.Plot(ax, ShowSteps=false);
     %   S.popOut();   % the same plot, larger, in a window of its own
+    %   F = S.fitPsychometric();   % threshold and slope from the responses
     %
     % The plot's right-click menu offers "Open in Separate Window" (see
     % gui.PopOut). That window holds a second Staircase over the same trials
@@ -322,8 +331,21 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
             end
         end
 
+        % Psychometric fit (implemented as separate files in @Staircase)
+        F = fitPsychometric(obj, options)
 
+    end
 
+    methods (Static)
+        % The fit itself, and the function it fits -- pure and stateless, so
+        % they work on counts from anywhere and are testable with no session.
+        F = fitProportions(levels, numYes, numTotal, options)
+        P = psychometricFunction(x, alpha, beta, options)
+        x = psychometricLevel(P, alpha, beta, options)
+    end
+
+    methods (Static, Access = private)
+        F = emptyFit_()
     end
 
     methods (Access = protected)

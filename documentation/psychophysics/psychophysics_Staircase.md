@@ -166,6 +166,37 @@ Recomputes staircase history from the current `DATA`, refreshes the plot when pl
 
 Use this after changing analysis settings such as `StaircaseDirection`, `StimulusTrialType`, `ThresholdFormula`, or `ThresholdFromLastNReversals` in offline workflows.
 
+### `fitPsychometric`
+
+```matlab
+F = S.fitPsychometric()
+F = S.fitPsychometric(ThresholdCriterion=0.707, CriterionScale="absolute")
+F = S.fitPsychometric(Shape="Weibull", Bootstrap=1000)
+```
+
+Fits a psychometric function to the staircase's trials by maximum likelihood
+and returns threshold, slope, the fitted curve, and goodness of fit. It is the
+*other* threshold this class can report: `Results.Threshold` is the mean of the
+last N reversals, which converges on whatever proportion the step rule targets,
+while the fit uses every scored trial at every level the session visited.
+
+The fit is returned, never stored on `Results`, so it can never go stale beside
+live trials. Check `F.Converged` and `F.Identifiable` before reading
+`F.Threshold`; `F.Message` says what went wrong when either is false.
+
+Two static companions are pure functions of their arguments and work with no
+session at all:
+
+```matlab
+F = psychophysics.Staircase.fitProportions(levels, numYes, numTotal, ...)
+P = psychophysics.Staircase.psychometricFunction(x, alpha, beta, ...)
+x = psychophysics.Staircase.psychometricLevel(P, alpha, beta, ...)
+```
+
+See [psychophysics_StaircaseFit.md](psychophysics_StaircaseFit.md) for the
+model, every option, the result struct, what the fit refuses to fit, and why
+a slope from adaptive data should be read with care.
+
 ### Plot control
 
 ```matlab
@@ -288,6 +319,8 @@ S.Plot();
 
 ## See Also
 
+- [Psychometric fitting](psychophysics_StaircaseFit.md) — `fitPsychometric`, `fitProportions`, and the psychometric function they share
+- [`psychophysics.BestPEST`](psychophysics_BestPEST.md), [`psychophysics.MLP`](psychophysics_MLP.md) — threshold estimation *during* a session
 - `epsych.BitMask`
 - `epsych.EventHub`
 - `hw.Parameter`
@@ -295,6 +328,12 @@ S.Plot();
 
 ## Changelog
 
+- 2026-09-10: `fitPsychometric` fits a psychometric function to the staircase's
+  own trials by maximum likelihood, reporting threshold, slope, an optional
+  bootstrap interval, and goodness of fit — alongside, not instead of, the
+  reversal threshold. The estimator (`fitProportions`) and the function it fits
+  (`psychometricFunction` / `psychometricLevel`) are pure statics, testable with
+  no session. See [psychometric fitting](psychophysics_StaircaseFit.md).
 - 2026-08-13: A plot update extracts the session's stimulus values and decodes its response codes once and shares them, instead of walking the trials up to eight times (three separate `epsych.BitMask.decode` calls, plus a full extraction just to count trials for the subtitle). 52 ms -> 30 ms per trial at 1000 trials. `Psych.trialTypeMasks_` resolves several trial-type masks from one extraction; the shared vectors are held until the trials, the trial-type selection, the exclusions, or `ConvertToDecibels` change. The subtitle of an empty staircase now reads `0 trials` rather than `1 trials`.
 - 2026-08-11: The y axis is labeled with the tracked parameter's raw `Unit`, and a **Y Axis in dB (re 100%)** right-click option toggles `ConvertToDecibels`.
 - 2026-07-15: Reversal detection now ignores holds (zero steps) and `NaN` steps instead of counting them as reversals.
