@@ -25,8 +25,15 @@ if isempty(ridx)
     return
 end
 
-startIdx = max(1, numel(ridx) - obj.ThresholdFromLastNReversals + 1);
-xThr = [ridx(startIdx) ridx(end)];
+if obj.ApplyWeightedCorrection
+    % The balance rule may have dropped the oldest of the last N, so the
+    % band spans the reversals the corrected threshold was computed from.
+    used = find(obj.Results.Weighted.ReversalUsed);
+    xThr = [ridx(used(1)) ridx(used(end))];
+else
+    startIdx = max(1, numel(ridx) - obj.ThresholdFromLastNReversals + 1);
+    xThr = [ridx(startIdx) ridx(end)];
+end
 yThr = [1 1]*threshold;
 set(obj.h_thrline,'XData',xThr,'YData',yThr)
 

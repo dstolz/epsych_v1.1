@@ -117,6 +117,18 @@ S = psychophysics.Staircase(..., Name=Value)
     shows no threshold, and one message is logged rather than one per trial:
     this is computed from a `NewData` listener, so an error would repeat on
     every trial for the rest of the session.
+- `ApplyWeightedCorrection`
+  - When `true`, `Results.Threshold` is the Hoover-corrected threshold of a weighted
+    staircase from `weightedThreshold`, `NaN` until it can be computed, and
+    `Results.Weighted` holds the full result.
+  - Default: `false`, so no existing session changes its numbers. Set after
+    construction, then call `refresh_history()`.
+- `WeightedStepAfterYes`, `WeightedStepAfterNo`
+  - Signed steps after a yes and after a no, in the parameter's units; `NaN` (default)
+    means find them. Also the defaults of `weightedThreshold`.
+- `WeightedStepFieldYes`, `WeightedStepFieldNo`
+  - DATA fields holding the steps per trial, e.g. `"Depth_StepOnHit"` /
+    `"Depth_StepOnMiss"`; `""` (default) means none. Never guessed.
 - `Bits` and `BitColors`
   - Response-code categories and matching display colors used by plotting helpers.
 
@@ -143,7 +155,7 @@ an outcome.
 
 - `Results`
   - Structure containing computed staircase outputs.
-  - Fields include `ReversalCount`, `ReversalIdx`, `ReversalDirection`, `StepDirection`, `StimulusTrialIdx`, `Threshold`, and `ThresholdStd`.
+  - Fields include `ReversalCount`, `ReversalIdx`, `ReversalDirection`, `StepDirection`, `StimulusTrialIdx`, `Threshold`, `ThresholdStd`, and `Weighted` (the `weightedThreshold` result when `ApplyWeightedCorrection` is on, `[]` otherwise).
 
 ### Dependent read-only properties
 
@@ -198,6 +210,43 @@ x = psychophysics.Staircase.psychometricLevel(P, alpha, beta, ...)
 See [psychophysics_StaircaseFit.md](psychophysics_StaircaseFit.md) for the
 model, every option, the result struct, what the fit refuses to fit, and why
 a slope from adaptive data should be read with care.
+
+### `weightedThreshold`
+
+```matlab
+T = S.weightedThreshold()
+T = S.weightedThreshold(StepFieldYes='Depth_StepOnHit', StepFieldNo='Depth_StepOnMiss')
+T = S.weightedThreshold(StepAfterYes=-2, StepAfterNo=6, ExpectedTarget=0.75)
+```
+
+The threshold of a **weighted** (asymmetric-step) staircase, corrected as
+Hoover (2025) prescribes: the mean of an equal number of ascending and
+descending reversals, plus (δ₋ − δ₊)/4. `Results.Threshold` is the plain mean
+of the last N reversals, which for a weighted staircase is biased toward the
+tail of the psychometric function — and biased again when the reversals are
+unbalanced.
+
+The steps are stated, read from per-trial DATA fields (as
+`cl_AppetitiveStimDetect` records `Depth_StepOnHit` / `Depth_StepOnMiss`), or
+inferred from the track, and only the steps behind the reversals used are read.
+Because each step is named by the response that preceded it and carries its
+own sign, the correction is the same whichever way the parameter runs; there is
+no direction to configure. `T.TargetProbability` is the ψ the steps actually
+target, so a ratio wired backwards shows up as 0.25 rather than a plausible
+threshold. Steps that change mid-session are flagged in `T.StepConsistency`,
+not refused. Check `T.Valid` before reading `T.Threshold`.
+
+`ApplyWeightedCorrection = true` makes the corrected value `Results.Threshold`
+and the plotted threshold. The estimator is a pure static:
+
+```matlab
+T = psychophysics.Staircase.correctedReversalMean(values, isAscending, stepAfterYes, stepAfterNo, ...)
+```
+
+See [psychophysics_WeightedStaircase.md](psychophysics_WeightedStaircase.md)
+for the equations, the step sources, what it refuses, and when the correction
+does not apply (mAFC tasks with few alternatives, lapse rates above 1/10,
+asymmetric psychometric functions).
 
 ### Plot control
 
@@ -316,6 +365,7 @@ S.Plot();
 ## See Also
 
 - [Psychometric fitting](psychophysics_StaircaseFit.md) — `fitPsychometric`, `fitProportions`, and the psychometric function they share
+- [Weighted-staircase threshold](psychophysics_WeightedStaircase.md) — `weightedThreshold`, `correctedReversalMean`, and `ApplyWeightedCorrection`
 - [`psychophysics.BestPEST`](psychophysics_BestPEST.md), [`psychophysics.MLP`](psychophysics_MLP.md) — threshold estimation *during* a session
 - `epsych.BitMask`
 - `epsych.EventHub`
@@ -324,6 +374,18 @@ S.Plot();
 
 ## Changelog
 
+- 2026-09-11: `weightedThreshold` reports the Hoover (2025) corrected threshold
+  of a weighted (asymmetric-step) staircase — a balanced reversal mean plus
+  (δ₋ − δ₊)/4 — with the step ratio and the probability the steps actually
+  target. Steps are stated, read from DATA fields, or inferred from the track.
+  The estimator (`correctedReversalMean`) is a pure static. The opt-in
+  `ApplyWeightedCorrection` property routes it into `Results.Threshold`, the
+  plot, and the title; off by default. See
+  [weighted-staircase threshold](psychophysics_WeightedStaircase.md).
+  Separately, a trial whose tracked value is empty now reads as `NaN` in
+  `stimulusValues` instead of being dropped by `[DATA.(field)]`, which slid
+  every later level onto the wrong trial and, on a stimulus trial, made the
+  constructor (and the `NewData` listener) throw.
 - 2026-09-11: `ConvertToDecibels` and the **Y Axis in dB (re 100%)** menu item are
   removed; a staircase is analyzed in the parameter's own units. `GeometricMean`
   on negative reversal values — which is what a depth recorded in dB gives —

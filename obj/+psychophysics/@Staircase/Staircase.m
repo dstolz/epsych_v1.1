@@ -31,6 +31,11 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
     %       function from the trials themselves, rather than from the
     %       reversals. Returned, never stored, so it cannot go stale beside
     %       live data. See documentation/psychophysics/psychophysics_StaircaseFit.md.
+    %   weightedThreshold - Hoover (2025) corrected threshold for a weighted
+    %       (asymmetric-step) staircase: a balanced reversal mean plus
+    %       (delta_- - delta_+)/4, and the probability the steps actually
+    %       target. ApplyWeightedCorrection=true makes it Results.Threshold.
+    %       See documentation/psychophysics/psychophysics_WeightedStaircase.md.
     %
     % Example:
     %   S = psychophysics.Staircase(RUNTIME, Parameter, Plot=true);
@@ -41,6 +46,8 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
     %   S.Plot(ax, ShowSteps=false);
     %   S.popOut();   % the same plot, larger, in a window of its own
     %   F = S.fitPsychometric();   % threshold and slope from the responses
+    %   T = S.weightedThreshold(StepFieldYes='Depth_StepOnHit', ...
+    %       StepFieldNo='Depth_StepOnMiss');   % corrected, weighted-step threshold
     %
     % The plot's right-click menu offers "Open in Separate Window" (see
     % gui.PopOut). That window holds a second Staircase over the same trials
@@ -55,6 +62,18 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
 
         ThresholdFromLastNReversals (1,1) double {mustBePositive, mustBeInteger} = 12  % Number of reversals to use in threshold calculation
         ThresholdFormula (1,1) string {mustBeMember(ThresholdFormula,["Mean","GeometricMean"])} = "Mean"  % Formula for computing threshold from reversals
+
+        % Weighted-staircase correction (see weightedThreshold). Off by default,
+        % so no existing session changes its numbers. When on,
+        % Results.Threshold is the corrected, balanced value -- NaN until it
+        % can be computed, never the uncorrected mean under a flag that says
+        % otherwise -- and Results.Weighted holds the full result. Set, then
+        % refresh_history(), as for ThresholdFromLastNReversals.
+        ApplyWeightedCorrection (1,1) logical = false
+        WeightedStepAfterYes (1,1) double = NaN   % signed; NaN = find it
+        WeightedStepAfterNo  (1,1) double = NaN
+        WeightedStepFieldYes (1,1) string = ""    % DATA field holding the step; "" = none
+        WeightedStepFieldNo  (1,1) string = ""
 
         % Optional plotting configuration (when enabled via Plot or constructor option).
         % Accent colors avoid the reserved response-outcome hues (green/red/blue/
@@ -81,7 +100,8 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
             'StepDirection', [], ...
             'StimulusTrialIdx', [], ...
             'Threshold', [], ...
-            'ThresholdStd', [])  % Computed staircase outputs
+            'ThresholdStd', [], ...
+            'Weighted', [])  % Computed staircase outputs; Weighted only with ApplyWeightedCorrection
     end
 
     properties (Dependent)
@@ -92,6 +112,7 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
     properties (Access = private)
         sessionCache_ = []     % memoized per-trial vectors; see sessionVectors_
         geomeanUndefined_ (1,1) logical = false  % latches the undefined-geometric-mean log to once per episode
+        weightedRefusal_ (1,1) string = ""       % last weighted-correction refusal logged; see logWeightedRefusal_
 
         % Plot state (optional).
         plotEnabled_ (1,1) logical = false
@@ -316,11 +337,17 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
                     throwAsCaller(ME);
                 end
                 v = obj.dataFieldValues_(fieldName);
+                if numel(v) ~= obj.trialCount
+                    v = obj.stimulusValuesPerTrial_(fieldName);
+                end
             end
         end
 
         % Psychometric fit (implemented as separate files in @Staircase)
         F = fitPsychometric(obj, options)
+
+        % Weighted-staircase threshold (Hoover 2025), a separate file in @Staircase
+        T = weightedThreshold(obj, options)
 
     end
 
@@ -330,10 +357,15 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
         F = fitProportions(levels, numYes, numTotal, options)
         P = psychometricFunction(x, alpha, beta, options)
         x = psychometricLevel(P, alpha, beta, options)
+
+        % The weighted-staircase estimator, likewise pure.
+        T = correctedReversalMean(reversalValues, reversalIsAscending, stepAfterYes, stepAfterNo, options)
     end
 
     methods (Static, Access = private)
         F = emptyFit_()
+        T = emptyWeightedThreshold_()
+        [used, why] = selectBalancedReversals_(isAscending, eligible, numReversals)
     end
 
     methods (Access = protected)
@@ -355,6 +387,15 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
 
             if isempty(obj.DATA)
                 obj.Results = results;
+                if obj.ApplyWeightedCorrection
+                    % A session that has not started still reports a result
+                    % struct under the flag, so no reader of
+                    % Results.Weighted.Valid has to test for [] first.
+                    results.Weighted = obj.weightedThreshold();
+                    results.Threshold = NaN;
+                    results.ThresholdStd = NaN;
+                    obj.Results = results;
+                end
                 return
             end
 
@@ -395,7 +436,7 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
 
             results.ReversalCount = numel(results.ReversalIdx);
 
-            if results.ReversalCount > 0
+            if results.ReversalCount > 0 && ~obj.ApplyWeightedCorrection
                 lastN = max(1, results.ReversalCount - obj.ThresholdFromLastNReversals + 1):results.ReversalCount;
                 thresholdValues = s.stimValues(results.ReversalIdx(lastN));
 
@@ -404,6 +445,59 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
             end
 
             obj.Results = results;
+
+            if obj.ApplyWeightedCorrection
+                % weightedThreshold reads the reversals from obj.Results, so
+                % they are published first. It never throws for a data
+                % problem, which matters here: this runs from a NewData
+                % listener on every trial. The uncorrected path above is
+                % skipped rather than overwritten, or GeometricMean would log
+                % "threshold not shown" beside a threshold that is shown.
+                W = obj.weightedThreshold();
+                results.Weighted = W;
+                results.Threshold = W.Threshold;
+                % A refused correction can still have averaged its reversals;
+                % a spread beside a NaN threshold would describe nothing.
+                results.ThresholdStd = NaN;
+                if W.Valid
+                    results.ThresholdStd = W.ReversalStd;
+                end
+                obj.Results = results;
+                obj.logWeightedRefusal_(W);
+            end
+        end
+
+        function logWeightedRefusal_(obj, W)
+            % Say once, not once per trial, why the corrected threshold is
+            % missing. Debug level: a session's first trials have no
+            % reversals yet, and that is not news.
+            if W.Valid
+                obj.weightedRefusal_ = "";
+                return
+            end
+            if W.Message ~= obj.weightedRefusal_
+                vprintf(2, 'Staircase %s: no weighted-corrected threshold. %s', ...
+                    char(obj.ParameterName), char(W.Message));
+            end
+            obj.weightedRefusal_ = W.Message;
+        end
+
+        function v = stimulusValuesPerTrial_(obj, fieldName)
+            % One level per trial, NaN where a trial recorded none.
+            % [DATA.(f)] silently drops a trial whose value is empty, which
+            % slid every later level onto the wrong trial -- and threw in
+            % recomputeResults_ from the NewData listener, every trial. NaN is
+            % what reversal detection already reads as "not recorded".
+            v = nan(1, obj.trialCount);
+            for k = 1:obj.trialCount
+                x = obj.DATA(k).(fieldName);
+                if isscalar(x) && ((isstruct(x) && isfield(x, 'Value')) || (isobject(x) && isprop(x, 'Value')))
+                    x = x.Value;
+                end
+                if isscalar(x) && (isnumeric(x) || islogical(x))
+                    v(k) = double(x);
+                end
+            end
         end
 
         function thr = thresholdFromReversals_(obj, values)
@@ -444,6 +538,7 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
             results.StimulusTrialIdx = [];
             results.Threshold = [];
             results.ThresholdStd = [];
+            results.Weighted = [];
         end
 
         function afterRefresh_(obj)
@@ -481,7 +576,12 @@ classdef Staircase < psychophysics.Psych & gui.PopOut
                 ShowSteps          = obj.ShowSteps, ...
                 ShowReversals      = obj.ShowReversals);
 
+            % The weighted-correction settings are analysis settings too: left
+            % out, a pop-out would show the uncorrected threshold beside a
+            % corrected embedded plot.
             props = {'ThresholdFromLastNReversals','ThresholdFormula', ...
+                'ApplyWeightedCorrection','WeightedStepAfterYes','WeightedStepAfterNo', ...
+                'WeightedStepFieldYes','WeightedStepFieldNo', ...
                 'LineColor','StepColor','NeutralColor','ReversalColor', ...
                 'ThresholdColor','MarkerSize','StepMarkerSize', ...
                 'ReversalMarkerSize','Bits','BitColors'};

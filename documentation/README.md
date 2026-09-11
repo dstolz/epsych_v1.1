@@ -108,6 +108,7 @@ Analysis (`psychophysics`):
 - [psychophysics.NAFC](psychophysics/psychophysics_NAFC.md) — N-alternative forced choice: choice functions, confusion matrix, choice bias
 - [psychophysics.Staircase](psychophysics/psychophysics_Staircase.md) — reversals and threshold estimation
 - [Psychometric fitting](psychophysics/psychophysics_StaircaseFit.md) — maximum-likelihood threshold, slope and goodness of fit from a staircase's trials
+- [Weighted-staircase threshold](psychophysics/psychophysics_WeightedStaircase.md) — Hoover-corrected, balanced reversal threshold for asymmetric-step staircases
 - [psychophysics.BestPEST](psychophysics/psychophysics_BestPEST.md) — maximum-likelihood threshold tracking
 - [psychophysics.MLP](psychophysics/psychophysics_MLP.md) — Bayesian psychometric estimation
 - [A' (nonparametric sensitivity)](psychophysics/psychophysics_APrime.md) — distribution-free companion to d'

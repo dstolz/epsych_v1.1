@@ -1141,7 +1141,56 @@ re-uploading the state table.
   `tmp/smoke_test_staircase_fit.m`, whose group 9 parses both `arguments` blocks
   because MATLAB cannot inherit one and `fitPsychometric` must repeat
   `fitProportions`' 16 forwarded declarations
-  (see documentation/psychophysics/psychophysics_StaircaseFit.md)
+  (see documentation/psychophysics/psychophysics_StaircaseFit.md).
+  Since 2026-09-11 it also corrects a WEIGHTED (asymmetric-step, Kaernbach)
+  staircase — which `cl_AppetitiveStimDetect` runs whenever `Depth_StepOnHit` and
+  `Depth_StepOnMiss` differ in magnitude — whose reversal mean is biased toward
+  the tail of the psychometric function: `weightedThreshold` (seam) over
+  `correctedReversalMean` (pure static) returns Hoover's (2025) balanced mean plus
+  (δ₋ − δ₊)/4, with `StepDown`/`StepUp`/`StepRatio`/`TargetProbability` named for
+  the paper's δ₋/δ₊/r/ψ. What a reader would otherwise re-derive: steps are SIGNED
+  and named by the response that preceded them, and written that way the
+  correction is `-(stepAfterYes + stepAfterNo)/4` whichever way the parameter runs
+  — mirroring the axis flips steps and correction together — so there is
+  deliberately no Direction option, and ascending/descending are read in raw units
+  with `StaircaseDirection`'s plot flip undone; balance is ENFORCED
+  (`selectBalancedReversals_`: last N, then the most recent k of each direction)
+  rather than assumed from alternation, because on a ψ = 0.75 track the peaks and
+  troughs alone sit near p = 0.86 and 0.60, so one surplus reversal costs about
+  what the correction removes; steps are stated, read from a NAMED per-trial DATA
+  field (never auto-detected — guessing a column is how you read the wrong one;
+  `ep_TimerFcn_RunTime` already saves the two step parameters, and a field is the
+  only way to see an operator's mid-session `autoCommit` edit), or inferred as the
+  MODE of the non-zero steps, so a clamp at `Min`/`Max` cannot drag it; both read
+  only the steps behind the reversals used, which is what makes a coarse-then-fine
+  track report the fine steps; inconsistent steps are FLAGGED (`StepConsistency`,
+  `StepsConsistent`, `Message`) and never refused, refusals being reserved for an
+  impossible number (zero/same-signed step, no reversals, one direction, no way to
+  find a step); `ExpectedTarget` is an assertion that never moves the threshold,
+  there to catch a ratio wired backwards (0.25 for 0.75). The opt-in
+  `ApplyWeightedCorrection` (default false, set-then-`refresh_history` like
+  `ThresholdFormula`) makes `Results.Threshold` the corrected value and `NaN` —
+  never the uncorrected mean — while it cannot be computed; it SKIPS the legacy
+  threshold rather than overwriting it (else `GeometricMean` logs "threshold not
+  shown" beside a shown one), and its five properties are in `createPopOut_`'s
+  copy list or a pop-out would show the uncorrected number beside a corrected
+  plot. Not for mAFC with few alternatives, lapse rates above 1/10, asymmetric
+  PFs (Weibull), or `gui.AdaptiveTraining`'s warped-space ladders. Too little
+  data is always a refusal naming its cause, never a throw — the minimum is one
+  ascending and one descending reversal (four stimulus trials) — and the
+  "why none were selected" sentence lives in `selectBalancedReversals_` alone so
+  every path says the same thing; under the flag an empty session still gets a
+  `Results.Weighted` struct, and a refusal leaves `ThresholdStd` NaN too. The
+  seam pairs reversals with `Results.StimulusTrialIdx`, not a fresh mask, so a
+  `StimulusTrialType` changed without `refresh_history()` reads the trials its
+  reversals came from. `stimulusValues` reads an EMPTY tracked value as NaN
+  (`stimulusValuesPerTrial_`): `[DATA.(f)]` silently drops that trial, sliding
+  every later level onto the wrong trial and throwing from the constructor and
+  the NewData listener; a missing response code is instead refused for
+  inference, since the same slide would misattribute every later step. Standing
+  proof `tmp/smoke_test_weighted_staircase.m`, whose Monte Carlo moves ψ = 0.75
+  from p = 0.794 to 0.759 and whose group 11 is every short, empty and
+  malformed session (see documentation/psychophysics/psychophysics_WeightedStaircase.md)
 - **psychophysics.BestPEST**, **psychophysics.MLP**: Threshold-seeking algorithms
 - **psychophysics.SessionMetrics**: Session-level counts, rates, d', A' and criterion over a
   `psychophysics.TrialWindow` (all trials, last N, first N, or an explicit range). The

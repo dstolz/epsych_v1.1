@@ -44,7 +44,13 @@ end
 
 if ~isempty(obj.Results.Threshold)
     threshold = obj.Results.Threshold;
-    if isscalar(threshold) && isfinite(threshold)
+    if isscalar(threshold) && isfinite(threshold) && obj.ApplyWeightedCorrection
+        % Say the number is corrected, and by how much, so a screenshot
+        % pasted into a notebook describes itself.
+        W = obj.Results.Weighted;
+        titleParts{end+1} = sprintf('Corrected threshold (%d/%d rev, %+.2f): %.2f', ...
+            W.NumReversals, obj.ThresholdFromLastNReversals, W.Correction, threshold);
+    elseif isscalar(threshold) && isfinite(threshold)
         configuredReversals = obj.ThresholdFromLastNReversals;
         actualReversals = obj.Results.ReversalCount;
 
